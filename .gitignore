@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+data/cifar-10-batches-py/
+*.tar.gz
+.venv/
+env/
+*.env
+modal.env
+.DS_Store
