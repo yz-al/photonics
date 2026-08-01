@@ -1,0 +1,38 @@
+{
+  "device": "cpu",
+  "seeds": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "config": {
+    "width": 256,
+    "depth": 2,
+    "T": 8,
+    "mnist_subset": null,
+    "cifar_subset": 20000
+  },
+  "datasets": {
+    "mnist": {
+      "relu": {
+        "n_seeds": 5,
+        "mean_acc": 0.98418,
+        "std_acc": 0.0005810335618533452,
+        "min_acc": 0.9834,
+        "max_acc": 0.9849,
+        "per_seed_acc": [
+          0.9834,
+          0.9838,
+          0.984,
+          0.9849,
+          0.9848
+        ],
+        "params": 270346,
+        "mean_wall_s": 79.66,
+        "macs_per_inference": 268800
+      }
+    }
+  }
+}
