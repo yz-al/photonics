@@ -7,13 +7,9 @@ name: Test 2 (optics-native architecture) on Modal GPU
 # or manually via the Actions tab.
 
 on:
-  workflow_dispatch:
-  push:
-    branches: [claude/photonic-thesis-yimasz]
-    paths:
-      - 'test2/**'
-      - '.github/workflows/test2-modal.yml'
-      - '!test2/results/**'
+  workflow_dispatch:        # manual / API trigger only, to avoid a GPU run on
+                            # every doc/results commit. Re-run from the Actions
+                            # tab or via the API when you want a fresh sweep.
 
 permissions:
   contents: write
