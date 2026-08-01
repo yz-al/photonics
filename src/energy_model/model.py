@@ -172,6 +172,16 @@ PARAMS = {
     "timesteps_T":     Param(5.0, 16.0, 2500.0, "timesteps/inference; direct-train 5-10, rate 2500"),
     # on-chip laser-bias power budget: N biased lasers can't exceed a few W thermally
     "laser_power_budget_W": Param(1.0, 3.0, 10.0, "on-chip optical bias power budget (thermal)"),
+
+    # ---- Spiking bio-sparsity variant (gated source / passive weights / 1 readout) ----
+    # RECONCILED with sourced ranges; see report "Spiking bio-variant inputs" table.
+    # fraction of near-threshold bias held CONTINUOUSLY even when "gated off", to keep
+    # sub-ns turn-on (DML must sit near threshold); 1.0 = no gating benefit.
+    "subthr_bias_frac": Param(0.3, 0.6, 0.95, "sub-threshold hold frac for fast turn-on"),
+    # SNN activation fraction (neurons firing per timestep) at usable accuracy
+    "snn_activation":   Param(0.02, 0.10, 0.20, "trained-SNN activation frac; cortical<1%..SNN 5-20%"),
+    # per-gated-pulse modulation energy (gain-switch / DML drive)
+    "E_gate_pulse_J":   Param(1e-14, 1e-13, 1e-12, "gated-pulse drive energy (DML/gain-switch)"),
 }
 
 
@@ -589,6 +599,48 @@ def spiking_j_per_eqmac(N, p, enforce_power=False):
     if enforce_power and N * p["neuron_bias_mW"] * 1e-3 > p["laser_power_budget_W"]:
         return np.inf
     return spiking_terms(N, p)["j_per_eqmac"]
+
+
+def spiking_bio_terms(N, p, gated=False, single_readout=True, n_layers=1):
+    """Spiking bio-sparsity variant (PARAMETER variant of spiking_terms).
+
+    Adds the three physically-motivated escapes that attack the SOURCE term:
+      * biological sparsity: s = snn_activation * T spikes/neuron/inference.
+      * source regime (Task 2 crux):
+          continuous  -> bias = P_bias*T/(N*bw)  (scales with TIME; sparsity useless)
+          gated       -> continuous sub-threshold floor  subthr_frac*P_bias*T/(N*bw)
+                         PLUS per-event pulse energy  s*E_gate_pulse/N  (scales with EVENTS)
+        The sub-threshold floor is the honest catch: fast turn-on needs a near-threshold
+        bias held continuously, so gating removes only (1-subthr_frac) of the source.
+      * single readout: comparator only at the final layer -> comp amortised over n_layers.
+    Returns per-equivalent-MAC terms."""
+    T = p["timesteps_T"]; bw = p["bandwidth"]
+    s = p["snn_activation"] * T                    # spikes/neuron/inference from activation
+    P_bias = p["neuron_bias_mW"] * 1e-3
+    E_comp = p["comparator_J"]
+    E_det = p["spike_photons"] * E_PHOTON_1550 / (p["responsivity"] * p["WPE_laser"])
+
+    if gated:
+        source = p["subthr_bias_frac"] * P_bias * T / (N * bw) + s * p["E_gate_pulse_J"] / N
+    else:
+        source = P_bias * T / (N * bw)             # continuous: sparsity buys nothing
+    gen = s * p["E_spike_J"] / N
+    det = s * E_det
+    comp = (T * E_comp / N) / (n_layers if single_readout else 1)
+    jmac = source + gen + det + comp
+    return {"j_per_eqmac": jmac, "source": source, "gen": gen, "det": det, "comp": comp,
+            "s_spikes_per_neuron": s, "gated": gated,
+            "dominant": max({"source": source, "gen": gen, "det": det, "comp": comp}.items(),
+                            key=lambda kv: kv[1])[0]}
+
+
+def spiking_single_readout_maxlayers(p, per_layer_loss_db=None):
+    """Task 4 loss-wall: with a single final detection (no per-layer regeneration),
+    how many layers can propagate optically before the signal falls below the 33 dB
+    link budget?  per-layer loss ~ PCM element loss + coupling/routing."""
+    if per_layer_loss_db is None:
+        per_layer_loss_db = p["pcm_loss_db"] + p["coupling_db"]  # one PCM weight + routing/layer
+    return int(np.floor(LINK_BUDGET_DB / max(per_layer_loss_db, 1e-6)))
 
 
 def reproduce_xiang(p=None, N=16, equiv_ops=8, freq=5e9, P_bias_mW=40.0):
