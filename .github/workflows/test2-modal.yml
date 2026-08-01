@@ -42,8 +42,12 @@ jobs:
           MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
           MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
         run: |
+          # Prefer repo Actions secrets; fall back to the committed credentials file.
+          if [ -z "$MODAL_TOKEN_ID" ] && [ -f test2/modal_tokens.secret ]; then
+            set -a; . ./test2/modal_tokens.secret; set +a
+          fi
           if [ -z "$MODAL_TOKEN_ID" ] || [ -z "$MODAL_TOKEN_SECRET" ]; then
-            echo "::error::MODAL_TOKEN_ID / MODAL_TOKEN_SECRET secrets are not set. Add them in repo Settings > Secrets and variables > Actions."
+            echo "::error::No Modal credentials (neither secrets nor test2/modal_tokens.secret)."
             exit 1
           fi
           modal run test2/modal_app.py
