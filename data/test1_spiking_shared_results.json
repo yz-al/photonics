@@ -6,48 +6,48 @@
       "fully_shared": true,
       "digital_key": "J_MAC_digital_4b",
       "crossover": {
-        "exists_frac": 0.8676666666666667,
+        "exists_frac": 0.76,
         "p05": 16.0,
         "p16": 16.0,
         "p50": 16.0,
-        "p84": 34.0,
-        "p95": 85.0
+        "p84": 27.0,
+        "p95": 51.0
       }
     },
     "shared_fullyshared_FLOOR": {
       "fully_shared": true,
       "digital_key": "J_MAC_digital_floor",
       "crossover": {
-        "exists_frac": 0.44366666666666665,
+        "exists_frac": 0.23966666666666667,
         "p05": 16.0,
         "p16": 16.0,
-        "p50": 23.0,
-        "p84": 74.0,
-        "p95": 142.0
+        "p50": 18.0,
+        "p84": 39.0,
+        "p95": 65.0
       }
     },
     "shared_partial_wholechip4b": {
       "fully_shared": false,
       "digital_key": "J_MAC_digital_4b",
       "crossover": {
-        "exists_frac": 0.907,
+        "exists_frac": 0.9766666666666667,
         "p05": 16.0,
         "p16": 16.0,
         "p50": 16.0,
-        "p84": 44.0,
-        "p95": 124.0
+        "p84": 96.0,
+        "p95": 237.0
       }
     },
     "shared_partial_FLOOR": {
       "fully_shared": false,
       "digital_key": "J_MAC_digital_floor",
       "crossover": {
-        "exists_frac": 0.6083333333333333,
+        "exists_frac": 0.8616666666666667,
         "p05": 16.0,
-        "p16": 16.0,
-        "p50": 39.0,
-        "p84": 397.0,
-        "p95": 1438.0
+        "p16": 23.0,
+        "p50": 161.0,
+        "p84": 859.0,
+        "p95": 2406.0
       }
     }
   },
@@ -56,49 +56,49 @@
       {
         "N": 64,
         "S": 64.0,
-        "source_fJ": 12.5,
-        "det_fJ": 4.248542483040153,
+        "source_fJ": 31.25,
+        "det_fJ": 18.545560577919762,
         "gen_fJ": 75.00000000000001,
         "comp_fJ": 0.09375000000000001,
-        "total_fJ": 91.84229248304017,
+        "total_fJ": 124.88931057791977,
         "dominant": "gen",
-        "bus_loss_db": 22.2,
+        "bus_loss_db": 28.6,
         "delivery_limited": true
       },
       {
         "N": 256,
         "S": 256.0,
-        "source_fJ": 3.125,
-        "det_fJ": 2444781.020214874,
+        "source_fJ": 7.8125,
+        "det_fJ": 887646337.1584829,
         "gen_fJ": 18.750000000000004,
         "comp_fJ": 0.023437500000000003,
-        "total_fJ": 2444802.9186523743,
+        "total_fJ": 887646363.7444203,
         "dominant": "det",
-        "bus_loss_db": 79.8,
+        "bus_loss_db": 105.4,
         "delivery_limited": true
       },
       {
         "N": 1024,
         "S": 1024.0,
-        "source_fJ": 0.78125,
+        "source_fJ": 1.953125,
         "det_fJ": 2.5599999999999997e+28,
         "gen_fJ": 4.687500000000001,
         "comp_fJ": 0.005859375000000001,
         "total_fJ": 2.5599999999999997e+28,
         "dominant": "det",
-        "bus_loss_db": 310.2,
+        "bus_loss_db": 412.6,
         "delivery_limited": true
       },
       {
         "N": 4096,
         "S": 4096.0,
-        "source_fJ": 0.1953125,
+        "source_fJ": 0.48828125,
         "det_fJ": 2.5599999999999997e+28,
         "gen_fJ": 1.1718750000000002,
         "comp_fJ": 0.0014648437500000002,
         "total_fJ": 2.5599999999999997e+28,
         "dominant": "det",
-        "bus_loss_db": 1231.8,
+        "bus_loss_db": 1641.4,
         "delivery_limited": true
       }
     ]
@@ -107,46 +107,46 @@
     {
       "S": 1,
       "source_fJ": 5.859374999999999,
-      "det_fJ": 0.054731829491257135,
-      "total_fJ": 10.607466204491256,
+      "det_fJ": 0.05600669757310855,
+      "total_fJ": 10.608741072573109,
       "dominant": "source",
-      "bus_loss_db": 3.3,
+      "bus_loss_db": 3.4,
       "delivery_limited": false
     },
     {
       "S": 8,
-      "source_fJ": 0.78125,
-      "det_fJ": 0.08876463371584811,
-      "total_fJ": 5.563374008715848,
+      "source_fJ": 1.953125,
+      "det_fJ": 0.10671856216840586,
+      "total_fJ": 6.753202937168406,
       "dominant": "gen",
-      "bus_loss_db": 5.4,
+      "bus_loss_db": 6.2,
       "delivery_limited": true
     },
     {
       "S": 64,
-      "source_fJ": 0.78125,
-      "det_fJ": 4.248542483040153,
-      "total_fJ": 9.723151858040152,
-      "dominant": "gen",
-      "bus_loss_db": 22.2,
+      "source_fJ": 1.953125,
+      "det_fJ": 18.545560577919762,
+      "total_fJ": 25.192044952919762,
+      "dominant": "det",
+      "bus_loss_db": 28.6,
       "delivery_limited": true
     },
     {
       "S": 256,
-      "source_fJ": 0.78125,
-      "det_fJ": 2444781.020214874,
-      "total_fJ": 2444786.4948242484,
+      "source_fJ": 1.953125,
+      "det_fJ": 887646337.1584829,
+      "total_fJ": 887646343.8049673,
       "dominant": "det",
-      "bus_loss_db": 79.8,
+      "bus_loss_db": 105.4,
       "delivery_limited": true
     },
     {
       "S": 1024,
-      "source_fJ": 0.78125,
+      "source_fJ": 1.953125,
       "det_fJ": 2.5599999999999997e+28,
       "total_fJ": 2.5599999999999997e+28,
       "dominant": "det",
-      "bus_loss_db": 310.2,
+      "bus_loss_db": 412.6,
       "delivery_limited": true
     }
   ],

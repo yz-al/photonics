@@ -189,13 +189,15 @@ PARAMS = {
     # per-gated-pulse modulation energy (gain-switch / DML drive)
     "E_gate_pulse_J":   Param(1e-14, 1e-13, 1e-12, "gated-pulse drive energy (DML/gain-switch)"),
 
-    # ---- Shared-source spiking (one laser feeds many passive spiking elements) ----
-    # RECONCILED with sourced ranges; see report "Shared-source inputs" table.
-    "neurons_per_source": Param(16.0, 256.0, 4096.0, "neurons sharing one source; SEPhIA <1 laser/neuron"),
-    # optical drive power per PASSIVE spiking element (SA/PCM/VO2/resonator) to threshold
-    "P_drive_W":        Param(10e-6, 200e-6, 2e-3, "optical drive/passive spiking element (SA/PCM)"),
-    # per-element insertion loss of the passive element on the shared bus (loss-wall risk)
-    "elem_loss_db":     Param(0.05, 0.3, 1.0, "passive spiking-element bus IL per element"),
+    # ---- Shared-source spiking (one comb feeds many passive spiking elements) ----
+    # RECONCILED with SEPhIA (arXiv:2510.07427): the shared bus is OPTICAL-POWER-limited
+    # at N_T<=16 by the loss law 2*N*IL + 10log(N); one source may feed a few tiles.
+    "neurons_per_source": Param(8.0, 16.0, 64.0, "neurons/source; SEPhIA Op-Tile N_T<=16 (power-limited)"),
+    # standing optical drive power per element: SEPhIA P_lambda=2.5mW realistic, 44uW idealized
+    # (-14 dBm); passive microring self-pulse 80-223uW; RTD ~100uW.  Dominates (99.8% optical).
+    "P_drive_W":        Param(44e-6, 500e-6, 2.5e-3, "optical drive/element; SEPhIA 2.5mW real..44uW ideal"),
+    # per-element bus IL: Si MRM 0.2 dB (SEPhIA); Sb2Se3 0.4-0.65 dB; GST several dB.
+    "elem_loss_db":     Param(0.2, 0.4, 1.0, "element bus IL; SEPhIA MRM 0.2dB..Sb2Se3 0.4-0.65"),
 }
 
 
