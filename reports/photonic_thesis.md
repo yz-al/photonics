@@ -1095,6 +1095,35 @@ blockade lives in the N→1 (big U, no collective Ω) limit. The nearest RT sing
 reaches Ω > Γ but has **not** shown U > Γ; a room-temperature *single-emitter photon
 blockade* has never been demonstrated.
 
+**What the measured data says (the gap is ~3 orders, and a continuous FOM, not a no-go).**
+Both sides of U/Γ have been measured, and they bracket the door quantitatively:
+- **Γ_phonon(T) is measured and rises ~10²–10³× from cryo to RT** in every candidate
+  RT-exciton material. Monolayer TMDs: residual homogeneous linewidth ~1.6 meV (T₂≈0.4 ps)
+  extrapolated to zero temperature/density, broadening to ~5–15 meV at 300 K via acoustic +
+  LO-phonon dephasing (Moody et al., Nat. Commun. 6, 8315 (2015); Selig et al., Nat. Commun.
+  7, 13279 (2016)). Halide perovskites are worse: a single LO mode at ~11–20 meV with Fröhlich
+  coupling ~40–70 meV drives the RT homogeneous linewidth to tens of meV (Wright et al., Nat.
+  Commun. 7, 11755 (2016); "Fröhlich interaction dominated by a single phonon mode in CsPbBr₃,"
+  Nat. Commun. 12, s41467-021-26192-0 (2021)). GaAs — the material of the best blockade demos —
+  is **not** on this list: its ~few-meV exciton binding lets the exciton ionize above cryo,
+  which is *why* those demos stop below 40 K.
+- **U is measured, roughly athermal, and even cold has never reached U/Γ = 1.** The strongest
+  direct measurement is Delteil et al. (Nat. Mater. 18, 219 (2019); arXiv:1805.04020): 0D GaAs
+  polaritons confined to ~3 µm², a **modest ~5% two-polariton suppression → U/Γ ≈ 0.42 at
+  few K** — blockade not reached even cold. The TMD-nanocavity route is orders further: MoSe₂
+  in a photonic-crystal cavity switches at ~4 fJ (N~10⁴ photons) with Γ_LP≈1.8 meV at 4 K,
+  "several orders of magnitude" from the single-polariton regime (arXiv:2411.16635).
+
+Put together: the best cold system is **~2.4× short** of blockade, and carrying that same
+athermal U to a material whose RT Γ is ~10²–10³× larger opens a **further ~2–3 orders — a net
+RT deficit of roughly three orders of magnitude in U/Γ, set by measured phonon-broadened
+Γ(300 K).** Crucially the data shows this is a **continuous figure of merit ~10³ away, not an
+infinity**: there is no measured no-go, and the active levers (Rydberg / dipolar / interlayer
+excitons and Fermi-polarons to *raise* U; large-binding, low-Fröhlich TMD-class materials
+whose RT Γ is only ~10 meV to *lower* the target) push in the right direction. **The concrete
+watch-target the numbers define: a large-exciton-binding, low-Fröhlich material (TMD-class) in
+which an enhanced U reaches its own ~10 meV room-temperature linewidth.**
+
 **Verdict: the door is open but narrow, and now specific.** RT blockade is not causality- or
 thermodynamically forbidden — unlike the Kerr/χ³ route — so the programme does **not** close
 on this axis. It leaves one precise, watchable target: **a single- (or few-) emitter system
