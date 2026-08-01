@@ -1499,13 +1499,25 @@ competitor is the smallest ReLU MLP reaching each optical net's own accuracy:
 | D²NN, 95.5% | W16, **13k MAC** (95.7%) | 7–23 nJ | ~1–5 nJ | **loses — withdrawn** |
 | Spiking, 98.2% | W128, **118k MAC** (98.3%) | 26 nJ | 47 nJ | **coin-flip: 52% of draws** (was 80% vs the unmatched 268.8k baseline) |
 
-Right-sizing **withdraws the D²NN win outright** and **collapses the spiking win to a 52%
+**The D²NN result is stronger than "it loses," and it does not depend on the illumination gate.**
+A phase mask is passive, so the D²NN's *compute* energy is ~zero by construction: its 7–23 nJ is
+**entirely** input DAC + modulation + laser + detector readout — the I/O of getting a scene into
+and out of optics. So this is not a compute-efficiency finding at all. It is that **the I/O cost
+of the optical path alone exceeds the total cost of a 13k-MAC digital net at the same accuracy.**
+That is general: at low capacity demand the optical path cannot win *no matter how good the optics
+get*, because the floor is I/O and the whole digital competitor sits beneath it. (Independent of
+the illumination gate, which bears only on the D²NN's *accuracy* upper bound.)
+
+Right-sizing therefore **withdraws the D²NN outright** and **collapses the spiking "win" to a 52%
 coin-flip** — and the coin-flip does not survive scrutiny:
-- **It rests on near-free optical fan-out.** The SNN "wins" by charging energy per *spike* (~1,760)
-  while the digital pays per *MAC* (118k) — one laser pulse fanning out to many synapses. That
-  puts the optical synaptic op at ~10–33 fJ/SOP, at or below the 20–40 fJ arithmetic floor *only*
-  if the broadcast is loss-free — the same fan-out loss wall the crossbar and mesh died on. Charge
-  the broadcast honestly and the coin-flip erodes further. Generous-to-optics.
+- **The coin-flip is not an independent near-miss — it is the conserved cost set to zero by
+  assumption.** Traced: the ~1,760 count is *neuron firings* (f·N·T = 0.43·512·8), and generation
+  is charged at **8 pJ per firing**; the "~10–33 fJ/SOP" is that 8 pJ divided across each spike's
+  fan-out (SOPs = 1.84M ≫ firings), i.e. it drops below the 20–40 fJ arithmetic floor *only because
+  optical broadcast is priced free*. Free broadcast is **exactly** what the dense mesh and the
+  microring crossbar both died on. Restore the broadcast/splitter loss and the per-SOP energy rises
+  back toward the digital floor and the flip resolves — which makes the spiking row **consistent
+  with the other five architectures, one conserved electrical cost, not an anomaly.**
 - **The Loihi comparison is confounded, not a clean win.** Against a digital neuromorphic chip
   (Loihi-class 12.7–23.6 pJ/SOP; ODIN 28 nm / Loihi, Davies IEEE Micro 2018) the model reports the
   optical SNN "winning" 100% — but only because the net re-reads its dense input every timestep
@@ -1520,9 +1532,12 @@ coin-flip** — and the coin-flip does not survive scrutiny:
 **Breakeven surface (`test2/trackb_breakeven.py`, `data/trackb_breakeven.json`).** Sweeping spike
 energy × firing rate against the right-sized NPU: at the *measured* device point (8 pJ/spike,
 f≈0.43) the optical SNN is a coin-flip (52% of draws), and both inputs were taken at the favourable
-end. A robust win requires spike energy and firing rate below what fabricated devices (2.5–130
-pJ/spike, Follow-up 5/6) and trained SNNs (f≈0.3–0.45) actually reach — i.e. the achievable device
-parameters do **not** sit inside a robust win region.
+end. The 52% is a **genuine crossing** — each Monte-Carlo draw varies *both* the optical device
+parameters and the digital TOPS/W (2–30), so it is not the width of the optical distribution around
+a fixed line (one caveat: the matched-MAC count is a fixed point estimate, so the digital's only
+stochastic axis is efficiency). A robust win requires spike energy and firing rate below what
+fabricated devices (2.5–130 pJ/spike, Follow-up 5/6) and trained SNNs (f≈0.3–0.45) actually reach —
+i.e. the achievable device parameters do **not** sit inside a robust win region.
 
 **Compared to the pre-registration.** "Neither beats at matched CIFAR accuracy" — **confirmed**.
 "The surprise that would reopen it is either net matching an edge NPU at equal accuracy" — the
