@@ -163,10 +163,31 @@ def mesh_depth(N, arch, tile):
     tiled: the matrix is blocked into T x T sub-meshes; light only ever traverses
         one tile's depth T, then is detected/re-converted at the tile boundary.
         Depth is bounded at T regardless of N -> loss is bounded, but the O(N)
-        conversion amortisation is capped at T (see optical_j_per_mac)."""
+        conversion amortisation is capped at T (see optical_j_per_mac).
+    butterfly: an FFT-style mesh has log2(N) stages of N/2 2x2 MZIs.  Optical
+        depth = log2(N) -> loss stops being the wall.  BUT the transform does only
+        ~N*log2(N) MACs (not N^2), while still needing N input + N output
+        conversions, so conversion amortises over only log2(N), not N."""
     if arch == "tiled":
         return min(N, tile)
+    if arch == "butterfly":
+        return max(1, int(np.ceil(np.log2(N))))
     return N
+
+
+def amortisation_dim(N, arch, tile):
+    """MACs-per-conversion amortisation dimension A.
+
+    per-MAC conversion cost = (2 conversions per I/O channel) / A, where
+      dense/monolithic:  N^2 MACs / (2N conversions)  -> A = N
+      tiled:             re-converts every T-block      -> A = min(N, T)
+      butterfly:         N*log2(N) MACs / (2N conv.)    -> A = log2(N)
+    The butterfly's A = log2(N) is the crux: it grows only logarithmically."""
+    if arch == "tiled":
+        return max(1.0, float(min(N, tile)))
+    if arch == "butterfly":
+        return max(1.0, float(np.log2(N)))
+    return float(N)
 
 
 def mesh_transmission_db(depth, coupling_db, mzi_loss_db, wg_loss_dbcm, cell_len_um):
@@ -176,9 +197,19 @@ def mesh_transmission_db(depth, coupling_db, mzi_loss_db, wg_loss_dbcm, cell_len
     return 2 * coupling_db + depth * mzi_loss_db + prop_len_cm * wg_loss_dbcm
 
 
-def n_phase_shifters(N):
-    """Clements mesh: N(N-1)/2 MZIs, ~2 phase shifters each -> ~N(N-1)."""
+def n_phase_shifters(N, arch="monolithic"):
+    """Phase-shifter count.
+    Clements/monolithic: N(N-1)/2 MZIs, ~2 shifters each -> ~N(N-1).
+    butterfly: log2(N) stages x N/2 MZIs -> (N/2)log2(N) MZIs, ~N*log2(N) shifters."""
+    if arch == "butterfly":
+        return N * max(1, int(np.ceil(np.log2(N))))
     return N * (N - 1)
+
+
+def n_mzi(N, arch="monolithic"):
+    if arch == "butterfly":
+        return (N // 2) * max(1, int(np.ceil(np.log2(N))))
+    return N * (N - 1) // 2
 
 
 # Usable analog optical link budget (dB): ~0 dBm launch to ~ -30..-40 dBm
@@ -208,11 +239,10 @@ def optical_j_per_mac(N, bits, p, weight_stationary=True, modulator="MRM",
     E_mod = {"MZM": p["E_mod_MZM"], "MRM": p["E_mod_MRM"],
              "plasmonic": p["E_mod_plasmonic"]}[modulator]
 
-    amort = N if arch == "monolithic" else min(N, tile)  # conversion amortisation dim
+    amort = amortisation_dim(N, arch, tile)  # MACs-per-conversion amortisation dim
 
-    # --- Conversion + modulation: per amortisation-block boundary crossing.
-    #     Amount of conversion per matvec = N^2/amort tiles-rows * amort each = N^2/amort.
-    #     Equivalently per-MAC conversion = (E_DAC+E_ADC+E_mod)/amort.
+    # --- Conversion + modulation: per-MAC = (E_DAC+E_ADC+E_mod)/amort.
+    #     dense A=N ; tiled A=T ; butterfly A=log2(N)  (N*log2N MACs / 2N conversions)
     E_conv_mod_perMAC = (E_DAC + E_ADC + E_mod) / amort
 
     # --- Laser: deliver E_det to each detector through the mesh depth.
@@ -251,7 +281,7 @@ def optical_terms(N, bits, p, weight_stationary=True, modulator="MRM",
     E_ADC = p[f"E_ADC_{bits}b"]; E_DAC = p[f"E_DAC_{bits}b"]
     E_mod = {"MZM": p["E_mod_MZM"], "MRM": p["E_mod_MRM"],
              "plasmonic": p["E_mod_plasmonic"]}[modulator]
-    amort = N if arch == "monolithic" else min(N, tile)
+    amort = amortisation_dim(N, arch, tile)
     E_det = required_detector_energy(bits, p["responsivity"], p["tia_noise"], p["bandwidth"])
     depth = mesh_depth(N, arch, tile)
     loss_db = mesh_transmission_db(depth, p["coupling_db"], p["mzi_loss_db"],
@@ -284,8 +314,8 @@ def feasibility(N, p=None, arch="monolithic", tile=64):
     number of tiles needed to cover an N x N matrix."""
     if p is None:
         p = {k: v.nom for k, v in PARAMS.items()}
-    n_mzi = N * (N - 1) // 2
-    n_ps = n_phase_shifters(N)
+    nmzi = n_mzi(N, arch)
+    n_ps = n_phase_shifters(N, arch)
     depth = mesh_depth(N, arch, tile)
     # area: width = N * port_pitch ; length = depth * cell_len
     width_cm = N * p["mzi_port_pitch_um"] * 1e-4
@@ -302,7 +332,7 @@ def feasibility(N, p=None, arch="monolithic", tile=64):
     n_tiles = (max(1, N // tile)) ** 2 if arch == "tiled" else 1
     return {
         "N": N, "arch": arch, "tile": tile if arch == "tiled" else None,
-        "n_mzi": n_mzi, "n_phase_shifters": n_ps, "optical_depth": depth,
+        "n_mzi": nmzi, "n_phase_shifters": n_ps, "optical_depth": depth,
         "area_cm2": area_cm2, "area_mm2": area_cm2 * 100,
         "reticles": area_cm2 * 100 / RETICLE_MM2,
         "wafers_300mm": area_cm2 * 100 / WAFER300_MM2,

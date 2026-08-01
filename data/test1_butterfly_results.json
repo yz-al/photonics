@@ -1,0 +1,349 @@
+{
+  "arch": "butterfly",
+  "link_budget_db": 33.0,
+  "scenarios": {
+    "bfly_4b_wholechip_pcm": {
+      "bits": 4,
+      "weight_stationary": true,
+      "digital_key": "J_MAC_digital_4b",
+      "crossover": {
+        "exists_frac": 0.8916666666666667,
+        "p05": 16.0,
+        "p16": 16.0,
+        "p50": 39.0,
+        "p84": 664.0,
+        "p95": 5928.0
+      }
+    },
+    "bfly_4b_FLOOR_pcm": {
+      "bits": 4,
+      "weight_stationary": true,
+      "digital_key": "J_MAC_digital_floor",
+      "crossover": {
+        "exists_frac": 0.004,
+        "p05": 2588.05,
+        "p16": 3348.04,
+        "p50": 5569.5,
+        "p84": 26165.440000000002,
+        "p95": 31623.0
+      }
+    },
+    "bfly_4b_wholechip_thermo": {
+      "bits": 4,
+      "weight_stationary": false,
+      "digital_key": "J_MAC_digital_4b",
+      "crossover": {
+        "exists_frac": 0.005333333333333333,
+        "p05": 21.0,
+        "p16": 29.8,
+        "p50": 146.0,
+        "p84": 1875.7999999999993,
+        "p95": 7558.75
+      }
+    },
+    "bfly_4b_FLOOR_thermo": {
+      "bits": 4,
+      "weight_stationary": false,
+      "digital_key": "J_MAC_digital_floor",
+      "crossover": {
+        "exists_frac": 0.0,
+        "p16": Infinity,
+        "p50": Infinity,
+        "p84": Infinity
+      }
+    },
+    "bfly_8b_wholechip_pcm": {
+      "bits": 8,
+      "weight_stationary": true,
+      "digital_key": "J_MAC_digital_8b",
+      "crossover": {
+        "exists_frac": 0.221,
+        "p05": 57.0,
+        "p16": 142.0,
+        "p50": 977.0,
+        "p84": 8723.0,
+        "p95": 24442.0
+      }
+    },
+    "bfly_8b_FLOOR_pcm": {
+      "bits": 8,
+      "weight_stationary": true,
+      "digital_key": "J_MAC_digital_floor",
+      "crossover": {
+        "exists_frac": 0.0,
+        "p16": Infinity,
+        "p50": Infinity,
+        "p84": Infinity
+      }
+    },
+    "bfly_8b_wholechip_thermo": {
+      "bits": 8,
+      "weight_stationary": false,
+      "digital_key": "J_MAC_digital_8b",
+      "crossover": {
+        "exists_frac": 0.0,
+        "p16": Infinity,
+        "p50": Infinity,
+        "p84": Infinity
+      }
+    },
+    "bfly_8b_FLOOR_thermo": {
+      "bits": 8,
+      "weight_stationary": false,
+      "digital_key": "J_MAC_digital_floor",
+      "crossover": {
+        "exists_frac": 0.0,
+        "p16": Infinity,
+        "p50": Infinity,
+        "p84": Infinity
+      }
+    }
+  },
+  "q4_feasibility": {
+    "64": {
+      "N": 64,
+      "arch": "butterfly",
+      "tile": null,
+      "n_mzi": 192,
+      "n_phase_shifters": 384,
+      "optical_depth": 6,
+      "area_cm2": 0.0768,
+      "area_mm2": 7.68,
+      "reticles": 0.008951048951048951,
+      "wafers_300mm": 0.00010864952041422629,
+      "loss_db": {
+        "best_0p1": 3.825,
+        "good_0p5": 6.225,
+        "typ_2p0": 15.225
+      },
+      "detectable_best": true,
+      "idle_tuning_W": 1.92,
+      "n_tiles": 1
+    },
+    "256": {
+      "N": 256,
+      "arch": "butterfly",
+      "tile": null,
+      "n_mzi": 1024,
+      "n_phase_shifters": 2048,
+      "optical_depth": 8,
+      "area_cm2": 0.4096,
+      "area_mm2": 40.96,
+      "reticles": 0.04773892773892774,
+      "wafers_300mm": 0.0005794641088758736,
+      "loss_db": {
+        "best_0p1": 4.1,
+        "good_0p5": 7.3,
+        "typ_2p0": 19.3
+      },
+      "detectable_best": true,
+      "idle_tuning_W": 10.24,
+      "n_tiles": 1
+    },
+    "1024": {
+      "N": 1024,
+      "arch": "butterfly",
+      "tile": null,
+      "n_mzi": 5120,
+      "n_phase_shifters": 10240,
+      "optical_depth": 10,
+      "area_cm2": 2.048,
+      "area_mm2": 204.8,
+      "reticles": 0.2386946386946387,
+      "wafers_300mm": 0.002897320544379368,
+      "loss_db": {
+        "best_0p1": 4.375,
+        "good_0p5": 8.375,
+        "typ_2p0": 23.375
+      },
+      "detectable_best": true,
+      "idle_tuning_W": 51.2,
+      "n_tiles": 1
+    },
+    "4096": {
+      "N": 4096,
+      "arch": "butterfly",
+      "tile": null,
+      "n_mzi": 24576,
+      "n_phase_shifters": 49152,
+      "optical_depth": 12,
+      "area_cm2": 9.8304,
+      "area_mm2": 983.04,
+      "reticles": 1.1457342657342657,
+      "wafers_300mm": 0.013907138613020965,
+      "loss_db": {
+        "best_0p1": 4.65,
+        "good_0p5": 9.45,
+        "typ_2p0": 27.45
+      },
+      "detectable_best": true,
+      "idle_tuning_W": 245.76,
+      "n_tiles": 1
+    },
+    "16384": {
+      "N": 16384,
+      "arch": "butterfly",
+      "tile": null,
+      "n_mzi": 114688,
+      "n_phase_shifters": 229376,
+      "optical_depth": 14,
+      "area_cm2": 45.87520000000001,
+      "area_mm2": 4587.52,
+      "reticles": 5.346759906759908,
+      "wafers_300mm": 0.06489998019409784,
+      "loss_db": {
+        "best_0p1": 4.925000000000001,
+        "good_0p5": 10.525,
+        "typ_2p0": 31.525
+      },
+      "detectable_best": true,
+      "idle_tuning_W": 1146.88,
+      "n_tiles": 1
+    }
+  },
+  "max_buildable_N": {
+    "mzi_0.1dB": 1073741824,
+    "mzi_0.5dB": 1073741824,
+    "mzi_2.0dB": 16384
+  },
+  "term_breakdown": {
+    "4b": [
+      {
+        "N": 64,
+        "amort_log2N": 6.0,
+        "conversion_fJ": 400.00000000000006,
+        "laser_fJ": 4.562758626858636,
+        "thermal_fJ": 1e-05,
+        "total_fJ": 405.06276862685866,
+        "loss_db": 6.225
+      },
+      {
+        "N": 256,
+        "amort_log2N": 8.0,
+        "conversion_fJ": 300.00000000000006,
+        "laser_fJ": 4.38317447426343,
+        "thermal_fJ": 1e-05,
+        "total_fJ": 304.75818447426343,
+        "loss_db": 7.3
+      },
+      {
+        "N": 1024,
+        "amort_log2N": 10.0,
+        "conversion_fJ": 240.00000000000003,
+        "laser_fJ": 4.491369084481351,
+        "thermal_fJ": 1e-05,
+        "total_fJ": 244.7913790844814,
+        "loss_db": 8.375
+      },
+      {
+        "N": 4096,
+        "amort_log2N": 12.0,
+        "conversion_fJ": 200.00000000000003,
+        "laser_fJ": 4.7939941444172325,
+        "thermal_fJ": 1e-05,
+        "total_fJ": 205.04400414441727,
+        "loss_db": 9.45
+      },
+      {
+        "N": 16384,
+        "amort_log2N": 14.0,
+        "conversion_fJ": 171.42857142857144,
+        "laser_fJ": 5.2632101340462025,
+        "thermal_fJ": 1e-05,
+        "total_fJ": 176.90607727690337,
+        "loss_db": 10.525
+      },
+      {
+        "N": 1048576,
+        "amort_log2N": 20.0,
+        "conversion_fJ": 120.00000000000001,
+        "laser_fJ": 7.741921253712493,
+        "thermal_fJ": 1e-05,
+        "total_fJ": 127.89193125371251,
+        "loss_db": 13.75
+      }
+    ],
+    "8b": [
+      {
+        "N": 64,
+        "amort_log2N": 6.0,
+        "conversion_fJ": 2250.0,
+        "laser_fJ": 146.5540686794124,
+        "thermal_fJ": 1e-05,
+        "total_fJ": 2397.054078679412,
+        "loss_db": 6.225
+      },
+      {
+        "N": 256,
+        "amort_log2N": 8.0,
+        "conversion_fJ": 1687.4999999999998,
+        "laser_fJ": 140.78589411978382,
+        "thermal_fJ": 1e-05,
+        "total_fJ": 1828.6609041197837,
+        "loss_db": 7.3
+      },
+      {
+        "N": 1024,
+        "amort_log2N": 10.0,
+        "conversion_fJ": 1350.0,
+        "laser_fJ": 144.26106377773618,
+        "thermal_fJ": 1e-05,
+        "total_fJ": 1494.561073777736,
+        "loss_db": 8.375
+      },
+      {
+        "N": 4096,
+        "amort_log2N": 12.0,
+        "conversion_fJ": 1125.0,
+        "laser_fJ": 153.98126540244695,
+        "thermal_fJ": 1e-05,
+        "total_fJ": 1279.231275402447,
+        "loss_db": 9.45
+      },
+      {
+        "N": 16384,
+        "amort_log2N": 14.0,
+        "conversion_fJ": 964.2857142857142,
+        "laser_fJ": 169.05230421760032,
+        "thermal_fJ": 1e-05,
+        "total_fJ": 1133.5523142176005,
+        "loss_db": 10.525
+      },
+      {
+        "N": 1048576,
+        "amort_log2N": 20.0,
+        "conversion_fJ": 675.0,
+        "laser_fJ": 248.66756099003612,
+        "thermal_fJ": 1e-05,
+        "total_fJ": 923.8175709900362,
+        "loss_db": 13.75
+      }
+    ]
+  },
+  "dense_equiv_squeeze": {
+    "256": {
+      "factors": 8,
+      "stacked_depth": 64,
+      "loss_0p5db": 37.4,
+      "detectable": false
+    },
+    "1024": {
+      "factors": 10,
+      "stacked_depth": 100,
+      "loss_0p5db": 56.75,
+      "detectable": false
+    },
+    "4096": {
+      "factors": 12,
+      "stacked_depth": 144,
+      "loss_0p5db": 80.4,
+      "detectable": false
+    },
+    "16384": {
+      "factors": 14,
+      "stacked_depth": 196,
+      "loss_0p5db": 108.35,
+      "detectable": false
+    }
+  }
+}

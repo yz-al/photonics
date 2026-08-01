@@ -444,12 +444,122 @@ wall is not here; it is the Test-1 energy/loss ledger.
 
 ---
 
+# Follow-up — Does an O(log N) mesh reopen the thesis?
+
+**One-line answer: No.** An O(log N) **butterfly/FFT mesh defeats the loss wall** —
+it is buildable to enormous N (depth 14 at N=16384, ≈5–31 dB; buildable to N≈10⁹ at
+≤0.5 dB/MZI) — **but it never beats the compute floor at any buildable N**, because a
+butterfly does only ~N·log₂N MACs, so the N input + N output conversions amortise over
+only **log₂N**, not N. Per-MAC conversion plateaus at **120–400 fJ (4-bit) / ~1–2 pJ
+(8-bit)**, above the 20–40 fJ floor **even at N = 2²⁰**. Crossover vs the compute floor
+exists in **0% of Monte-Carlo draws**, at every precision and both weight models. And
+making the butterfly expressive enough to replace a dense layer (a stack of ~log₂N
+factors) pushes depth to (log₂N)² and **fails on loss instead** (57 dB at N=1024). The
+two failure modes squeeze from both sides. **Per the pre-registered gate, A2
+(butterfly-network training) is moot and was not run.** The last door is closed on
+physics. Code: `src/energy_model/run_test1_butterfly.py`,
+data `data/test1_butterfly_results.json`.
+
+## A1 — butterfly energy model (same sourced ranges, same Monte-Carlo)
+
+Implementation reuses `model.py` unchanged except mesh structure: **depth = log₂N**,
+**(N/2)·log₂N MZIs**, **~N·log₂N phase shifters**, and the crux — the
+**amortisation dimension A = log₂N** (N·log₂N MACs per transform ÷ 2N conversions),
+versus A = N for a dense Clements mesh.
+
+### Q4 — buildability (nominal geometry; the loss wall is gone)
+
+| N | MZIs | phase shifters | optical depth | die area | loss @0.1 / 0.5 / 2.0 dB/MZI | detectable @0.1? | thermo-optic idle |
+|---|---|---|---|---|---|---|---|
+| 64 | 192 | 384 | 6 | 0.08 cm² | 3.8 / 6.2 / 15.2 dB | ✅ | ~0 |
+| 256 | 1,024 | 2,048 | 8 | 0.41 cm² | 4.1 / 7.3 / 19.3 dB | ✅ | 0.01 kW |
+| 1024 | 5,120 | 10,240 | 10 | 2.1 cm² | 4.4 / 8.4 / 23.4 dB | ✅ | 0.05 kW |
+| 4096 | 24,576 | 49,152 | 12 | 9.8 cm² | 4.7 / 9.4 / 27.4 dB | ✅ | 0.25 kW |
+| 16384 | 114,688 | 229,376 | 14 | 45.9 cm² | 4.9 / 10.5 / 31.5 dB | ✅ | 1.15 kW |
+
+Max buildable N within the 33 dB budget: **≈1.07×10⁹** at 0.1 and 0.5 dB/MZI, **16,384**
+at 2.0 dB/MZI. Contrast the dense mesh, which went dark by N≈256. **Loss is no longer
+the binding constraint.**
+
+### Crossover bands (butterfly, loss enforced, MC over the sourced ranges)
+
+| Scenario | vs whole-chip digital (0.3–2 pJ) | vs compute floor (20–40 fJ) |
+|---|---|---|
+| 4-bit, PCM weights | N≈39 [16–84%: 16–664], exists 89% | **no crossover — 0%** |
+| 4-bit, thermo-optic | N≈146, exists 1% | **no crossover — 0%** |
+| 8-bit, PCM weights | N≈977, exists 22% | **no crossover — 0%** |
+| 8-bit, thermo-optic | no crossover | **no crossover — 0%** |
+
+Same story as the dense mesh against the two baselines — a butterfly can beat the
+overhead-heavy *whole-chip* number at 4-bit — **but against the honest compute floor it
+never crosses, in zero of 3000 draws, at any setting.**
+
+### Why: conversion amortises as 1/log N, not 1/N
+
+Per-MAC term breakdown at nominal parameters (PCM weights); conversion =
+(E_DAC+E_ADC+E_mod)/log₂N:
+
+| precision | N=64 | N=1024 | N=16384 | N=2²⁰ (10⁶) | compute floor |
+|---|---|---|---|---|---|
+| 4-bit conversion/MAC | 400 fJ | 240 fJ | 171 fJ | 120 fJ | **20–40 fJ** |
+| 8-bit conversion/MAC | 2250 fJ | 1350 fJ | 964 fJ | 675 fJ | **20–40 fJ** |
+
+To reach 40 fJ at 4-bit you would need log₂N > 60, i.e. **N > 10¹⁸** — more input
+modulators than is remotely physical. The 1/log N amortisation is simply too weak;
+loss and MAC-count are coupled, and buying the low depth costs you the compute to
+amortise over.
+
+### The squeeze — dense-equivalent expressivity fails on loss
+
+A single butterfly is a restricted transform. Emulating a dense layer needs ~log₂N
+stacked butterfly factors → optical depth (log₂N)² → loss at 0.5 dB/MZI:
+
+| N | factors | stacked depth | loss @0.5 dB/MZI | detectable? |
+|---|---|---|---|---|
+| 256 | 8 | 64 | 37.4 dB | ❌ |
+| 1024 | 10 | 100 | 56.8 dB | ❌ |
+| 4096 | 12 | 144 | 80.4 dB | ❌ |
+| 16384 | 14 | 196 | 108.3 dB | ❌ |
+
+So the native butterfly fails on **energy** (weak amortisation) and the expressive
+butterfly fails on **loss** (depth (log₂N)²). There is no structure that is both
+low-depth (buildable) and high-MAC-count (amortisable), because in a coherent mesh
+those two are the same axis.
+
+### Honesty — what is charged, and what is not (all generosities favour optics)
+
+**Charged:** N input DACs + N output ADCs per transform (the amortisation floor); N
+input modulators; laser power derived from detector noise, through the log₂N mesh loss;
+thermo-optic idle **or** PCM hold; and the dense-equivalent depth penalty (the squeeze).
+
+**Not charged (each makes optics look *better* than reality):** waveguide-crossing loss
+from the FFT shuffle — a planar butterfly routes wide-stride connections that cross
+O(N) waveguides per path; at ~0.1 dB/crossing this alone would add tens-to-hundreds of
+dB and kill even the native butterfly on loss; digital permutation/recombination if the
+array must be tiled across reticles; and the reduced expressivity of one butterfly vs a
+dense layer (charged only in the squeeze sidebar, not in the main crossover). **Every
+uncharged item worsens the optical case, and it already fails the floor by 3–50×.**
+
+### Gate decision
+
+A1 shows **no crossover against the compute floor at any buildable N, in 0% of draws.**
+Per the pre-registered gate, **A2 is moot and was not run** — running it could only
+report an accuracy number for an architecture that has already lost on energy. The
+photonic-compute thesis, in its MZI-mesh form, is **closed on physics**: dense meshes
+die on loss, butterfly meshes die on converter amortisation, and the expressive
+butterfly dies on loss again. The one lever that could reopen it is unchanged from
+Test 1 — an **order-of-magnitude drop in per-conversion energy** (the converters, not
+the optics, are the cost), not a cleverer mesh topology.
+
+---
+
 ## Reproducibility
 
 ```bash
 # Test 1 — energy model (pure CPU, seconds)
 pip install numpy scipy matplotlib
-python src/energy_model/run_test1.py         # writes data/test1_results.json + figures/
+python src/energy_model/run_test1.py            # dense/tiled: data/test1_results.json + figures/
+python src/energy_model/run_test1_butterfly.py  # O(log N) butterfly: data/test1_butterfly_results.json
 
 # Test 2 — architecture comparison
 pip install torch torchvision scikit-learn datasets
