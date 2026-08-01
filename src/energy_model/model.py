@@ -117,6 +117,20 @@ PARAMS = {
     "J_MAC_digital_4b": Param(0.2e-12, 0.3e-12, 1.0e-12, "FP4 B200 whole-chip realized"),
     # Hard target: the arithmetic/CIM floor optics must beat to be a compute win.
     "J_MAC_digital_floor": Param(20e-15, 40e-15, 100e-15, "5nm INT8 arithmetic / CIM macro floor"),
+
+    # ---- Microring crossbar (weight-bank / broadcast-and-weight) --------------
+    # RECONCILED with sourced ranges; see report "Crossbar inputs" table.
+    # Per-ring continuous thermal-lock power; athermal designs reduce the low end.
+    "ring_stab_mW":    Param(0.5e-3, 4e-3, 20e-3, "per-ring thermal lock; athermal..full-active"),
+    "ring_through_db": Param(0.005, 0.02, 0.05, "through-port loss per ring on bus"),
+    "ring_Q":          Param(5e3, 1.5e4, 5e4, "loaded Q of a weight-bank ring"),
+    "ring_radius_um":  Param(5.0, 10.0, 20.0, "ring radius -> FSR"),
+    "fab_scatter_nm":  Param(0.3, 1.0, 4.0, "resonance scatter, 220nm SOI process"),
+    "tune_nm_per_mW":  Param(0.05, 0.15, 0.3, "heater tuning efficiency"),
+    "chan_spacing_factor": Param(2.0, 3.0, 5.0, "channel spacing / linewidth (crosstalk margin)"),
+    "ring_trim_range_nm":  Param(1.0, 3.0, 6.0, "max heater trim range (yield)"),
+    "digital_add_J":   Param(2e-15, 5e-15, 15e-15, "digital accumulate per partial sum @5nm"),
+    "n_group_si":      Param(4.0, 4.2, 4.4, "Si waveguide group index @1550"),
 }
 
 
@@ -303,6 +317,118 @@ def optical_terms(N, bits, p, weight_stationary=True, modulator="MRM",
 
 def digital_j_per_mac(bits, p):
     return p[f"J_MAC_digital_{bits}b"]
+
+
+LAMBDA_NM = 1550.0
+
+
+def crossbar_K_max(p):
+    """Achievable WDM channel count K = FSR / channel_spacing, derived.
+
+    FSR = lambda^2/(n_g * 2*pi*R); channel_spacing = factor * linewidth,
+    linewidth = lambda/Q.  K is the number of independent inputs carried in
+    parallel -> it caps the conversion amortisation at K, not N."""
+    R_nm = p["ring_radius_um"] * 1e3
+    fsr_nm = LAMBDA_NM**2 / (p["n_group_si"] * 2 * np.pi * R_nm)
+    linewidth_nm = LAMBDA_NM / p["ring_Q"]
+    spacing_nm = p["chan_spacing_factor"] * linewidth_nm
+    return max(1.0, np.floor(fsr_nm / spacing_nm))
+
+
+def crossbar_yield(N, p):
+    """Array yield = (per-ring yield)^(N^2), per-ring = P(|fab scatter| < trim range).
+    Fab scatter ~ Gaussian(sigma = fab_scatter_nm)."""
+    from math import erf
+    sigma = p["fab_scatter_nm"]
+    tr = p["ring_trim_range_nm"]
+    per_ring = erf(tr / (np.sqrt(2) * sigma)) if sigma > 0 else 1.0
+    n_rings = N * N
+    # log to avoid underflow
+    log_yield = n_rings * np.log(max(per_ring, 1e-300))
+    return {"per_ring": per_ring, "array_log10_yield": log_yield / np.log(10),
+            "array_yield": np.exp(log_yield)}
+
+
+def crossbar_j_per_mac(N, bits, p, weight_stationary=True, enforce_loss=False,
+                       ignore_loss=False):
+    """J/MAC for a microring crossbar weight bank (broadcast-and-weight).
+
+    N x N array, N^2 rings (weight-stationary).  K = min(N, K_max) wavelengths
+    carry K inputs in parallel; contraction is tiled in ceil(N/K) time passes
+    with DIGITAL accumulation of partial sums (charged).
+
+    Per N x N matvec (N^2 MACs):
+      DAC  : N (load each input once)          -> E_DAC/N per MAC
+      mod  : N ring modulations                -> E_mod/N per MAC
+      ADC  : N^2/K detections                  -> E_ADC/K per MAC
+      dadd : N^2/K digital accumulations       -> E_add/K per MAC
+      laser: E_det per detection through K-ring bus, /K amortised
+      therm: N^2 rings * P_stab, throughput N*K*bw -> N*P_stab/(K*bw) per MAC
+    """
+    E_ADC = p[f"E_ADC_{bits}b"]; E_DAC = p[f"E_DAC_{bits}b"]
+    E_mod = p["E_mod_MRM"]  # ring modulator
+    K = min(float(N), crossbar_K_max(p))
+
+    conv = E_DAC / N + E_mod / N + E_ADC / K + p["digital_add_J"] / K
+
+    # bus loss: light passes K rings (through-port) + 2 couplers
+    bus_loss_db = 2 * p["coupling_db"] + K * p["ring_through_db"]
+    if ignore_loss:
+        trans = 1.0
+    else:
+        if enforce_loss and bus_loss_db > LINK_BUDGET_DB:
+            return np.inf
+        trans = 10.0 ** (-min(bus_loss_db, 300.0) / 10.0)
+    E_det = required_detector_energy(bits, p["responsivity"], p["tia_noise"], p["bandwidth"])
+    laser = E_det / (K * trans * p["WPE_laser"])
+
+    # thermal stabilisation: N^2 rings continuously locked (PCM holds the WEIGHT
+    # but the RESONANCE still drifts -> lock power remains; athermal cuts the low end)
+    P_stab = p["ring_stab_mW"]
+    thermal = N * P_stab / (K * p["bandwidth"])
+    # weight reprogram: PCM stationary -> 0; thermally-tuned weights -> reload per pass
+    weight_reprog = 0.0 if weight_stationary else E_DAC / K
+
+    return conv + laser + thermal + weight_reprog
+
+
+def crossbar_terms(N, bits, p, weight_stationary=True):
+    E_ADC = p[f"E_ADC_{bits}b"]; E_DAC = p[f"E_DAC_{bits}b"]; E_mod = p["E_mod_MRM"]
+    K = min(float(N), crossbar_K_max(p))
+    bus_loss_db = 2 * p["coupling_db"] + K * p["ring_through_db"]
+    trans = 10.0 ** (-min(bus_loss_db, 300.0) / 10.0)
+    E_det = required_detector_energy(bits, p["responsivity"], p["tia_noise"], p["bandwidth"])
+    return {
+        "K": K,
+        "conversion": E_DAC / N + E_mod / N + E_ADC / K + p["digital_add_J"] / K,
+        "laser": E_det / (K * trans * p["WPE_laser"]),
+        "thermal_stab": N * p["ring_stab_mW"] / (K * p["bandwidth"]),
+        "bus_loss_db": bus_loss_db,
+    }
+
+
+def crossbar_feasibility(N, p=None):
+    if p is None:
+        p = {k: v.nom for k, v in PARAMS.items()}
+    K = min(float(N), crossbar_K_max(p))
+    n_rings = N * N
+    bus_loss = {
+        "best_0p005": 2 * p["coupling_db"] + K * 0.005,
+        "typ_0p02":   2 * p["coupling_db"] + K * 0.02,
+        "high_0p05":  2 * p["coupling_db"] + K * 0.05,
+    }
+    y = crossbar_yield(N, p)
+    # area: N^2 rings at a ring pitch; ring pitch ~ 2*radius + gap ~ port pitch
+    ring_pitch_um = max(p["mzi_port_pitch_um"], 2 * p["ring_radius_um"] + 5)
+    area_cm2 = (n_rings) * (ring_pitch_um * 1e-4) ** 2
+    idle_stab_W = n_rings * p["ring_stab_mW"]
+    return {
+        "N": N, "arch": "crossbar", "K_max": crossbar_K_max(p), "K_used": K,
+        "n_rings": n_rings, "bus_rings": int(K), "bus_loss_db": bus_loss,
+        "detectable_typ": bus_loss["typ_0p02"] <= LINK_BUDGET_DB,
+        "per_ring_yield": y["per_ring"], "array_log10_yield": y["array_log10_yield"],
+        "area_cm2": area_cm2, "idle_stab_kW": idle_stab_W / 1e3,
+    }
 
 
 def feasibility(N, p=None, arch="monolithic", tile=64):
