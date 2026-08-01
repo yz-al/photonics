@@ -1388,16 +1388,33 @@ PCM programming, or laser bias — which no rearrangement of waveguides reduced:
 mesh, the O(log N) butterfly, and the O(1) crossbar all failed at the *same* ~120 fJ–pJ
 conversion/standing floor, and the two variants that cleared it did so only by physically
 eliminating a per-element electrical cost, not by a cleverer optical layout. **Track B — the
-decisive test that changes the encoding to a comparator (the one thing that directly attacks
-the converter) — is not yet run; it is the one open technical question in the programme.** The
-energy *model predicts* that a comparator moves the readout cost ~100× while the floor does
-**not** move, because the energy reappears in the laser source — but that is a prediction of the
-model, not a measured Track-B result, and the empirical test that would confirm or break it
-remains outstanding. **On the model's terms the barrier is not fixable by a photonic
-architecture; it is a mixed-signal / device-energy problem — an order-of-magnitude reduction in
-per-element electrical energy (converters, thermal control, laser bias), the same lever every
-one of the five architectures pointed to.** Test 2 separately established the nonlinearity was
-never the barrier. **The programme closes on that: optical compute
+decisive test that changes the readout encoding to a comparator (the one move that directly
+attacks the converter) — has now been run** (`src/energy_model/run_track_b.py`,
+`data/track_b_results.json`): a controlled A/B holding the MVM architecture fixed and swapping
+*only* the output readout at matched effective precision, with a **pre-registered gate** (a
+comparator that opens floor-crossings in >10% of draws where the ADC opens ~0% would *falsify*
+the "converter floor is not fixable by encoding" verdict). **The verdict stands** — the gate is
+not met in any architecture or bit-depth. Two mechanisms hold the floor, both now quantified:
+1. **The input DAC binds, not the output ADC.** After zeroing the readout ADC, conversion is
+   *still* the binding term, now dominated by the **input DAC the readout swap never touches**
+   (butterfly, N=1024, 4-bit: conversion 240 → 153 fJ/MAC — cut only ×2, still ~5× the floor,
+   because E_DAC alone is ~150 fJ/MAC amortised over log₂N). The comparator attacks half the
+   converter and the other half keeps the floor.
+2. **A genuinely 1-bit-cheap comparator repays its saving in the laser.** Recovering b-bit
+   accuracy by oversampling a 1-bit decision costs **×32 (4-bit) to ×255 (8-bit)** more laser
+   passes, so the total *rises* to ~0.5–90 pJ/MAC — the energy reappears in the source exactly
+   as predicted.
+The largest effect anywhere is a **sub-threshold** one: the butterfly at 4-bit, where an
+*optimistic* SAR-like comparator readout moves the floor-crossing fraction from 0% to **8%**
+(below the 10% bar, and gone by 8-bit). So the earlier "~100× readout cut, floor unmoved"
+hand-estimate was **optimistic and is corrected**: the honest readout cut is ~×2 (bit-plane,
+DAC-limited) or it reappears in the source (1-bit, oversampled). **On both the model and this
+controlled test the barrier is not fixable by a photonic architecture; it is a mixed-signal /
+device-energy problem — an order-of-magnitude reduction in per-element electrical energy
+(converters — input *and* output — thermal control, laser bias), the same lever every one of the
+five architectures pointed to.** The implied next lever, attacking the *input* DAC (bit-serial /
+1-bit input encoding), is outside Track B as scoped and remains open. Test 2 separately
+established the nonlinearity was never the barrier. **The programme closes on that: optical compute
 does not beat digital in general, the two regimes that touch the floor are narrow
 inference-only corners contingent on unfabricated or write-once devices, and the decisive
 constraint is electrical, not optical — exactly the boundary the 2026 market drew between
@@ -1462,6 +1479,7 @@ python src/energy_model/run_test1_butterfly.py   # O(log N) butterfly
 python src/energy_model/run_test1_crossbar.py    # microring crossbar (thermal)
 python src/energy_model/run_test1_pcm_crossbar.py# PCM + mode-mux crossbar (Track A)
 python src/energy_model/run_test1_spiking.py     # photonic spiking energy model
+python src/energy_model/run_track_b.py           # Track B: readout-encoding A/B test
 
 # Test 2 — architecture comparison
 pip install torch torchvision scikit-learn datasets

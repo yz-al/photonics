@@ -1,0 +1,103 @@
+{
+  "arch": "track_b_readout_encoding",
+  "link_budget_db": 33.0,
+  "falsification": "comp_bitplane crosses floor in >10% where adc ~0% -> verdict FALSIFIED",
+  "term_breakdown_butterfly_N1024": {
+    "adc_4b": {
+      "jmac": 244.7913790844814,
+      "conv": 240.00000000000003,
+      "laser": 4.491369084481351,
+      "mod": 0.3,
+      "thermal": 1e-05,
+      "binding": "conv",
+      "loss_db": 8.375
+    },
+    "comp_bitplane_4b": {
+      "jmac": 157.9913790844814,
+      "conv": 153.20000000000002,
+      "laser": 4.491369084481351,
+      "mod": 0.3,
+      "thermal": 1e-05,
+      "binding": "conv",
+      "loss_db": 8.375
+    },
+    "comp_stochastic_4b": {
+      "jmac": 498.85360375138566,
+      "conv": 354.8,
+      "laser": 143.75359375138567,
+      "mod": 0.3,
+      "thermal": 1e-05,
+      "binding": "conv",
+      "loss_db": 8.375
+    },
+    "adc_8b": {
+      "jmac": 1494.561073777736,
+      "conv": 1350.0,
+      "laser": 144.26106377773618,
+      "mod": 0.3,
+      "thermal": 1e-05,
+      "binding": "conv",
+      "loss_db": 8.375
+    },
+    "comp_bitplane_8b": {
+      "jmac": 1150.961073777736,
+      "conv": 1006.3999999999999,
+      "laser": 144.26106377773618,
+      "mod": 0.3,
+      "thermal": 1e-05,
+      "binding": "conv",
+      "loss_db": 8.375
+    },
+    "comp_stochastic_8b": {
+      "jmac": 90230.02001035472,
+      "conv": 53428.8,
+      "laser": 36800.92000035473,
+      "mod": 0.3,
+      "thermal": 1e-05,
+      "binding": "conv",
+      "loss_db": 8.375
+    }
+  },
+  "mc_crossover": {
+    "butterfly_4b": {
+      "adc": 0.0013333333333333333,
+      "comp_bitplane": 0.08433333333333333,
+      "comp_stochastic": 0.0
+    },
+    "butterfly_8b": {
+      "adc": 0.0,
+      "comp_bitplane": 0.0,
+      "comp_stochastic": 0.0
+    },
+    "monolithic_4b": {
+      "adc": 0.22833333333333333,
+      "comp_bitplane": 0.36566666666666664,
+      "comp_stochastic": 0.012333333333333333
+    },
+    "monolithic_8b": {
+      "adc": 0.0,
+      "comp_bitplane": 0.0,
+      "comp_stochastic": 0.0
+    }
+  },
+  "isolation": {
+    "4b": {
+      "conv_cut_bitplane_x": 1.566579634464752,
+      "adc_total_fJ": 244.7913790844814,
+      "bitplane_total_fJ": 157.9913790844814,
+      "stochastic_total_fJ": 498.85360375138566,
+      "stochastic_laser_blowup_x": 32.00663117357363,
+      "adc_binding": "conv",
+      "bitplane_binding": "conv"
+    },
+    "8b": {
+      "conv_cut_bitplane_x": 1.341414944356121,
+      "adc_total_fJ": 1494.561073777736,
+      "bitplane_total_fJ": 1150.961073777736,
+      "stochastic_total_fJ": 90230.02001035472,
+      "stochastic_laser_blowup_x": 255.09946368518476,
+      "adc_binding": "conv",
+      "bitplane_binding": "conv"
+    }
+  }
+}
