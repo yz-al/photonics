@@ -68,6 +68,20 @@ def run_seeds(build_model, loaders, epochs, lr=1e-3, seeds=None, sched="onecycle
 # ===========================================================================
 # STAGE A — clean activation comparison, no optical constraints
 # ===========================================================================
+def stage_a_cnn():
+    """CNN on CIFAR-10 activation comparison (extractable for CNN-only reruns)."""
+    print("[A] SmallCNN / CIFAR-10")
+    loaders = D.cifar10(subset=CFG["cnn_subset"])
+    cnnA = {}
+    for act in ACTIVATIONS:
+        cnnA[act] = run_seeds(
+            lambda m, act=act: SmallCNN(n_classes=10, act=act, norm="batch", width=48),
+            loaders, CFG["cnn_epochs"])
+        print(f"   {act:12s} acc={cnnA[act]['mean_best_acc']:.4f}±{cnnA[act]['std_best_acc']:.4f} "
+              f"div={cnnA[act]['n_diverged']}")
+    results["stageA"]["cnn_cifar10"] = cnnA
+
+
 def stage_a():
     print("\n=== STAGE A: activation comparison ===")
 
@@ -88,16 +102,7 @@ def stage_a():
     if "cnn" in SKIP:
         print("[A] SmallCNN / CIFAR-10  -- SKIPPED (TEST2_SKIP=cnn)")
     else:
-        print("[A] SmallCNN / CIFAR-10")
-        loaders = D.cifar10(subset=CFG["cnn_subset"])
-        cnnA = {}
-        for act in ACTIVATIONS:
-            cnnA[act] = run_seeds(
-                lambda m, act=act: SmallCNN(n_classes=10, act=act, norm="batch", width=48),
-                loaders, CFG["cnn_epochs"])
-            print(f"   {act:12s} acc={cnnA[act]['mean_best_acc']:.4f}±{cnnA[act]['std_best_acc']:.4f} "
-                  f"div={cnnA[act]['n_diverged']}")
-        results["stageA"]["cnn_cifar10"] = cnnA
+        stage_a_cnn()
 
     # --- Transformer on AG News / assoc-recall (language/sequence)
     # TEST2_TEXT=assoc forces the synthetic task (no download); default tries AG News.
@@ -225,10 +230,18 @@ def stage_b():
     results["stageB"]["headline_gap_mlp"] = head
 
 
+ONLY = os.environ.get("TEST2_ONLY", "").strip()  # e.g. "cnn" -> run only that block
+
 if __name__ == "__main__":
-    stage_a()
-    stage_b()
-    path = os.path.join(OUT, f"test2_results_{MODE}.json")
+    if ONLY == "cnn":
+        # targeted re-run: only the CIFAR-10 CNN Stage-A block (fits a short GPU window)
+        print("[test2] TEST2_ONLY=cnn -> CIFAR-10 CNN block only")
+        stage_a_cnn()
+        path = os.path.join(OUT, "test2_results_cnn.json")
+    else:
+        stage_a()
+        stage_b()
+        path = os.path.join(OUT, f"test2_results_{MODE}.json")
     with open(path, "w") as fh:
         json.dump(results, fh, indent=2)
     print(f"\n[test2] wrote {path}")

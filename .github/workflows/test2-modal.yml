@@ -10,6 +10,11 @@ on:
   workflow_dispatch:        # manual / API trigger only, to avoid a GPU run on
                             # every doc/results commit. Re-run from the Actions
                             # tab or via the API when you want a fresh sweep.
+    inputs:
+      only:
+        description: 'Run only a block (e.g. "cnn" for the CIFAR-10 CNN); empty = full sweep'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -37,6 +42,7 @@ jobs:
         env:
           MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
           MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          TEST2_ONLY: ${{ inputs.only }}
         run: |
           # Prefer repo Actions secrets; fall back to the committed credentials file.
           if [ -z "$MODAL_TOKEN_ID" ] && [ -f test2/modal_tokens.secret ]; then
@@ -53,7 +59,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test2-results
-          path: test2/results/test2_results_full.json
+          path: test2/results/*.json
           if-no-files-found: warn
 
       - name: Commit results back to branch
@@ -61,14 +67,14 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          # Robust to the branch having moved while the GPU job ran: re-sync to
-          # the latest remote tip, then re-apply just the generated results file.
-          cp test2/results/test2_results_full.json /tmp/results.json
+          # Robust to the branch having moved while the GPU job ran: stash the
+          # generated results, re-sync to the latest remote tip, re-apply them.
+          mkdir -p /tmp/res && cp test2/results/*.json /tmp/res/ 2>/dev/null || true
           git fetch origin ${{ github.ref_name }}
           git checkout -B ${{ github.ref_name }} origin/${{ github.ref_name }}
           mkdir -p test2/results
-          cp /tmp/results.json test2/results/test2_results_full.json
-          git add test2/results/test2_results_full.json
+          cp /tmp/res/*.json test2/results/ 2>/dev/null || true
+          git add test2/results/*.json
           if git diff --cached --quiet; then
             echo "no results change to commit"
           else
