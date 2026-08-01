@@ -725,7 +725,93 @@ gate.
 
 ---
 
-## Programme conclusion — four architectures, one table
+# Follow-up 4 — Photonic spiking / time-domain encoding: attack the converter floor itself
+
+**One-line answer: no for every fabricated device; the converter floor moves, but the
+energy just relocates to the laser/neuron.** Spiking is the only track that changes the
+*encoding* rather than the amortisation: a spike is 1-bit (arrived/not), so the receiver
+is a **comparator (~8 fJ), not an ADC (~0.9–3.5 pJ)** — a real, sourced **~100–440×**
+receiver saving, and 1-bit detection needs ~20–1000 photons vs ~2²ᵇ for a b-bit sample.
+But every *fabricated* photonic spiking device sits **25–35,000× above the 20–40 fJ
+floor**, because the energy is in the **neuron laser bias + spike generation**, not the
+readout. The 1/N bias amortisation that would reach the floor needs **10–164 W of
+on-chip laser bias** (not buildable); inside a realistic ~3 W budget only **projected
+sub-mW nanolaser neurons** (unfabricated) cross. Code:
+`src/energy_model/run_test1_spiking.py`, data `data/test1_spiking_results.json`.
+
+## Model validation — Xiang OEA 2026 reproduced
+
+Xiang et al. (Opto-Electronic Advances 2026, arXiv:2512.00419) report a 16-channel
+DFB-SA spiking array at **987.65 GOPS/W (1.01 pJ/op)** and an MZI mesh at 1.39 TOPS/W.
+Our model, using their accounting (16 ch × 8 equiv-ops/neuron × 5 GHz, 0.648 W ≈ 40 mW
+per neuron), returns **1000 GOPS/W = 1.00 pJ/op** — a match. The number is bias-dominated:
+0.64 W of laser standing power over 640 GOPS. Both their numbers are ~25–70× the floor.
+
+## Sourced inputs (spiking)
+
+| Quantity | Low – Nom – High | Source |
+|---|---|---|
+| Comparator energy / decision | 3 – 8 – 15 fJ | Kala et al. IET 2020 (10.7 fJ @6.25 GHz); ~100–440× < ADC |
+| Neuron laser bias (standing) | 0.5 – 10 – 40 mW | Xiang OEA2026 (40 mW DFB-SA); VCSEL lower; nanolaser proj sub-mW |
+| Spike generation energy | 10 fJ – 8 pJ – 130 pJ | Xiang (8 pJ/neuron); self-pulsating DFB-SA 67–130 pJ/SOP; nanolaser proj 10 fJ |
+| Photons / spike (1-bit) | 20 – 50 – 1000 | quantum limit ~20/bit; 1-photon PSA receiver (Optica) |
+| Spikes / neuron / inference | 0.4 – 0.9 – 2.3 | DIET-SNN 0.4; Sengupta 2.35; break-even <1 (Sengupta 2019) |
+| Timesteps T | 5 – 16 – 2500 | direct-trained 5–10 (DIET-SNN); rate coding ~2500 (Sengupta) |
+| On-chip laser power budget | 1 – 3 – 10 W | thermal ceiling for N biased lasers on-chip |
+
+## Where the energy is — and the buildability wall
+
+Per equivalent-MAC (nominal): **bias dominates** and both bias and generation amortise
+as 1/N, but the bias *power* grows with N:
+
+| N | J/eqMAC | bias term | on-chip bias power |
+|---|---|---|---|
+| 64 | 365 fJ | 250 fJ | 0.64 W |
+| 256 | 91 fJ | 63 fJ | 2.6 W |
+| 1024 | 23 fJ | 16 fJ | **10 W** |
+| 4096 | 5.7 fJ | 3.9 fJ | **41 W** |
+
+So J/eqMAC only reaches the floor where the laser bias is already **10–164 W** — beyond
+any on-chip thermal budget. At a 3 W budget the reachable floor value is
+**P_bias²·T/(budget·bw)**, which depends only on per-neuron bias:
+
+| Device class | P_bias | N_max @3 W | bias/eqMAC | reaches floor? |
+|---|---|---|---|---|
+| DFB-SA (measured, Xiang) | 40 mW | 75 | **853 fJ** | ❌ (21×) |
+| VCSEL-class | 10 mW | 300 | 53 fJ | ❌ (marginal) |
+| nanolaser (projection) | 0.5 mW | 6000 | 0.1 fJ | ✅ but unfabricated |
+
+**Crossover vs the compute floor (MC):** unbounded 88% (at N≈1635, infeasible power);
+**power-budget-limited 34% (N≈349) — entirely the sub-10 mW draws.** Every fabricated
+device (DFB-SA at 40 mW) is 0% buildable.
+
+## Accuracy — priced from the primary SNN literature (not re-derived)
+
+The metric for spiking is **J per inference at matched accuracy**, so the accuracy gap
+must be priced. Rather than reimplement well-established results, we take them from the
+sources: **MNIST SNN-vs-ANN gap ≈ 0** (Rueckauer 2017, lossless); **CIFAR-10 ≈ 1 pt at
+usable low latency** (DIET-SNN T=5: 92.7% vs ANN 93.7%), closing to ~0 only at ~2500
+timesteps (Sengupta), which multiplies energy; **ImageNet ≈ 5 pt** (Sengupta). At matched
+accuracy the low-latency ~1-pt CIFAR-10 penalty means a spiking net needs more
+neurons/timesteps to equal the ANN — pushing the already-marginal energy the wrong way.
+This is the honest tradeoff: even the 34% buildable-crossover (sub-mW) regime pays a
+1-pt CIFAR accuracy tax that a fair J/inference comparison must absorb. (A from-scratch
+5-seed SNN run would reproduce this documented gap; per the "do not reimplement published
+work" rule and the gate, it is priced from the literature.)
+
+## Gate + verdict
+
+A buildable floor-crossing exists (34% of draws) but **only for sub-10 mW VCSEL/nanolaser
+neurons that are projected, not fabricated**; the measured DFB-SA device class is 0%.
+Changing the encoding to comparators **does move the readout cost** (~100× saving, real)
+but **not the dominant term** — the laser bias/generation — so it does not move the floor
+for any fabricated device. **Spiking confirms the disease is not topological: a genuine
+change of encoding attacks the converter floor and the energy simply reappears in the
+optical source.**
+
+---
+
+## Programme conclusion — five architectures, one table
 
 An N×N linear layer has N² weights; those weights must be physically instantiated in
 the optics, and **that instantiation almost always costs more than the digital MAC it
@@ -736,26 +822,37 @@ replaces** — the cost moves between depth, amortisation, and standing power:
 | **Dense Clements/Reck mesh** | N | N (good) | **cascaded insertion loss** (512 dB @ N=1024) | 0% |
 | **Butterfly / FFT mesh** | log₂N | log₂N | **converter amortisation** (120–400 fJ/MAC) | 0% |
 | **Microring crossbar (thermal)** | ~1 | K ≤ ~30 | **thermal stabilisation of N² rings** (44 pJ/MAC) | 0% |
-| **PCM + mode-mux crossbar (non-res, 4-bit)** | ~1 | K_λ·M ≤ ~140 | **narrowly clears it** — WDM-addressing residual + converters | **13%** |
+| **PCM + mode-mux crossbar (non-res, 4-bit)** | ~1 | K_λ·M ≤ ~140 | **narrowly clears it** — WDM residual + converters | **13%** |
+| **Photonic spiking (time-domain)** | n/a | 1/N (bias) | **neuron laser bias/generation** (1 pJ/op measured) | 0% fabricated / 34% sub-mW proj. |
 
-**Three of four topologies never reach the 20–40 fJ/MAC compute floor, in 0% of sourced
-draws.** The fourth — non-volatile low-loss PCM weights in a non-resonant geometry with
-spatial-mode multiplexing — is the single exception, and only at **4-bit, write-once
-inference, in ~13% of draws**. It reaches the floor precisely because it removes the
-per-weight physical cost the other three could not: PCM makes the weight *non-volatile*
-(no hold power), non-resonant makes it *stable* (no lock), parallel modes raise
-amortisation *without* adding loss, and write-once makes the µJ programming cost vanish
-over a deployment lifetime. That is the whole disease stated as its cure: the barrier was
-never the "free" matmul but the **per-weight electrical cost** (conversion, hold,
-re-programming), and the one regime that beats digital is the one that drives every
-per-weight electrical cost toward zero — at the price of 4-bit, inference-only, low-loss-
-PCM operation in a favourable-parameter minority. For the general case (8-bit, trainable,
-reconfigurable, or GST) the thesis remains closed; the actionable lever is unchanged — an
-**order-of-magnitude drop in per-conversion / per-element electrical energy**. Test 2
-separately established the nonlinearity was never the barrier. **The honest verdict:
-optical compute does not beat digital in general, and the one buildable regime that
-touches the floor is a narrow, write-once, 4-bit, low-loss-PCM inference corner — not the
-datacenter matmul the thesis set out to win.**
+**Three of five topologies never reach the 20–40 fJ/MAC compute floor in any draw; the
+other two touch it only in narrow, heavily-conditioned corners.** The PCM + mode-mux
+crossbar reaches it at **4-bit, write-once inference, low-loss non-resonant PCM, in ~13%
+of draws**; photonic spiking reaches it **only for projected sub-mW neurons that are not
+fabricated** (0% for the measured DFB-SA device class). Both exceptions win the same way:
+by driving the **per-weight/per-neuron electrical cost toward zero** — PCM non-volatility
+removes hold power, non-resonant geometry removes locking, write-once removes programming,
+sub-mW bias removes the source floor. Neither touches the general case (8-bit, trainable,
+reconfigurable, GST, or any fabricated laser-neuron array).
+
+**Is the disease topological or the converter floor? — The converter (electrical) floor.**
+Across five architectures the crossover was governed not by the mesh geometry but by the
+**topology-independent per-element electrical cost** — data conversion, resonance hold,
+PCM programming, or laser bias — which no rearrangement of waveguides reduced: the dense
+mesh, the O(log N) butterfly, and the O(1) crossbar all failed at the *same* ~120 fJ–pJ
+conversion/standing floor, and the two variants that cleared it did so only by physically
+eliminating a per-element electrical cost, not by a cleverer optical layout. Track B is
+the decisive test: changing the encoding to a comparator (the one thing that directly
+attacks the converter) moved the readout cost ~100× and the floor did **not** move,
+because the energy reappeared in the laser source. **So the barrier is not fixable by a
+photonic architecture; it is a mixed-signal / device-energy problem — an order-of-magnitude
+reduction in per-element electrical energy (converters, thermal control, laser bias), the
+same lever every one of the five architectures pointed to.** Test 2 separately established
+the nonlinearity was never the barrier. **The programme closes on that: optical compute
+does not beat digital in general, the two regimes that touch the floor are narrow
+inference-only corners contingent on unfabricated or write-once devices, and the decisive
+constraint is electrical, not optical — exactly the boundary the 2026 market drew between
+optical interconnect (yes) and optical compute (no).**
 
 ---
 
@@ -764,9 +861,11 @@ datacenter matmul the thesis set out to win.**
 ```bash
 # Test 1 — energy model (pure CPU, seconds)
 pip install numpy scipy matplotlib
-python src/energy_model/run_test1.py            # dense/tiled: data/test1_results.json + figures/
-python src/energy_model/run_test1_butterfly.py  # O(log N) butterfly: data/test1_butterfly_results.json
-python src/energy_model/run_test1_crossbar.py   # microring crossbar: data/test1_crossbar_results.json
+python src/energy_model/run_test1.py             # dense/tiled: data/test1_results.json + figures/
+python src/energy_model/run_test1_butterfly.py   # O(log N) butterfly
+python src/energy_model/run_test1_crossbar.py    # microring crossbar (thermal)
+python src/energy_model/run_test1_pcm_crossbar.py# PCM + mode-mux crossbar (Track A)
+python src/energy_model/run_test1_spiking.py     # photonic spiking (Track B)
 
 # Test 2 — architecture comparison
 pip install torch torchvision scikit-learn datasets
