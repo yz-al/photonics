@@ -61,6 +61,13 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Robust to the branch having moved while the GPU job ran: re-sync to
+          # the latest remote tip, then re-apply just the generated results file.
+          cp test2/results/test2_results_full.json /tmp/results.json
+          git fetch origin ${{ github.ref_name }}
+          git checkout -B ${{ github.ref_name }} origin/${{ github.ref_name }}
+          mkdir -p test2/results
+          cp /tmp/results.json test2/results/test2_results_full.json
           git add test2/results/test2_results_full.json
           if git diff --cached --quiet; then
             echo "no results change to commit"
