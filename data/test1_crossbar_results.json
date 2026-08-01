@@ -7,12 +7,12 @@
       "weight_stationary": true,
       "digital_key": "J_MAC_digital_4b",
       "crossover": {
-        "exists_frac": 0.40166666666666667,
+        "exists_frac": 0.23433333333333334,
         "p05": 16.0,
         "p16": 16.0,
         "p50": 16.0,
         "p84": 16.0,
-        "p95": 27.0
+        "p95": 18.0
       }
     },
     "xbar_4b_FLOOR_pcm": {
@@ -20,12 +20,10 @@
       "weight_stationary": true,
       "digital_key": "J_MAC_digital_floor",
       "crossover": {
-        "exists_frac": 0.009333333333333334,
-        "p05": 24.150000000000002,
-        "p16": 34.0,
-        "p50": 51.0,
-        "p84": 71.12,
-        "p95": 110.34999999999994
+        "exists_frac": 0.0,
+        "p16": Infinity,
+        "p50": Infinity,
+        "p84": Infinity
       }
     },
     "xbar_4b_wholechip_thermo": {
@@ -33,12 +31,12 @@
       "weight_stationary": false,
       "digital_key": "J_MAC_digital_4b",
       "crossover": {
-        "exists_frac": 0.358,
+        "exists_frac": 0.18966666666666668,
         "p05": 16.0,
         "p16": 16.0,
         "p50": 16.0,
-        "p84": 21.639999999999873,
-        "p95": 39.0
+        "p84": 16.0,
+        "p95": 21.0
       }
     },
     "xbar_4b_FLOOR_thermo": {
@@ -46,12 +44,10 @@
       "weight_stationary": false,
       "digital_key": "J_MAC_digital_floor",
       "crossover": {
-        "exists_frac": 0.005333333333333333,
-        "p05": 29.25,
-        "p16": 44.0,
-        "p50": 65.0,
-        "p84": 91.6,
-        "p95": 117.25
+        "exists_frac": 0.0,
+        "p16": Infinity,
+        "p50": Infinity,
+        "p84": Infinity
       }
     },
     "xbar_8b_wholechip_pcm": {
@@ -59,12 +55,12 @@
       "weight_stationary": true,
       "digital_key": "J_MAC_digital_8b",
       "crossover": {
-        "exists_frac": 0.354,
+        "exists_frac": 0.16533333333333333,
         "p05": 16.0,
         "p16": 16.0,
         "p50": 16.0,
-        "p84": 34.0,
-        "p95": 51.0
+        "p84": 23.0,
+        "p95": 34.0
       }
     },
     "xbar_8b_FLOOR_pcm": {
@@ -83,12 +79,12 @@
       "weight_stationary": false,
       "digital_key": "J_MAC_digital_8b",
       "crossover": {
-        "exists_frac": 0.245,
+        "exists_frac": 0.07633333333333334,
         "p05": 16.0,
         "p16": 16.0,
-        "p50": 23.0,
-        "p84": 44.0,
-        "p95": 65.0
+        "p50": 18.0,
+        "p84": 27.0,
+        "p95": 39.0
       }
     },
     "xbar_8b_FLOOR_thermo": {
@@ -107,237 +103,237 @@
     "64": {
       "N": 64,
       "arch": "crossbar",
-      "K_max": 29.0,
-      "K_used": 29.0,
+      "K_max": 14.0,
+      "K_used": 14.0,
       "n_rings": 4096,
-      "bus_rings": 29,
+      "bus_rings": 14,
       "bus_loss_db": {
-        "best_0p005": 3.145,
-        "typ_0p02": 3.58,
-        "high_0p05": 4.45
+        "best_0p005": 3.07,
+        "typ_0p02": 3.2800000000000002,
+        "high_0p05": 3.7
       },
       "detectable_typ": "True",
-      "per_ring_yield": 0.9973002039367398,
-      "array_log10_yield": -4.809081451887195,
+      "per_ring_yield": 1.0,
+      "array_log10_yield": 0.0,
       "area_cm2": 0.262144,
-      "idle_stab_kW": 0.016384
+      "idle_stab_kW": 0.024576
     },
     "256": {
       "N": 256,
       "arch": "crossbar",
-      "K_max": 29.0,
-      "K_used": 29.0,
+      "K_max": 14.0,
+      "K_used": 14.0,
       "n_rings": 65536,
-      "bus_rings": 29,
+      "bus_rings": 14,
       "bus_loss_db": {
-        "best_0p005": 3.145,
-        "typ_0p02": 3.58,
-        "high_0p05": 4.45
+        "best_0p005": 3.07,
+        "typ_0p02": 3.2800000000000002,
+        "high_0p05": 3.7
       },
       "detectable_typ": "True",
-      "per_ring_yield": 0.9973002039367398,
-      "array_log10_yield": -76.94530323019512,
+      "per_ring_yield": 1.0,
+      "array_log10_yield": 0.0,
       "area_cm2": 4.194304,
-      "idle_stab_kW": 0.262144
+      "idle_stab_kW": 0.393216
     },
     "1024": {
       "N": 1024,
       "arch": "crossbar",
-      "K_max": 29.0,
-      "K_used": 29.0,
+      "K_max": 14.0,
+      "K_used": 14.0,
       "n_rings": 1048576,
-      "bus_rings": 29,
+      "bus_rings": 14,
       "bus_loss_db": {
-        "best_0p005": 3.145,
-        "typ_0p02": 3.58,
-        "high_0p05": 4.45
+        "best_0p005": 3.07,
+        "typ_0p02": 3.2800000000000002,
+        "high_0p05": 3.7
       },
       "detectable_typ": "True",
-      "per_ring_yield": 0.9973002039367398,
-      "array_log10_yield": -1231.124851683122,
+      "per_ring_yield": 1.0,
+      "array_log10_yield": 0.0,
       "area_cm2": 67.108864,
-      "idle_stab_kW": 4.194304
+      "idle_stab_kW": 6.291456
     },
     "4096": {
       "N": 4096,
       "arch": "crossbar",
-      "K_max": 29.0,
-      "K_used": 29.0,
+      "K_max": 14.0,
+      "K_used": 14.0,
       "n_rings": 16777216,
-      "bus_rings": 29,
+      "bus_rings": 14,
       "bus_loss_db": {
-        "best_0p005": 3.145,
-        "typ_0p02": 3.58,
-        "high_0p05": 4.45
+        "best_0p005": 3.07,
+        "typ_0p02": 3.2800000000000002,
+        "high_0p05": 3.7
       },
       "detectable_typ": "True",
-      "per_ring_yield": 0.9973002039367398,
-      "array_log10_yield": -19697.99762692995,
+      "per_ring_yield": 1.0,
+      "array_log10_yield": 0.0,
       "area_cm2": 1073.741824,
-      "idle_stab_kW": 67.108864
+      "idle_stab_kW": 100.663296
     },
     "16384": {
       "N": 16384,
       "arch": "crossbar",
-      "K_max": 29.0,
-      "K_used": 29.0,
+      "K_max": 14.0,
+      "K_used": 14.0,
       "n_rings": 268435456,
-      "bus_rings": 29,
+      "bus_rings": 14,
       "bus_loss_db": {
-        "best_0p005": 3.145,
-        "typ_0p02": 3.58,
-        "high_0p05": 4.45
+        "best_0p005": 3.07,
+        "typ_0p02": 3.2800000000000002,
+        "high_0p05": 3.7
       },
       "detectable_typ": "True",
-      "per_ring_yield": 0.9973002039367398,
-      "array_log10_yield": -315167.9620308792,
+      "per_ring_yield": 1.0,
+      "array_log10_yield": 0.0,
       "area_cm2": 17179.869184,
-      "idle_stab_kW": 1073.741824
+      "idle_stab_kW": 1610.612736
     }
   },
   "term_breakdown": {
     "4b": [
       {
         "N": 64,
-        "K": 29.0,
-        "conversion_fJ": 54.691271551724135,
-        "laser_fJ": 0.5134294162654749,
-        "thermal_stab_fJ": 882.7586206896552,
-        "total_fJ": 937.9633216576448,
+        "K": 14.0,
+        "conversion_fJ": 88.12723214285715,
+        "laser_fJ": 1.0933286019925446,
+        "thermal_stab_fJ": 2742.857142857143,
+        "total_fJ": 2832.0777036019927,
         "dominant": "thermal_stab",
-        "bus_loss_db": 3.58
+        "bus_loss_db": 3.7
       },
       {
         "N": 256,
-        "K": 29.0,
-        "conversion_fJ": 37.07799030172413,
-        "laser_fJ": 0.5134294162654749,
-        "thermal_stab_fJ": 3531.034482758621,
-        "total_fJ": 3568.6259024766105,
+        "K": 14.0,
+        "conversion_fJ": 70.51395089285715,
+        "laser_fJ": 1.0933286019925446,
+        "thermal_stab_fJ": 10971.428571428572,
+        "total_fJ": 11043.035850923423,
         "dominant": "thermal_stab",
-        "bus_loss_db": 3.58
+        "bus_loss_db": 3.7
       },
       {
         "N": 1024,
-        "K": 29.0,
-        "conversion_fJ": 32.674669989224135,
-        "laser_fJ": 0.5134294162654749,
-        "thermal_stab_fJ": 14124.137931034484,
-        "total_fJ": 14157.326030439972,
+        "K": 14.0,
+        "conversion_fJ": 66.11063058035714,
+        "laser_fJ": 1.0933286019925446,
+        "thermal_stab_fJ": 43885.71428571429,
+        "total_fJ": 43952.91824489664,
         "dominant": "thermal_stab",
-        "bus_loss_db": 3.58
+        "bus_loss_db": 3.7
       },
       {
         "N": 4096,
-        "K": 29.0,
-        "conversion_fJ": 31.57383991109913,
-        "laser_fJ": 0.5134294162654749,
-        "thermal_stab_fJ": 56496.551724137935,
-        "total_fJ": 56528.6389934653,
+        "K": 14.0,
+        "conversion_fJ": 65.00980050223215,
+        "laser_fJ": 1.0933286019925446,
+        "thermal_stab_fJ": 175542.85714285716,
+        "total_fJ": 175608.96027196138,
         "dominant": "thermal_stab",
-        "bus_loss_db": 3.58
+        "bus_loss_db": 3.7
       },
       {
         "N": 16384,
-        "K": 29.0,
-        "conversion_fJ": 31.29863239156788,
-        "laser_fJ": 0.5134294162654749,
-        "thermal_stab_fJ": 225986.20689655174,
-        "total_fJ": 226018.01895835955,
+        "K": 14.0,
+        "conversion_fJ": 64.73459298270089,
+        "laser_fJ": 1.0933286019925446,
+        "thermal_stab_fJ": 702171.4285714286,
+        "total_fJ": 702237.2564930132,
         "dominant": "thermal_stab",
-        "bus_loss_db": 3.58
+        "bus_loss_db": 3.7
       }
     ],
     "8b": [
       {
         "N": 64,
-        "K": 29.0,
-        "conversion_fJ": 277.15894396551727,
-        "laser_fJ": 16.491157233361207,
-        "thermal_stab_fJ": 882.7586206896552,
-        "total_fJ": 1176.4087218885338,
+        "K": 14.0,
+        "conversion_fJ": 406.6540178571429,
+        "laser_fJ": 35.117298136784754,
+        "thermal_stab_fJ": 2742.857142857143,
+        "total_fJ": 3184.6284588510707,
         "dominant": "thermal_stab",
-        "bus_loss_db": 3.58
+        "bus_loss_db": 3.7
       },
       {
         "N": 256,
-        "K": 29.0,
-        "conversion_fJ": 159.93628771551724,
-        "laser_fJ": 16.491157233361207,
-        "thermal_stab_fJ": 3531.034482758621,
-        "total_fJ": 3707.461927707499,
+        "K": 14.0,
+        "conversion_fJ": 289.4313616071429,
+        "laser_fJ": 35.117298136784754,
+        "thermal_stab_fJ": 10971.428571428572,
+        "total_fJ": 11295.977231172501,
         "dominant": "thermal_stab",
-        "bus_loss_db": 3.58
+        "bus_loss_db": 3.7
       },
       {
         "N": 1024,
-        "K": 29.0,
-        "conversion_fJ": 130.63062365301724,
-        "laser_fJ": 16.491157233361207,
-        "thermal_stab_fJ": 14124.137931034484,
-        "total_fJ": 14271.259711920862,
+        "K": 14.0,
+        "conversion_fJ": 260.12569754464283,
+        "laser_fJ": 35.117298136784754,
+        "thermal_stab_fJ": 43885.71428571429,
+        "total_fJ": 44180.95728139571,
         "dominant": "thermal_stab",
-        "bus_loss_db": 3.58
+        "bus_loss_db": 3.7
       },
       {
         "N": 4096,
-        "K": 29.0,
-        "conversion_fJ": 123.30420763739224,
-        "laser_fJ": 16.491157233361207,
-        "thermal_stab_fJ": 56496.551724137935,
-        "total_fJ": 56636.34708900869,
+        "K": 14.0,
+        "conversion_fJ": 252.7992815290179,
+        "laser_fJ": 35.117298136784754,
+        "thermal_stab_fJ": 175542.85714285716,
+        "total_fJ": 175830.77372252295,
         "dominant": "thermal_stab",
-        "bus_loss_db": 3.58
+        "bus_loss_db": 3.7
       },
       {
         "N": 16384,
-        "K": 29.0,
-        "conversion_fJ": 121.47260363348599,
-        "laser_fJ": 16.491157233361207,
-        "thermal_stab_fJ": 225986.20689655174,
-        "total_fJ": 226124.17065741858,
+        "K": 14.0,
+        "conversion_fJ": 250.9676775251116,
+        "laser_fJ": 35.117298136784754,
+        "thermal_stab_fJ": 702171.4285714286,
+        "total_fJ": 702457.5135470905,
         "dominant": "thermal_stab",
-        "bus_loss_db": 3.58
+        "bus_loss_db": 3.7
       }
     ]
   },
   "bus_loss_check": {
     "thru_0.005": {
-      "K_max": 29.0,
-      "bus_loss_db": 3.145,
+      "K_max": 14.0,
+      "bus_loss_db": 3.07,
       "ok": "True"
     },
     "thru_0.02": {
-      "K_max": 29.0,
-      "bus_loss_db": 3.58,
+      "K_max": 14.0,
+      "bus_loss_db": 3.2800000000000002,
       "ok": "True"
     },
     "thru_0.05": {
-      "K_max": 29.0,
-      "bus_loss_db": 4.45,
+      "K_max": 14.0,
+      "bus_loss_db": 3.7,
       "ok": "True"
     }
   },
   "thermal_stab_only": {
     "64": {
-      "athermal_0.5mW": 110.3448275862069,
-      "nominal_4mW": 882.7586206896552,
-      "active_20mW": 4413.793103448275
+      "athermal_0.5mW": 228.5714285714286,
+      "nominal_4mW": 1828.571428571429,
+      "active_20mW": 9142.857142857143
     },
     "256": {
-      "athermal_0.5mW": 441.3793103448276,
-      "nominal_4mW": 3531.034482758621,
-      "active_20mW": 17655.1724137931
+      "athermal_0.5mW": 914.2857142857144,
+      "nominal_4mW": 7314.285714285716,
+      "active_20mW": 36571.42857142857
     },
     "1024": {
-      "athermal_0.5mW": 1765.5172413793105,
-      "nominal_4mW": 14124.137931034484,
-      "active_20mW": 70620.6896551724
+      "athermal_0.5mW": 3657.142857142858,
+      "nominal_4mW": 29257.142857142862,
+      "active_20mW": 146285.7142857143
     },
     "4096": {
-      "athermal_0.5mW": 7062.068965517242,
-      "nominal_4mW": 56496.551724137935,
-      "active_20mW": 282482.7586206896
+      "athermal_0.5mW": 14628.571428571431,
+      "nominal_4mW": 117028.57142857145,
+      "active_20mW": 585142.8571428572
     }
   }
 }

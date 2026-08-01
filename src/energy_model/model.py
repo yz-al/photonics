@@ -121,16 +121,25 @@ PARAMS = {
     # ---- Microring crossbar (weight-bank / broadcast-and-weight) --------------
     # RECONCILED with sourced ranges; see report "Crossbar inputs" table.
     # Per-ring continuous thermal-lock power; athermal designs reduce the low end.
-    "ring_stab_mW":    Param(0.5e-3, 4e-3, 20e-3, "per-ring thermal lock; athermal..full-active"),
-    "ring_through_db": Param(0.005, 0.02, 0.05, "through-port loss per ring on bus"),
-    "ring_Q":          Param(5e3, 1.5e4, 5e4, "loaded Q of a weight-bank ring"),
-    "ring_radius_um":  Param(5.0, 10.0, 20.0, "ring radius -> FSR"),
-    "fab_scatter_nm":  Param(0.3, 1.0, 4.0, "resonance scatter, 220nm SOI process"),
+    # active tuning ~2-30 mW/ring (undercut ~2-5); low end 0.5 = athermal-optimistic
+    # (flagged: passive athermal conflicts with a *tunable* weight ring). Padmaraju&
+    # Bergman 2014; Tait 2016/2020; Guha OptExpress 2010/2013.
+    # 1 mW avg (Feldmann2021/Nahmias2020) .. 20-46 mW full-FSR trim (undercut lit.)
+    "ring_stab_mW":    Param(1e-3, 6e-3, 30e-3, "per-ring thermal hold; Feldmann/Nahmias..full-FSR"),
+    "ring_through_db": Param(0.01, 0.05, 0.2, "ring off-res through-port loss on bus"),
+    "ring_Q":          Param(5e3, 1e4, 2e4, "weight-bank ring loaded Q; Tait2016 (~1e4)"),
+    "ring_radius_um":  Param(5.0, 10.0, 20.0, "ring radius -> FSR (18/9/4.6 nm)"),
+    "fab_scatter_nm":  Param(0.1, 0.5, 2.0, "resonance scatter; Selvaraja2010, Lu2017 (~1nm wafer)"),
     "tune_nm_per_mW":  Param(0.05, 0.15, 0.3, "heater tuning efficiency"),
-    "chan_spacing_factor": Param(2.0, 3.0, 5.0, "channel spacing / linewidth (crosstalk margin)"),
-    "ring_trim_range_nm":  Param(1.0, 3.0, 6.0, "max heater trim range (yield)"),
+    # channel spacing = 3.4-4.6 linewidths for 1-pole banks at 3 dB penalty
+    "chan_spacing_factor": Param(3.4, 4.0, 4.6, "spacing/linewidth; Tait IPC 2017 (8116022)"),
+    # trim range >= 1 FSR mandatory (Selvaraja/Milanizadeh); heaters provide several nm
+    "ring_trim_range_nm":  Param(3.0, 6.0, 12.0, "heater trim range >=1 FSR; Milanizadeh JLT2021"),
     "digital_add_J":   Param(2e-15, 5e-15, 15e-15, "digital accumulate per partial sum @5nm"),
     "n_group_si":      Param(4.0, 4.2, 4.4, "Si waveguide group index @1550"),
+    # achievable ring weight precision (Lorentzian slope + drift limited): ~4-5 bits
+    # -> 8-bit weights are NOT physically available from a weight ring (failure mode 5)
+    "ring_weight_bits": Param(3.1, 4.0, 5.1, "ring weight precision; Tait2016/2018, Feldmann2021"),
 }
 
 
