@@ -58,17 +58,36 @@ def _angular_spectrum_kernel(M, wavelength_px=None, z_px=None):
 
 class DiffractiveLayer(nn.Module):
     """One D2NN plane: free-space diffraction (fixed) then a learnable phase mask
-    exp(i*phi) applied element-wise. phi is the only trainable parameter (M*M reals)."""
-    def __init__(self, M):
+    exp(i*phi) applied element-wise. phi is the only trainable parameter (M*M reals).
+
+    Test-time illumination perturbations (do NOT retrain):
+      * wl_scale : test wavelength lambda = lambda0 * wl_scale. The angular-spectrum
+                   kernel is recomputed at lambda; a physical phase plate of fixed
+                   thickness has phase ~ 1/lambda, so the trained mask is scaled by
+                   1/wl_scale (phi_test = phi / wl_scale).
+      * z_scale  : test propagation distance z = z0 * z_scale (defocus). Kernel
+                   recomputed at z; mask unchanged.
+    The base (training) kernel uses wavelength_px and z_px stored here."""
+    def __init__(self, M, wavelength_px=2.0, z_px=None):
         super().__init__()
         self.M = M
-        self.register_buffer("H", _angular_spectrum_kernel(M))
+        self.wavelength_px = wavelength_px
+        self.z_px = z_px if z_px is not None else float(M)
+        self.register_buffer("H", _angular_spectrum_kernel(M, wavelength_px, self.z_px))
         self.phi = nn.Parameter(torch.zeros(M, M))     # phase mask, init transparent
 
-    def forward(self, field):                          # field: (B, M, M) complex
+    def kernel(self, wl_scale=1.0, z_scale=1.0):
+        if wl_scale == 1.0 and z_scale == 1.0:
+            return self.H
+        return _angular_spectrum_kernel(self.M, self.wavelength_px * wl_scale,
+                                        self.z_px * z_scale).to(self.H.device)
+
+    def forward(self, field, wl_scale=1.0, z_scale=1.0):
+        H = self.kernel(wl_scale, z_scale)
         F_ = torch.fft.fft2(field)
-        field = torch.fft.ifft2(F_ * self.H)           # diffraction
-        field = field * torch.exp(1j * self.phi)       # learnable phase modulation
+        field = torch.fft.ifft2(F_ * H)               # diffraction
+        phi = self.phi / wl_scale                     # phase-plate scales as 1/lambda
+        field = field * torch.exp(1j * phi)           # phase modulation
         return field
 
 
@@ -78,11 +97,23 @@ class DiffractiveD2NN(nn.Module):
     the detector reads |field|^2; a small linear head maps detected intensity ->
     classes (the standard 'class detector regions + readout' picture).
 
-    in_side: side length of the (square) input image on the grid. For non-square /
-    multi-channel inputs the caller passes a pre-flattened vector and we reshape to
-    the nearest square, padding with zeros (physically: the image illuminates the
-    centre of a larger aperture)."""
-    def __init__(self, in_dim, n_classes, M=None, depth=2, head=True, in_side=None):
+    mask_mode:
+      "trained" -- phase masks learned (the D2NN).
+      "zero"    -- NO mask (phi frozen at 0, transparent): pure free-space propagation
+                   then readout. Control (a): 'is the mask doing anything?'.
+      "random"  -- phase masks frozen at RANDOM init (not trained). Control (b): only
+                   the linear readout is trained on a fixed random diffuser.
+    In the two control modes the masks are frozen (requires_grad False) so only the
+    readout head trains.
+
+    Test-time perturbations (forward kwargs): wl_scale, z_scale (see DiffractiveLayer),
+    incoherent_K (>0 -> average detected INTENSITY over K random input-phase / speckle
+    realisations: K=1 one speckle, large K -> incoherent illumination).
+
+    in_side: side length of the (square) input image on the grid; non-square inputs are
+    padded (image illuminates the centre of a larger aperture)."""
+    def __init__(self, in_dim, n_classes, M=None, depth=2, head=True, in_side=None,
+                 mask_mode="trained"):
         super().__init__()
         if in_side is None:
             in_side = int(round(math.sqrt(in_dim)))
@@ -92,15 +123,21 @@ class DiffractiveD2NN(nn.Module):
             M = in_side                                # grid = image size (no oversize)
         self.M = M
         self.depth = depth
+        self.mask_mode = mask_mode
         self.pad = (M - in_side)
         self.in_norm = nn.BatchNorm1d(in_dim)          # calibrate input field scale
         self.layers = nn.ModuleList([DiffractiveLayer(M) for _ in range(depth)])
         self.head = nn.Linear(M * M, n_classes) if head else None
         self.n_classes = n_classes
+        if mask_mode != "trained":
+            for lyr in self.layers:
+                if mask_mode == "random":
+                    nn.init.uniform_(lyr.phi, -math.pi, math.pi)   # fixed random diffuser
+                # "zero" keeps phi=0 (transparent)
+                lyr.phi.requires_grad_(False)          # freeze mask; train only readout
 
     def _embed(self, x):
         B = x.size(0)
-        # use exactly in_side*in_side of the (possibly larger) flattened input
         n = self.in_side * self.in_side
         if x.size(1) >= n:
             x = x[:, :n]
@@ -110,22 +147,32 @@ class DiffractiveD2NN(nn.Module):
         if self.pad > 0:
             p0 = self.pad // 2; p1 = self.pad - p0
             img = F.pad(img, (p0, p1, p0, p1))
-        # amplitude encoding: real, non-negative field amplitude
-        amp = img
-        return amp.to(torch.complex64)
+        return img.to(torch.complex64)                 # amplitude encoding
 
-    def forward(self, x):
+    def _propagate(self, amp, wl_scale, z_scale):
+        field = amp
+        for lyr in self.layers:
+            field = lyr(field, wl_scale=wl_scale, z_scale=z_scale)
+        return field.real ** 2 + field.imag ** 2       # |.|^2 photodetection
+
+    def forward(self, x, wl_scale=1.0, z_scale=1.0, incoherent_K=0):
         if x.dim() > 2:
             x = x.flatten(1)
         x = self.in_norm(x)
-        field = self._embed(x)
-        for lyr in self.layers:
-            field = lyr(field)
-        inten = (field.real ** 2 + field.imag ** 2)    # |.|^2 photodetection
+        amp = self._embed(x)
+        if incoherent_K and incoherent_K > 0:
+            # incoherent: average detected intensity over K random input-phase realisations
+            inten = 0.0
+            for _ in range(incoherent_K):
+                ph = torch.rand(amp.shape, device=amp.device) * (2 * math.pi)
+                a = amp.abs() * torch.exp(1j * ph)
+                inten = inten + self._propagate(a, wl_scale, z_scale)
+            inten = inten / incoherent_K
+        else:
+            inten = self._propagate(amp, wl_scale, z_scale)
         inten = inten.flatten(1)
         if self.head is not None:
             return self.head(inten)
-        # headless: pool into n_classes equal detector regions (fixed, no params)
         M2 = inten.size(1)
         reg = M2 // self.n_classes
         return inten[:, :reg * self.n_classes].view(inten.size(0), self.n_classes, reg).sum(-1)
