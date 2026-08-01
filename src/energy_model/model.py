@@ -137,6 +137,14 @@ PARAMS = {
     "ring_trim_range_nm":  Param(3.0, 6.0, 12.0, "heater trim range >=1 FSR; Milanizadeh JLT2021"),
     "digital_add_J":   Param(2e-15, 5e-15, 15e-15, "digital accumulate per partial sum @5nm"),
     "n_group_si":      Param(4.0, 4.2, 4.4, "Si waveguide group index @1550"),
+
+    # ---- PCM-weight + mode-multiplex crossbar variant ------------------------
+    # RECONCILED with sourced ranges; see report "PCM/mode-mux inputs" table.
+    "pcm_loss_db":     Param(0.05, 0.4, 1.5, "per-element PCM IL; Sb2Se3 low..GST high"),
+    "pcm_switch_J":    Param(1e-12, 5e-11, 1e-9, "PCM weight-update switching energy (foundry, Sun2025)"),
+    "pcm_bits":        Param(6.0, 7.0, 9.0, "PCM multi-level weight precision (bits)"),
+    "n_modes":         Param(2.0, 4.0, 10.0, "spatial-mode count M (mode-division multiplex)"),
+    "inferences_per_load": Param(1e3, 1e5, 1e7, "inferences between weight reloads (fixed model)"),
     # achievable ring weight precision (Lorentzian slope + drift limited): ~4-5 bits
     # -> 8-bit weights are NOT physically available from a weight ring (failure mode 5)
     "ring_weight_bits": Param(3.1, 4.0, 5.1, "ring weight precision; Tait2016/2018, Feldmann2021"),
@@ -399,6 +407,66 @@ def crossbar_j_per_mac(N, bits, p, weight_stationary=True, enforce_loss=False,
     weight_reprog = 0.0 if weight_stationary else E_DAC / K
 
     return conv + laser + thermal + weight_reprog
+
+
+def crossbar_pcm_Keff(N, p):
+    """Effective parallelism with mode-multiplexing: K_eff = K_wavelength * M_modes,
+    capped at N (can't exceed the contraction dimension)."""
+    return min(float(N), crossbar_K_max(p) * p["n_modes"])
+
+
+def crossbar_pcm_j_per_mac(N, bits, p, resonant=False, enforce_loss=False,
+                           ignore_loss=False):
+    """PCM-weight + mode-multiplex crossbar variant (PARAMETER variant, not new arch).
+
+    Changes vs the thermal-ring crossbar:
+      * weights are non-volatile PCM -> hold power ~0 IF non-resonant (metasurface /
+        mode-converter / MMI).  If resonant (ring), the resonance still drifts and
+        needs locking -> thermal term stays.  Both modelled via `resonant`.
+      * parallelism K_eff = K_wavelength * M_modes (mode-division multiplexing),
+        capped at N -> better converter amortisation than K alone.
+      * bus loss = 2*coupling + K_eff * pcm_loss_db  (light passes K_eff weight
+        elements) -> this is the term that may reintroduce a cascaded loss wall.
+      * weight-update energy = PCM switch energy amortised over inferences_per_load.
+    """
+    E_ADC = p[f"E_ADC_{bits}b"]; E_DAC = p[f"E_DAC_{bits}b"]; E_mod = p["E_mod_MRM"]
+    Keff = crossbar_pcm_Keff(N, p)
+
+    conv = E_DAC / N + E_mod / N + E_ADC / Keff + p["digital_add_J"] / Keff
+
+    # bus traversal of K_eff PCM weight elements (the loss-wall check)
+    bus_loss_db = 2 * p["coupling_db"] + Keff * p["pcm_loss_db"]
+    if ignore_loss:
+        trans = 1.0
+    else:
+        if enforce_loss and bus_loss_db > LINK_BUDGET_DB:
+            return np.inf
+        trans = 10.0 ** (-min(bus_loss_db, 300.0) / 10.0)
+    E_det = required_detector_energy(bits, p["responsivity"], p["tia_noise"], p["bandwidth"])
+    laser = E_det / (Keff * trans * p["WPE_laser"])
+
+    # hold power: non-resonant PCM -> 0 ; resonant PCM ring -> still needs lock
+    thermal = (N * p["ring_stab_mW"] / (Keff * p["bandwidth"])) if resonant else 0.0
+    # PCM weight-update energy amortised over many inferences (fixed-model inference)
+    update = p["pcm_switch_J"] / p["inferences_per_load"]
+
+    return conv + laser + thermal + update
+
+
+def crossbar_pcm_terms(N, bits, p, resonant=False):
+    E_ADC = p[f"E_ADC_{bits}b"]; E_DAC = p[f"E_DAC_{bits}b"]; E_mod = p["E_mod_MRM"]
+    Keff = crossbar_pcm_Keff(N, p)
+    bus_loss_db = 2 * p["coupling_db"] + Keff * p["pcm_loss_db"]
+    trans = 10.0 ** (-min(bus_loss_db, 300.0) / 10.0)
+    E_det = required_detector_energy(bits, p["responsivity"], p["tia_noise"], p["bandwidth"])
+    return {
+        "Keff": Keff, "K_wave": crossbar_K_max(p), "M_modes": p["n_modes"],
+        "conversion": E_DAC / N + E_mod / N + E_ADC / Keff + p["digital_add_J"] / Keff,
+        "laser": E_det / (Keff * trans * p["WPE_laser"]),
+        "thermal": (N * p["ring_stab_mW"] / (Keff * p["bandwidth"])) if resonant else 0.0,
+        "update": p["pcm_switch_J"] / p["inferences_per_load"],
+        "bus_loss_db": bus_loss_db,
+    }
 
 
 def crossbar_terms(N, bits, p, weight_stationary=True):
