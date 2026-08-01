@@ -1,0 +1,175 @@
+{
+  "metric": "joules_per_inference_at_matched_accuracy",
+  "N_MC": 5000,
+  "edge_tops_w_int8": {
+    "low": 2.0,
+    "nominal_orin": 5.0,
+    "high_phone_npu": 30.0,
+    "source": "Jetson/DRIVE Orin ~4-5; phone NPU (ANE/Hexagon) ~10-30 TOPS/W INT8"
+  },
+  "generous_to_optics": [
+    "D2NN readout priced at n_det = n_classes detectors (class-region readout, the cheapest physical scheme); a full-plane linear-head readout (M^2 detectors) that our trained accuracy actually uses would add M^2 ADCs -- reported separately as d2nn_fullplane.",
+    "D2NN passive optical compute charged at 0 J (no per-op cost) -- upper-bound-favourable.",
+    "Digital competitor priced at the ReLU BASELINE's MAC count (~98% MNIST). At MATCHED accuracy the digital net that only needs the OPTICAL net's (lower) accuracy is smaller and cheaper, so the true matched-accuracy digital energy is <= what we charge here -- i.e. every 'optics beats digital' fraction below is an OVER-estimate for optics.",
+    "Spiking neuron_bias_mW low end (0.5 mW) is an UNFABRICATED nanolaser projection; the only measured DFB-SA array is 40 mW/neuron (Xiang 2026)."
+  ],
+  "datasets": {
+    "mnist": {
+      "in_dim": 784,
+      "relu": {
+        "acc": 0.98418,
+        "macs": 268800
+      },
+      "digital_j_per_inf": {
+        "p05": 2.053464691386661e-08,
+        "p16": 2.7686722320781517e-08,
+        "p50": 6.97785330095826e-08,
+        "p84": 1.771616961839627e-07,
+        "p95": 2.3540166864907853e-07
+      },
+      "digital_j_per_inf_nominal_orin": 1.0752e-07,
+      "d2nn": {
+        "acc": 0.95466,
+        "params": 39210,
+        "gap_vs_relu": 0.0295200000000001,
+        "j_per_inf_classreadout": {
+          "p05": 4.2050248452852086e-09,
+          "p16": 4.748330008619895e-09,
+          "p50": 6.828981340791114e-09,
+          "p84": 9.905753433088623e-09,
+          "p95": 1.1171820966438647e-08
+        },
+        "j_per_inf_fullplane": {
+          "p05": 1.4609926069486579e-08,
+          "p16": 1.7283884903813868e-08,
+          "p50": 2.3030287642391895e-08,
+          "p84": 3.0699272781485604e-08,
+          "p95": 3.549499675883283e-08
+        },
+        "terms_nominal_classreadout": {
+          "total": 1.1203054128226647e-08,
+          "input_dac_mod": 1.1116509047676605e-08,
+          "laser_detect": 1.1854444050290542e-11,
+          "output_adc": 7.469063649975044e-11,
+          "loss_db": 2.499712768528339
+        },
+        "frac_beats_digital_classreadout": 1.0,
+        "frac_beats_digital_fullplane": 0.8992
+      },
+      "spiking": {
+        "acc": 0.98216,
+        "params": 269322,
+        "firing_rate": 0.4307593822479248,
+        "gap_vs_relu": 0.0020200000000000218,
+        "j_per_inf": {
+          "p05": 6.870331602431374e-09,
+          "p16": 9.596685985284712e-09,
+          "p50": 1.8954910290530565e-08,
+          "p84": 7.622745503998162e-08,
+          "p95": 1.6179844828837397e-07
+        },
+        "j_per_synaptic_op": {
+          "p05": 3.733275448300883e-15,
+          "p16": 5.2147515210528685e-15,
+          "p50": 1.0299925142964068e-14,
+          "p84": 4.1421302908656137e-14,
+          "p95": 8.791979914832652e-14
+        },
+        "terms_nominal": {
+          "total": 2.285426026443399e-08,
+          "bias": 7.409391047474233e-10,
+          "gen": 7.673304833025967e-09,
+          "det": 3.2988437112748354e-09,
+          "comp": 2.573612793206311e-11,
+          "io": 1.1115436487453699e-08,
+          "sops": 1840295.9271484376,
+          "total_spikes": 1764.3904296875,
+          "dominant": "gen"
+        },
+        "frac_beats_digital": 0.7992
+      }
+    },
+    "cifar10": {
+      "in_dim": 3072,
+      "relu": {
+        "acc": 0.535,
+        "macs": 854528
+      },
+      "digital_j_per_inf": {
+        "p05": 6.528062037951119e-08,
+        "p16": 8.801740867311305e-08,
+        "p50": 2.2182927922474923e-07,
+        "p84": 5.632054684400643e-07,
+        "p95": 7.483531142386896e-07
+      },
+      "digital_j_per_inf_nominal_orin": 3.418112e-07,
+      "d2nn": {
+        "acc": null,
+        "params": null,
+        "gap_vs_relu": null,
+        "j_per_inf_classreadout": {
+          "p05": 5.478305142068433e-09,
+          "p16": 6.184159219302724e-09,
+          "p50": 8.897965058150092e-09,
+          "p84": 1.291799736562514e-08,
+          "p95": 1.4570920830041562e-08
+        },
+        "j_per_inf_fullplane": {
+          "p05": 1.621451421830289e-08,
+          "p16": 1.9140283766871085e-08,
+          "p50": 2.526891417109165e-08,
+          "p84": 3.294051324180944e-08,
+          "p95": 3.822089194809675e-08
+        },
+        "terms_nominal_classreadout": {
+          "total": 1.4606067102005198e-08,
+          "input_dac_mod": 1.4519522021455156e-08,
+          "laser_detect": 1.1854444050290542e-11,
+          "output_adc": 7.469063649975044e-11,
+          "loss_db": 2.499712768528339
+        },
+        "frac_beats_digital_classreadout": 1.0,
+        "frac_beats_digital_fullplane": 0.9998
+      },
+      "spiking": {
+        "acc": null,
+        "params": null,
+        "firing_rate": 0.44,
+        "gap_vs_relu": null,
+        "j_per_inf": {
+          "p05": 2.2055952245563276e-08,
+          "p16": 2.84323520196958e-08,
+          "p50": 4.549301059520177e-08,
+          "p84": 1.0093988993305829e-07,
+          "p95": 1.8732481173648048e-07
+        },
+        "j_per_synaptic_op": {
+          "p05": 3.3770375825966254e-15,
+          "p16": 4.353342819349112e-15,
+          "p50": 6.965539497682175e-15,
+          "p84": 1.5455138734972314e-14,
+          "p95": 2.868173281950159e-14
+        },
+        "terms_nominal": {
+          "total": 6.386497902277415e-08,
+          "bias": 7.409391047474233e-10,
+          "gen": 7.837911989083996e-09,
+          "det": 1.170749536447904e-08,
+          "comp": 2.573612793206311e-11,
+          "io": 4.355289643653163e-08,
+          "sops": 6531153.92,
+          "total_spikes": 1802.24,
+          "dominant": "det"
+        },
+        "frac_beats_digital": 0.9174
+      }
+    }
+  },
+  "xiang_model_check": {
+    "GOPS_per_W": 1000.0,
+    "pJ_per_op": 1.0,
+    "paper_GOPS_per_W": 987.65,
+    "paper_pJ_per_op": 1.01,
+    "reproduced": true
+  }
+}
