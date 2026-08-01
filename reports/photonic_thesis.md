@@ -1434,12 +1434,34 @@ optical interconnect (yes) and optical compute (no).**
 > ReLU baseline, ≥5 seeds) **and joules-per-inference at matched accuracy** against an *edge*
 > competitor. That is what "run Track B" means, and nothing in this session touched it.
 >
-> **Open scope question (must confirm before running).** The handoff names Track B *photonic
-> spiking / time-domain*. Later direction described it as *edge diffractive — a passive phase
-> mask, depth 1, fixed model, vs a phone-NPU / automotive-SoC, metric J/inference at fixed
-> accuracy* (a diffractive optical net, D²NN), which does **not** appear in the handoff. These are
-> different architectures sharing the same *edge-inference-at-fixed-accuracy* metric. Which one is
-> Track B is a scope decision, flagged rather than guessed.
+> **Scope (resolved): BOTH.** The handoff names Track B *photonic spiking / time-domain*; later
+> direction named *edge diffractive* (a passive phase-mask D²NN, depth 1, fixed model, vs a
+> phone-NPU / automotive-SoC). Rather than pick, the run covers **both** on the same footing:
+> accuracy + **J/inference at matched accuracy** vs an *edge* digital competitor. Neither is a
+> datacentre J/MAC mesh.
+>
+> ### Track B — pre-registration (fixed before running)
+> - **Architectures.** (i) ReLU digital baseline (from `test2/`); (ii) diffractive D²NN — coherent
+>   propagation through learnable phase mask(s), depth 1–2, intensity readout, inference-only;
+>   (iii) spiking / temporally-coded net (surrogate-gradient LIF). Matched parameter count.
+> - **Datasets / stats.** MNIST and CIFAR-10, ≥5 seeds, accuracy gap reported with spreads.
+> - **Metric.** *Not* J/MAC. J/synaptic-op **and J/inference at matched accuracy** vs an edge
+>   competitor: phone-NPU / automotive-SoC digital, **~2–30 TOPS/W INT8** (sourced: Orin-class
+>   ~4–5, phone-NPU ~10–30). Optical J/inference = passive compute (~0 for D²NN) **+ the same
+>   sourced I/O conversion + laser/detector terms** the closed programme already prices; spiking
+>   from `spiking_terms`. Reproduce Xiang et al. (Opto-Electron Adv 2026, ~1 pJ/op) as a model
+>   check first.
+> - **Pre-registered expected outcome (so the run can surprise me).** D²NN: competitive on MNIST
+>   (published ~90–97%), **poor on CIFAR** (~45–55%); its J/inference is dominated by the fixed
+>   per-inference I/O conversion + laser, not compute. Spiking: 1–5 accuracy points behind ReLU at
+>   low timesteps; J/inference dominated by laser bias × time (~pJ/op, the earlier 60–125× floor).
+>   **Expected verdict: neither beats the edge digital competitor on J/inference at matched
+>   accuracy — Track B closes the programme the same way.** **What would surprise me** (and would
+>   *reopen* it): either optical net matching an edge NPU's J/inference *at equal CIFAR accuracy*.
+> - Pre-registered gate (programme-standard): if neither optical architecture beats the edge
+>   competitor on J/inference at matched accuracy in any draw, STOP and write the verdict.
+>
+> **Status: dispatched to a build thread; results to be appended below when they land.**
 
 **The one remaining lever, quantified (Follow-up 7).** All six escapes share a single
 root: light must become electricity at every layer because the activation is applied
