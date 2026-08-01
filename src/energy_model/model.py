@@ -178,8 +178,11 @@ PARAMS = {
     # fraction of near-threshold bias held CONTINUOUSLY even when "gated off", to keep
     # sub-ns turn-on (DML must sit near threshold); 1.0 = no gating benefit.
     "subthr_bias_frac": Param(0.3, 0.6, 0.95, "sub-threshold hold frac for fast turn-on"),
-    # SNN activation fraction (neurons firing per timestep) at usable accuracy
-    "snn_activation":   Param(0.02, 0.10, 0.20, "trained-SNN activation frac; cortical<1%..SNN 5-20%"),
+    # SNN activation fraction (neurons firing per timestep) at usable accuracy:
+    # CIFAR-10 5-20%/step (VGG16 T=6 5.8%, arXiv:2409.08290; ResNet-19 ~15%, 2511.13050)
+    "snn_activation":   Param(0.05, 0.10, 0.20, "trained-SNN firing/step; arXiv:2409.08290/2511.13050"),
+    # low-latency direct-trained timesteps (DIET-SNN T=5-10; conversion T=4-32 ~lossless)
+    "timesteps_bio_T":  Param(4.0, 6.0, 10.0, "low-latency SNN T; DIET-SNN 2008.03658, 2205.07473"),
     # per-gated-pulse modulation energy (gain-switch / DML drive)
     "E_gate_pulse_J":   Param(1e-14, 1e-13, 1e-12, "gated-pulse drive energy (DML/gain-switch)"),
 }
@@ -614,7 +617,7 @@ def spiking_bio_terms(N, p, gated=False, single_readout=True, n_layers=1):
         bias held continuously, so gating removes only (1-subthr_frac) of the source.
       * single readout: comparator only at the final layer -> comp amortised over n_layers.
     Returns per-equivalent-MAC terms."""
-    T = p["timesteps_T"]; bw = p["bandwidth"]
+    T = p["timesteps_bio_T"]; bw = p["bandwidth"]  # realistic low-latency regime (T=4-10)
     s = p["snn_activation"] * T                    # spikes/neuron/inference from activation
     P_bias = p["neuron_bias_mW"] * 1e-3
     E_comp = p["comparator_J"]
