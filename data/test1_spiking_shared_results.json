@@ -1,0 +1,164 @@
+{
+  "arch": "spiking_shared",
+  "link_budget_db": 33.0,
+  "scenarios": {
+    "shared_fullyshared_wholechip4b": {
+      "fully_shared": true,
+      "digital_key": "J_MAC_digital_4b",
+      "crossover": {
+        "exists_frac": 0.8676666666666667,
+        "p05": 16.0,
+        "p16": 16.0,
+        "p50": 16.0,
+        "p84": 34.0,
+        "p95": 85.0
+      }
+    },
+    "shared_fullyshared_FLOOR": {
+      "fully_shared": true,
+      "digital_key": "J_MAC_digital_floor",
+      "crossover": {
+        "exists_frac": 0.44366666666666665,
+        "p05": 16.0,
+        "p16": 16.0,
+        "p50": 23.0,
+        "p84": 74.0,
+        "p95": 142.0
+      }
+    },
+    "shared_partial_wholechip4b": {
+      "fully_shared": false,
+      "digital_key": "J_MAC_digital_4b",
+      "crossover": {
+        "exists_frac": 0.907,
+        "p05": 16.0,
+        "p16": 16.0,
+        "p50": 16.0,
+        "p84": 44.0,
+        "p95": 124.0
+      }
+    },
+    "shared_partial_FLOOR": {
+      "fully_shared": false,
+      "digital_key": "J_MAC_digital_floor",
+      "crossover": {
+        "exists_frac": 0.6083333333333333,
+        "p05": 16.0,
+        "p16": 16.0,
+        "p50": 39.0,
+        "p84": 397.0,
+        "p95": 1438.0
+      }
+    }
+  },
+  "term_breakdown": {
+    "fully_shared": [
+      {
+        "N": 64,
+        "S": 64.0,
+        "source_fJ": 12.5,
+        "det_fJ": 4.248542483040153,
+        "gen_fJ": 75.00000000000001,
+        "comp_fJ": 0.09375000000000001,
+        "total_fJ": 91.84229248304017,
+        "dominant": "gen",
+        "bus_loss_db": 22.2,
+        "delivery_limited": true
+      },
+      {
+        "N": 256,
+        "S": 256.0,
+        "source_fJ": 3.125,
+        "det_fJ": 2444781.020214874,
+        "gen_fJ": 18.750000000000004,
+        "comp_fJ": 0.023437500000000003,
+        "total_fJ": 2444802.9186523743,
+        "dominant": "det",
+        "bus_loss_db": 79.8,
+        "delivery_limited": true
+      },
+      {
+        "N": 1024,
+        "S": 1024.0,
+        "source_fJ": 0.78125,
+        "det_fJ": 2.5599999999999997e+28,
+        "gen_fJ": 4.687500000000001,
+        "comp_fJ": 0.005859375000000001,
+        "total_fJ": 2.5599999999999997e+28,
+        "dominant": "det",
+        "bus_loss_db": 310.2,
+        "delivery_limited": true
+      },
+      {
+        "N": 4096,
+        "S": 4096.0,
+        "source_fJ": 0.1953125,
+        "det_fJ": 2.5599999999999997e+28,
+        "gen_fJ": 1.1718750000000002,
+        "comp_fJ": 0.0014648437500000002,
+        "total_fJ": 2.5599999999999997e+28,
+        "dominant": "det",
+        "bus_loss_db": 1231.8,
+        "delivery_limited": true
+      }
+    ]
+  },
+  "share_sweep_N1024": [
+    {
+      "S": 1,
+      "source_fJ": 5.859374999999999,
+      "det_fJ": 0.054731829491257135,
+      "total_fJ": 10.607466204491256,
+      "dominant": "source",
+      "bus_loss_db": 3.3,
+      "delivery_limited": false
+    },
+    {
+      "S": 8,
+      "source_fJ": 0.78125,
+      "det_fJ": 0.08876463371584811,
+      "total_fJ": 5.563374008715848,
+      "dominant": "gen",
+      "bus_loss_db": 5.4,
+      "delivery_limited": true
+    },
+    {
+      "S": 64,
+      "source_fJ": 0.78125,
+      "det_fJ": 4.248542483040153,
+      "total_fJ": 9.723151858040152,
+      "dominant": "gen",
+      "bus_loss_db": 22.2,
+      "delivery_limited": true
+    },
+    {
+      "S": 256,
+      "source_fJ": 0.78125,
+      "det_fJ": 2444781.020214874,
+      "total_fJ": 2444786.4948242484,
+      "dominant": "det",
+      "bus_loss_db": 79.8,
+      "delivery_limited": true
+    },
+    {
+      "S": 1024,
+      "source_fJ": 0.78125,
+      "det_fJ": 2.5599999999999997e+28,
+      "total_fJ": 2.5599999999999997e+28,
+      "dominant": "det",
+      "bus_loss_db": 310.2,
+      "delivery_limited": true
+    }
+  ],
+  "bus_loss_wall": {
+    "elem_0.05dB": {
+      "max_S_within_budget": 600
+    },
+    "elem_0.3dB": {
+      "max_S_within_budget": 100
+    },
+    "elem_1.0dB": {
+      "max_S_within_budget": 30
+    }
+  }
+}

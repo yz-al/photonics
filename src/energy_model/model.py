@@ -188,6 +188,14 @@ PARAMS = {
     "timesteps_bio_T":  Param(4.0, 6.0, 10.0, "low-latency SNN T; DIET-SNN 2008.03658, 2205.07473"),
     # per-gated-pulse modulation energy (gain-switch / DML drive)
     "E_gate_pulse_J":   Param(1e-14, 1e-13, 1e-12, "gated-pulse drive energy (DML/gain-switch)"),
+
+    # ---- Shared-source spiking (one laser feeds many passive spiking elements) ----
+    # RECONCILED with sourced ranges; see report "Shared-source inputs" table.
+    "neurons_per_source": Param(16.0, 256.0, 4096.0, "neurons sharing one source; SEPhIA <1 laser/neuron"),
+    # optical drive power per PASSIVE spiking element (SA/PCM/VO2/resonator) to threshold
+    "P_drive_W":        Param(10e-6, 200e-6, 2e-3, "optical drive/passive spiking element (SA/PCM)"),
+    # per-element insertion loss of the passive element on the shared bus (loss-wall risk)
+    "elem_loss_db":     Param(0.05, 0.3, 1.0, "passive spiking-element bus IL per element"),
 }
 
 
@@ -637,6 +645,41 @@ def spiking_bio_terms(N, p, gated=False, single_readout=True, n_layers=1):
     return {"j_per_eqmac": jmac, "source": source, "gen": gen, "det": det, "comp": comp,
             "s_spikes_per_neuron": s, "gated": gated,
             "dominant": max({"source": source, "gen": gen, "det": det, "comp": comp}.items(),
+                            key=lambda kv: kv[1])[0]}
+
+
+def spiking_shared_terms(N, p, neurons_per_source=None, single_readout=True, n_layers=8):
+    """Shared-source spiking variant (PARAMETER variant): one laser (or a few) feeds
+    S = neurons_per_source PASSIVE spiking elements (saturable absorber / PCM / VO2 /
+    resonator), so the standing laser bias divides by the share factor instead of
+    scaling as N.  This is the 'stop giving each neuron its own gain medium' escape.
+
+    Standing wall-plug per source = max(near-threshold bias, optical power to drive its
+    S elements / WPE) -> for a large share the DELIVERY term (S * P_drive / WPE) takes
+    over, which is the per-element cost reappearing.  Bus loss = S elements * elem_loss
+    is the loss-wall check (1-bit spike detection is loss-tolerant -> higher budget)."""
+    S = min(float(neurons_per_source or p["neurons_per_source"]), float(N))
+    n_sources = np.ceil(N / S)
+    T = p["timesteps_bio_T"]; bw = p["bandwidth"]
+    s = p["snn_activation"] * T
+    P_bias = p["neuron_bias_mW"] * 1e-3
+    WPE = p["WPE_laser"]
+    # each source must both stay biased AND deliver S elements' optical drive
+    P_source_each = max(P_bias, S * p["P_drive_W"] / WPE)
+    P_standing = n_sources * P_source_each
+    source = P_standing * T / (N * N * bw)              # per equivalent-MAC
+
+    bus_loss_db = 2 * p["coupling_db"] + S * p["elem_loss_db"]
+    trans = 10.0 ** (-min(bus_loss_db, 300.0) / 10.0)
+    E_det = p["spike_photons"] * E_PHOTON_1550 / (p["responsivity"] * trans * WPE)
+    det = s * E_det                                     # 1-bit spike detection
+    gen = s * p["E_spike_J"] / N                        # per-spike element drive/modulation
+    comp = (T * p["comparator_J"] / N) / (n_layers if single_readout else 1)
+    jmac = source + det + gen + comp
+    return {"j_per_eqmac": jmac, "source": source, "det": det, "gen": gen, "comp": comp,
+            "S": S, "n_sources": n_sources, "bus_loss_db": bus_loss_db,
+            "P_standing_W": P_standing, "delivery_limited": S * p["P_drive_W"] / WPE > P_bias,
+            "dominant": max({"source": source, "det": det, "gen": gen, "comp": comp}.items(),
                             key=lambda kv: kv[1])[0]}
 
 
