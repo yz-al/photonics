@@ -11,3 +11,4 @@ modal.env
 data/mnist/
 data/cifar/
 data/sklearn/
+scratch_logs/
