@@ -1,0 +1,208 @@
+{
+  "arch": "all_optical_inverse",
+  "link_budget_db": 33.0,
+  "cascading_gate": {
+    "L4": {
+      "nl_0.0": {
+        "total_loss_db": 11.0,
+        "amp": false
+      },
+      "nl_0.5": {
+        "total_loss_db": 13.0,
+        "amp": false
+      },
+      "nl_1.0": {
+        "total_loss_db": 15.0,
+        "amp": false
+      },
+      "nl_2.0": {
+        "total_loss_db": 19.0,
+        "amp": false
+      }
+    },
+    "L8": {
+      "nl_0.0": {
+        "total_loss_db": 19.0,
+        "amp": false
+      },
+      "nl_0.5": {
+        "total_loss_db": 23.0,
+        "amp": false
+      },
+      "nl_1.0": {
+        "total_loss_db": 27.0,
+        "amp": false
+      },
+      "nl_2.0": {
+        "total_loss_db": 35.0,
+        "amp": true
+      }
+    },
+    "L16": {
+      "nl_0.0": {
+        "total_loss_db": 35.0,
+        "amp": true
+      },
+      "nl_0.5": {
+        "total_loss_db": 43.0,
+        "amp": true
+      },
+      "nl_1.0": {
+        "total_loss_db": 51.0,
+        "amp": true
+      },
+      "nl_2.0": {
+        "total_loss_db": 67.0,
+        "amp": true
+      }
+    }
+  },
+  "spec_surface": {
+    "4b_N64_L4": {
+      "E_nl_max_fJ": 4.6875,
+      "binding": "power/cascading(B)",
+      "P_op_mW": 0.04687499999999999,
+      "amp": false,
+      "total_loss_db": 13.0
+    },
+    "4b_N64_L8": {
+      "E_nl_max_fJ": 0.4687499999999999,
+      "binding": "power/cascading(B)",
+      "P_op_mW": 0.004687499999999999,
+      "amp": false,
+      "total_loss_db": 23.0
+    },
+    "4b_N64_L16": {
+      "E_nl_max_fJ": 0.004687499999999999,
+      "binding": "power/cascading(B)",
+      "P_op_mW": 4.6874999999999994e-05,
+      "amp": true,
+      "total_loss_db": 43.0
+    },
+    "4b_N256_L4": {
+      "E_nl_max_fJ": 1.171875,
+      "binding": "power/cascading(B)",
+      "P_op_mW": 0.011718749999999998,
+      "amp": false,
+      "total_loss_db": 13.0
+    },
+    "4b_N256_L8": {
+      "E_nl_max_fJ": 0.11718749999999997,
+      "binding": "power/cascading(B)",
+      "P_op_mW": 0.0011718749999999997,
+      "amp": false,
+      "total_loss_db": 23.0
+    },
+    "4b_N256_L16": {
+      "E_nl_max_fJ": 0.0011718749999999997,
+      "binding": "power/cascading(B)",
+      "P_op_mW": 1.1718749999999999e-05,
+      "amp": true,
+      "total_loss_db": 43.0
+    },
+    "4b_N1024_L4": {
+      "E_nl_max_fJ": 0.29296875,
+      "binding": "power/cascading(B)",
+      "P_op_mW": 0.0029296874999999996,
+      "amp": false,
+      "total_loss_db": 13.0
+    },
+    "4b_N1024_L8": {
+      "E_nl_max_fJ": 0.029296874999999993,
+      "binding": "power/cascading(B)",
+      "P_op_mW": 0.00029296874999999993,
+      "amp": false,
+      "total_loss_db": 23.0
+    },
+    "4b_N1024_L16": {
+      "E_nl_max_fJ": 0.00029296874999999993,
+      "binding": "power/cascading(B)",
+      "P_op_mW": 2.9296874999999996e-06,
+      "amp": true,
+      "total_loss_db": 43.0
+    },
+    "8b_N64_L4": {
+      "E_nl_max_fJ": 4.6875,
+      "binding": "power/cascading(B)",
+      "P_op_mW": 0.04687499999999999,
+      "amp": false,
+      "total_loss_db": 13.0
+    },
+    "8b_N64_L8": {
+      "E_nl_max_fJ": 0.4687499999999999,
+      "binding": "power/cascading(B)",
+      "P_op_mW": 0.004687499999999999,
+      "amp": false,
+      "total_loss_db": 23.0
+    },
+    "8b_N64_L16": {
+      "E_nl_max_fJ": 0.004687499999999999,
+      "binding": "power/cascading(B)",
+      "P_op_mW": 4.6874999999999994e-05,
+      "amp": true,
+      "total_loss_db": 43.0
+    },
+    "8b_N256_L4": {
+      "E_nl_max_fJ": 1.171875,
+      "binding": "power/cascading(B)",
+      "P_op_mW": 0.011718749999999998,
+      "amp": false,
+      "total_loss_db": 13.0
+    },
+    "8b_N256_L8": {
+      "E_nl_max_fJ": 0.11718749999999997,
+      "binding": "power/cascading(B)",
+      "P_op_mW": 0.0011718749999999997,
+      "amp": false,
+      "total_loss_db": 23.0
+    },
+    "8b_N256_L16": {
+      "E_nl_max_fJ": 0.0011718749999999997,
+      "binding": "power/cascading(B)",
+      "P_op_mW": 1.1718749999999999e-05,
+      "amp": true,
+      "total_loss_db": 43.0
+    },
+    "8b_N1024_L4": {
+      "E_nl_max_fJ": 0.29296875,
+      "binding": "power/cascading(B)",
+      "P_op_mW": 0.0029296874999999996,
+      "amp": false,
+      "total_loss_db": 13.0
+    },
+    "8b_N1024_L8": {
+      "E_nl_max_fJ": 0.029296874999999993,
+      "binding": "power/cascading(B)",
+      "P_op_mW": 0.00029296874999999993,
+      "amp": false,
+      "total_loss_db": 23.0
+    },
+    "8b_N1024_L16": {
+      "E_nl_max_fJ": 0.00029296874999999993,
+      "binding": "power/cascading(B)",
+      "P_op_mW": 2.9296874999999996e-06,
+      "amp": true,
+      "total_loss_db": 43.0
+    }
+  },
+  "weakest_spec": {
+    "N": 64,
+    "L": 4,
+    "bits": 4,
+    "nl_loss_db": 0.1,
+    "E_nl_max_J": 6.775498925371532e-15,
+    "E_nl_max_fJ": 6.775498925371532,
+    "E_nl_energy_fJ": 2560.0,
+    "E_nl_power_fJ": 6.775498925371532,
+    "binding": "power/cascading(B)",
+    "total_loss_db": 11.4,
+    "needs_amplification": false,
+    "P_op_at_Emax_mW": 0.06775498925371533
+  },
+  "mc_target_switching_energy": {
+    "E_0.1fJ": 0.995,
+    "E_1.0fJ": 0.8533333333333334,
+    "E_10.0fJ": 0.4033333333333333,
+    "E_100.0fJ": 0.05366666666666667
+  }
+}

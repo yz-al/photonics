@@ -198,6 +198,12 @@ PARAMS = {
     "P_drive_W":        Param(44e-6, 500e-6, 2.5e-3, "optical drive/element; SEPhIA 2.5mW real..44uW ideal"),
     # per-element bus IL: Si MRM 0.2 dB (SEPhIA); Sb2Se3 0.4-0.65 dB; GST several dB.
     "elem_loss_db":     Param(0.2, 0.4, 1.0, "element bus IL; SEPhIA MRM 0.2dB..Sb2Se3 0.4-0.65"),
+
+    # ---- All-optical inverse model (solve for the required nonlinearity) ------
+    # max on-chip input optical power before thermal/nonlinear damage (~100mW..1W)
+    "P_in_max_W":       Param(0.05, 0.2, 1.0, "max on-chip input optical power (thermal/damage)"),
+    # passive linear layer (PCM crossbar + routing) insertion loss per layer
+    "mesh_loss_db_layer": Param(1.0, 2.0, 4.0, "passive PCM linear-layer IL + routing per layer"),
 }
 
 
@@ -648,6 +654,51 @@ def spiking_bio_terms(N, p, gated=False, single_readout=True, n_layers=1):
             "s_spikes_per_neuron": s, "gated": gated,
             "dominant": max({"source": source, "gen": gen, "det": det, "comp": comp}.items(),
                             key=lambda kv: kv[1])[0]}
+
+
+def all_optical_spec(N, L, bits, p, nl_loss_db=0.5):
+    """INVERSE model: solve for the nonlinear element a convert-once-in/out all-optical
+    net would need to clear the compute floor.
+
+    Architecture: input DAC/mod (once) -> [passive PCM linear layer -> nonlinear
+    element per neuron] x L -> output ADC (once).  One input laser.
+
+    Two constraints bind the switching energy E_nl per activation:
+      (A) ENERGY / amortisation: the switching term E_nl/N must stay under the floor
+          (conversion is amortised over L*N^2 MACs, so it is negligible here).
+          -> E_nl <= floor * N.
+      (B) POWER / cascading: the input laser must hold operating power P_op = E_nl*bw
+          at each of N neurons through the accumulated per-layer loss t^{-L}, within
+          the max on-chip input power P_in_max:
+              N * (E_nl*bw) * t^{-L} / WPE <= P_in_max
+          -> E_nl <= P_in_max * WPE * t^L / (N * bw).
+      t = 10^-((mesh_loss + nl_loss)/10) per layer.
+
+    CASCADING GATE: if the linear loss alone over depth exceeds the link budget
+    (coupling + L*(mesh_loss+nl_loss) > LINK_BUDGET_DB) the signal cannot reach the
+    output / trigger deep layers without inter-layer amplification -> the source cost
+    reappears and the escape fails.  Reported as `needs_amplification`.
+    """
+    floor = p["J_MAC_digital_floor"]
+    bw = p["bandwidth"]; WPE = p["WPE_laser"]
+    mesh = p["mesh_loss_db_layer"]
+    t = 10.0 ** (-(mesh + nl_loss_db) / 10.0)
+    tL = t ** L
+    total_loss_db = 2 * p["coupling_db"] + L * (mesh + nl_loss_db)
+    needs_amplification = total_loss_db > LINK_BUDGET_DB
+
+    E_nl_energy = floor * N                                  # constraint (A)
+    E_nl_power = p["P_in_max_W"] * WPE * tL / (N * bw)        # constraint (B)
+    E_nl_max = min(E_nl_energy, E_nl_power)
+    binding = "amortisation(A)" if E_nl_energy < E_nl_power else "power/cascading(B)"
+    return {
+        "N": N, "L": L, "bits": bits, "nl_loss_db": nl_loss_db,
+        "E_nl_max_J": E_nl_max, "E_nl_max_fJ": E_nl_max * 1e15,
+        "E_nl_energy_fJ": E_nl_energy * 1e15, "E_nl_power_fJ": E_nl_power * 1e15,
+        "binding": binding, "total_loss_db": total_loss_db,
+        "needs_amplification": needs_amplification,
+        "P_op_at_Emax_mW": E_nl_max * bw * 1e3,
+    }
 
 
 def spiking_shared_terms(N, p, neurons_per_source=None, single_readout=True, n_layers=8):
