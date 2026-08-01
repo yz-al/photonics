@@ -1,101 +1,123 @@
 {
-  "model": "driven-dissipative Kerr mode, Lindblad steady state, g2(0)<0.5 = blockade",
-  "threshold_UoverGamma": {
-    "g2_0.5": 0.7073470400464679,
-    "g2_0.1": 2.846474442803876,
-    "g2_0.01": 9.905556278782488
+  "model": "driven-dissipative Kerr g2(0) with Hopfield weighting; honest re-derivation",
+  "convention_and_anchor": {
+    "g2<0.5_needs_UoverG": 0.7077034510364182,
+    "g2<0.1_needs_UoverG": 2.846474442508741,
+    "closed_form_g2_at_UoverG=UOG_50": 0.3329585664432101,
+    "delteil_measured_g2": 0.95,
+    "delteil_UoverG_in_this_convention": 0.051314976534699325,
+    "delteil_short_of_threshold_x": 13.79136265526434
   },
-  "g2_curve": {
-    "0.1": 0.9049774107416254,
-    "0.42": 0.6594256500496544,
-    "0.7": 0.5034565095627058,
-    "1": 0.3820233959817805,
-    "2": 0.17189541141925188,
-    "5": 0.03709013857943464
-  },
-  "required_U": {
+  "hopfield_sweep": [
+    {
+      "X2": 0.1,
+      "UoverG_over_UexcOverGx": 0.06896551724137931
+    },
+    {
+      "X2": 0.3,
+      "UoverG_over_UexcOverGx": 0.26865671641791045
+    },
+    {
+      "X2": 0.5,
+      "UoverG_over_UexcOverGx": 0.47619047619047616
+    },
+    {
+      "X2": 0.7,
+      "UoverG_over_UexcOverGx": 0.6853146853146852
+    },
+    {
+      "X2": 0.9,
+      "UoverG_over_UexcOverGx": 0.8950276243093923
+    },
+    {
+      "X2": 0.99,
+      "UoverG_over_UexcOverGx": 0.989500252397779
+    }
+  ],
+  "hopfield_ceiling": "max U/\u0393 = U_exc/\u0393_x at |X|->1; RT spec is U_exc > threshold\u00b7\u0393_x(300K)",
+  "in_material": {
     "TMD": {
-      "gamma_4K_meV": 1.6400000000000001,
-      "gamma_300K_meV": 12.357681943632523,
-      "U_req_300K_meV": 8.741169744664147
+      "Uexc_meV_nom": 0.6,
+      "GxRT_meV_nom": 10.0,
+      "bare_ratio_nom": 0.06,
+      "enhancement_needed_x": 11.795057517273637,
+      "short_of_threshold_x": 11.795057517273637
     },
     "perovskite": {
-      "gamma_4K_meV": 4.08,
-      "gamma_300K_meV": 48.69597618235474,
-      "U_req_300K_meV": 34.444954614761926
+      "Uexc_meV_nom": 0.6,
+      "GxRT_meV_nom": 40.0,
+      "bare_ratio_nom": 0.015,
+      "enhancement_needed_x": 47.18023006909455,
+      "short_of_threshold_x": 47.18023006909455
     }
   },
-  "thermal_only": {
-    "TMD": {
-      "gamma_ratio_300_over_4": 7.535171916849099,
-      "U_over_G_300K": 0.0557386088379556,
-      "short_of_threshold_x": 12.69043226577257
+  "oscillator_strength_penalty": [
+    {
+      "U_enh_E": 10,
+      "p": 0.5,
+      "f_suppression": 0.31622776601683794,
+      "net_ratio_multiplier": 5.623413251903491
     },
-    "perovskite": {
-      "gamma_ratio_300_over_4": 11.935288279988907,
-      "U_over_G_300K": 0.035189765856278955,
-      "short_of_threshold_x": 20.100930564170124
+    {
+      "U_enh_E": 10,
+      "p": 1.0,
+      "f_suppression": 0.1,
+      "net_ratio_multiplier": 3.1622776601683795
+    },
+    {
+      "U_enh_E": 10,
+      "p": 1.5,
+      "f_suppression": 0.03162277660168379,
+      "net_ratio_multiplier": 1.7782794100389228
+    },
+    {
+      "U_enh_E": 50,
+      "p": 0.5,
+      "f_suppression": 0.1414213562373095,
+      "net_ratio_multiplier": 18.80301546543197
+    },
+    {
+      "U_enh_E": 50,
+      "p": 1.0,
+      "f_suppression": 0.02,
+      "net_ratio_multiplier": 7.0710678118654755
+    },
+    {
+      "U_enh_E": 50,
+      "p": 1.5,
+      "f_suppression": 0.00282842712474619,
+      "net_ratio_multiplier": 2.6591479484724942
+    },
+    {
+      "U_enh_E": 200,
+      "p": 0.5,
+      "f_suppression": 0.07071067811865475,
+      "net_ratio_multiplier": 53.18295896944989
+    },
+    {
+      "U_enh_E": 200,
+      "p": 1.0,
+      "f_suppression": 0.005,
+      "net_ratio_multiplier": 14.142135623730951
+    },
+    {
+      "U_enh_E": 200,
+      "p": 1.5,
+      "f_suppression": 0.00035355339059327376,
+      "net_ratio_multiplier": 3.7606030930863934
+    }
+  ],
+  "imported_bandwidth": {
+    "G_0.1meV": {
+      "bandwidth_GHz": 24.1803316760704
+    },
+    "G_1.0meV": {
+      "bandwidth_GHz": 241.80331676070395
+    },
+    "G_10.0meV": {
+      "bandwidth_GHz": 2418.0331676070396
     }
   },
-  "crossover_temperature": {
-    "saturation": {
-      "U_demo_meV": 0.0015,
-      "TMD": {
-        "U_over_G_300K": 0.00012138198788753397,
-        "T_blockade_max_K": 0
-      },
-      "perovskite": {
-        "U_over_G_300K": 3.0803366470832416e-05,
-        "T_blockade_max_K": 0
-      }
-    },
-    "dipolar_10x": {
-      "U_demo_meV": 0.015,
-      "TMD": {
-        "U_over_G_300K": 0.0012138198788753396,
-        "T_blockade_max_K": 0
-      },
-      "perovskite": {
-        "U_over_G_300K": 0.0003080336647083242,
-        "T_blockade_max_K": 0
-      }
-    },
-    "dipolariton_200x": {
-      "U_demo_meV": 0.3,
-      "TMD": {
-        "U_over_G_300K": 0.02427639757750679,
-        "T_blockade_max_K": 0
-      },
-      "perovskite": {
-        "U_over_G_300K": 0.006160673294166483,
-        "T_blockade_max_K": 0
-      }
-    }
-  },
-  "mc_rt_blockade": {
-    "saturation_TMD": {
-      "rt_blockade_frac": 0.0,
-      "median_gap_factor": 4750.977737487996
-    },
-    "saturation_perovskite": {
-      "rt_blockade_frac": 0.0,
-      "median_gap_factor": 19365.85792371728
-    },
-    "dipolar_10x_TMD": {
-      "rt_blockade_frac": 0.0,
-      "median_gap_factor": 414.472858734544
-    },
-    "dipolar_10x_perovskite": {
-      "rt_blockade_frac": 0.0,
-      "median_gap_factor": 1685.738201650857
-    },
-    "dipolariton_200x_TMD": {
-      "rt_blockade_frac": 0.0,
-      "median_gap_factor": 25.186480747089696
-    },
-    "dipolariton_200x_perovskite": {
-      "rt_blockade_frac": 0.0,
-      "median_gap_factor": 103.2905280641365
-    }
-  }
+  "falsification_criterion": "Verdict flips iff one material shows U_exc(measured) > 0.71\u00b7\u0393_x(300K,measured) at |X|\u00b2 high enough to strong-couple AND read out.",
+  "verdict": "RT blockade not forbidden (no proven joint bound), but the honest in-material gap is \u22732 orders and unquantified on the upside (Hopfield + oscillator-strength cut against it); and clearing it does not reopen the programme \u2014 it worsens speed/energy and leaves the conserved electrical costs untouched. Necessary, not sufficient."
 }

@@ -1095,7 +1095,7 @@ blockade lives in the N→1 (big U, no collective Ω) limit. The nearest RT sing
 reaches Ω > Γ but has **not** shown U > Γ; a room-temperature *single-emitter photon
 blockade* has never been demonstrated.
 
-**What the measured data says (the gap is ~3 orders, and a continuous FOM, not a no-go).**
+**What the measured data says (a ~1–2 order in-material gap, a continuous FOM, not a no-go).**
 Both sides of U/Γ have been measured, and they bracket the door quantitatively:
 - **Γ_phonon(T) is measured and rises ~10²–10³× from cryo to RT** in every candidate
   RT-exciton material. Monolayer TMDs: residual homogeneous linewidth ~1.6 meV (T₂≈0.4 ps)
@@ -1107,22 +1107,30 @@ Both sides of U/Γ have been measured, and they bracket the door quantitatively:
   Nat. Commun. 12, s41467-021-26192-0 (2021)). GaAs — the material of the best blockade demos —
   is **not** on this list: its ~few-meV exciton binding lets the exciton ionize above cryo,
   which is *why* those demos stop below 40 K.
-- **U is measured, roughly athermal, and even cold has never reached U/Γ = 1.** The strongest
-  direct measurement is Delteil et al. (Nat. Mater. 18, 219 (2019); arXiv:1805.04020): 0D GaAs
-  polaritons confined to ~3 µm², a **modest ~5% two-polariton suppression → U/Γ ≈ 0.42 at
-  few K** — blockade not reached even cold. The TMD-nanocavity route is orders further: MoSe₂
-  in a photonic-crystal cavity switches at ~4 fJ (N~10⁴ photons) with Γ_LP≈1.8 meV at 4 K,
+- **The directly-measured antibunching is weak, and even the cold interaction ratio is below
+  threshold.** Delteil et al. (Nat. Mater. 18, 219 (2019); arXiv:1805.04020) confined 0D GaAs
+  polaritons to ~3 µm² and observed a **~5% two-polariton suppression — i.e. g²(0) ≈ 0.95**, an
+  order of magnitude from blockade (g²(0) < 0.5). The often-quoted "**U/Γ ≈ 0.42**" is an
+  *inferred* interaction/linewidth ratio from the analysis, **not the observed antibunching**;
+  in a consistent weak-drive convention the measured g²(0) ≈ 0.95 corresponds to **U/Γ ≈ 0.05**,
+  so the honest cold anchor is **~10–14× short of threshold even at few K.** The TMD-nanocavity
+  route is orders further: MoSe₂ switches at ~4 fJ (N~10⁴ photons), Γ_LP≈1.8 meV at 4 K,
   "several orders of magnitude" from the single-polariton regime (arXiv:2411.16635).
 
-Put together: the best cold system is **~2.4× short** of blockade, and carrying that same
-athermal U to a material whose RT Γ is ~10²–10³× larger opens a **further ~2–3 orders — a net
-RT deficit of roughly three orders of magnitude in U/Γ, set by measured phonon-broadened
-Γ(300 K).** Crucially the data shows this is a **continuous figure of merit ~10³ away, not an
-infinity**: there is no measured no-go, and the active levers (Rydberg / dipolar / interlayer
-excitons and Fermi-polarons to *raise* U; large-binding, low-Fröhlich TMD-class materials
-whose RT Γ is only ~10 meV to *lower* the target) push in the right direction. **The concrete
-watch-target the numbers define: a large-exciton-binding, low-Fröhlich material (TMD-class) in
-which an enhanced U reaches its own ~10 meV room-temperature linewidth.**
+Put together: the best *measured* cold antibunching is already **~14× short** of blockade
+(g²(0)=0.95 ↔ U/Γ≈0.05, threshold ≈0.71). Computing the RT ratio *in-material* — Hopfield-
+weighted, no cross-material composite, with a **generous GaAs-class saturation U_exc** at the
+|X|→1 ceiling — gives **~12× short for a TMD (Γ_x≈10 meV) and ~47× for a perovskite (Γ_x≈40
+meV)**; those are **lower bounds**, since the true TMD saturation U_exc is smaller. So the honest
+in-material RT gap is **roughly 1–2 orders, and not reliably quantified on the upside** — before
+the two structural penalties below, which cut the same way. What the data establishes is the
+*shape*, not a tidy number: this is
+a **continuous figure of merit, not a measured no-go.** The active levers (Rydberg / dipolar /
+interlayer excitons and Fermi-polarons to *raise* U; large-binding, low-Fröhlich TMD-class
+materials whose RT Γ is ~10 meV to *lower* the target) push the right way, but — as the next
+two paragraphs show — the polariton-basis weighting and the oscillator-strength cost mean the
+usable RT gap is **not reliably quantified on the upside; the earlier "~25×" was an artifact
+and is withdrawn.**
 
 **Is there a joint bound tying U's ceiling to Γ's floor? (the closest thing to a no-go — and
 the escape).** This is the question that would *close* the programme if answered yes, and the
@@ -1148,43 +1156,107 @@ bypass.** Proving a floor on Γ_phonon(300 K) *jointly* with a ceiling on the *d
 U — not just the saturation U — is the single result that would convert this open door into a
 closed one.
 
-**Simulated: can the numbers actually reach RT blockade? (driven-dissipative g²(0) model).**
-To make the door falsifiable rather than rhetorical, we simulated a single anharmonic (Kerr)
-polariton mode under weak coherent drive — Lindblad steady state, blockade quality
-g²(0) = ⟨a†a†aa⟩/⟨a†a⟩² minimised over drive detuning — fed with the *measured* U and Γ(T)
-above (`src/energy_model/run_blockade_sim.py`, `data/blockade_sim_results.json`):
-- **Threshold (mechanism-independent):** g²(0) < 0.5 needs **U/Γ ≥ 0.71**; strong antibunching
-  (g²(0) < 0.1) needs U/Γ ≥ 2.85. The model reproduces the literature — the best measured cold
-  ratio **U/Γ = 0.42 (Delteil) gives g²(0) = 0.66**, i.e. modest suppression, *blockade not
-  reached* — which is exactly what that paper reports, so the engine is calibrated.
-- **Pure thermal penalty (fewest assumptions):** take that best cold ratio and apply *only* the
-  measured Γ(300 K)/Γ(4 K) rise (≈7–12× from the phonon fit for TMD / perovskite) — U/Γ(300 K)
-  falls to **0.035–0.056, i.e. 13–20× below threshold, from thermal broadening alone**, before
-  any material-transfer cost. This number depends on no extrapolation of mine.
-- **Full estimate + Monte Carlo:** folding in the a_B²-material-transfer penalty and dipolar
-  enhancement (×10 bilayer MoS₂ → ×200 dipolariton), **0% of 4,000 sourced draws reach RT
-  blockade** in *any* mechanism/material combination. But the gap shrinks monotonically with the
-  enhancement: median **~4,750× short** (bare saturation, TMD) → **~414×** (dipolar ×10) →
-  **~25×** (dipolariton ×200 on TMD, the best corner).
-- **Reading:** the door is quantitatively still shut *today* — 0% of draws — but the best-corner
-  gap is **~25×, about 1.4 orders, not the ~3 orders of the naive case**, and it closes by
-  exactly the lever the physics identifies: stack the largest dipolar U-enhancement onto the
-  lowest-Fröhlich (smallest-RT-Γ) material. That is a hard materials number, not an infinity,
-  consistent with there being no proven no-go. *(Generous-to-optics flags: the ×200 dipolariton
-  boost was measured in cryogenic GaAs, not an RT material, and the a_B² U-transfer is an
-  estimate — both flatter optics; the assumption-light thermal-only result, 13–20× short, relies
-  on neither.)*
+**A modelling correction (what a g²(0) simulation can and cannot show).** A first pass here ran
+a driven-dissipative Kerr g²(0) model with a Monte-Carlo over U and Γ ranges. It is retained in
+the code (`src/energy_model/run_blockade_sim.py`) but must be read for what it is: **g²(0) is a
+monotone function of U/Γ, so propagating input ranges through it returns the inputs.** "0% of
+4,000 draws reach RT blockade" restates "the best corner is short" — the same fact printed
+twice. As built it had *no outcome that would have changed the verdict*; it was illustration,
+not a test. Three errors, all optimistic, now corrected:
+1. **Circular calibration.** It fed U/Γ = 0.42 into its own g²(0), read off 0.66, and called
+   that agreement with Delteil. Delteil *measured* g²(0) ≈ 0.95; in a consistent convention that
+   is U/Γ ≈ 0.05. The pipeline was never validated against the paper.
+2. **Convention-dependent threshold.** g²(0) < 0.5 needs U/Γ ≈ 0.71 in the master-equation
+   (population-decay = energy-FWHM) convention used here, but ≈ 0.5 in the common closed form
+   g²(0)=1/(1+(2U/Γ)²) — a factor ~√2 that shifts every ratio. (The Lindblad solve and the
+   analytic weak-drive ladder agree *exactly* within a convention; the number is meaningful only
+   with its convention stated and only comparable to a measurement quoted the same way.)
+3. **The "25×" was a cross-material composite doing all the work.** It multiplied a **200×
+   dipolariton enhancement measured in cryogenic GaAs coupled quantum wells (PRL 121, 227402
+   (2018))** onto a **TMD room-temperature linewidth** — a system no one has grounds to expect.
+   Remove the composite and the honest in-material gap is the ≳2 orders above, unquantified on
+   the upside. **The 25× is withdrawn.**
 
-**Verdict: the door is open but narrow, and now specific.** RT blockade is not causality- or
-thermodynamically forbidden — unlike the Kerr/χ³ route — so the programme does **not** close
-on this axis. It leaves one precise, watchable target: **a single- (or few-) emitter system
-with U > Γ_phonon(300 K)** — equivalently, room-temperature single-emitter photon blockade, a
-strictly stronger and different claim than the room-temperature *collective* strong coupling
-already in hand. Should someone prove a temperature-dependent lower bound on U/Γ (a floor on
-Γ_phonon that any RT-stable material must pay, set jointly with a ceiling on U), the
-programme closes completely and photonic compute is finished on physics. Absent that proof,
-this single gap — not temperature, not existence, not architecture — is the one open door,
-and it is specific enough to watch for.
+**Two pieces of physics the first model omitted — both cut against optics:**
+- **Hopfield weighting.** In the polariton basis U scales as **|X|⁴U_exc** and Γ as
+  **|X|²Γ_x + |C|²Γ_c**, so the ratio U/Γ → |X|²·U_exc/Γ_x (good cavity) is **maximised at
+  |X|→1, the bare-exciton limit.** The cavity buys coupling and readout, *not* a better ratio —
+  so the earlier "add Purcell narrowing" idea was backwards: going more photonic lowers U_pol
+  faster than Γ_pol. Any g²(0) model without Hopfield weights quotes an exciton ratio and calls
+  it a polariton one. The real RT spec is therefore **U_exc > ~0.7·Γ_x(300 K)** — a *bare-
+  exciton* anharmonicity (µeV-scale for saturation) exceeding a ~10 meV RT homogeneous linewidth.
+- **Oscillator-strength cost.** The dipolar/interlayer routes raise U precisely by separating
+  electron and hole — which suppresses oscillator strength, hence g, hence the achievable |X|
+  (or strong coupling at all). The 200× on U is not free; its cost lands on exactly the |X| the
+  Hopfield weight then rewards. Until that trade is carried, the enhanced-U corner is optimistic
+  by an unknown factor.
+
+**Falsification criterion (what the first run lacked).** The verdict "RT blockade unreachable
+with known materials" flips **iff a single material shows U_exc(measured) > ~0.7·Γ_x(300 K,
+measured) at an exciton fraction high enough to both strong-couple and read out** — a bare-
+exciton anharmonicity exceeding its own RT homogeneous linewidth. No such material is in the
+inputs; if one is measured, the model returns g²(0) < 0.5. That is an external, checkable
+condition, not a restatement of the inputs.
+
+**Blockade imports its own ledger — the spec sheet must price it:**
+- **Bandwidth ∝ Γ.** The linewidth being *minimised* for blockade is the same one that sets
+  operation speed (bw ≈ Γ/2πħ): Γ ≈ 1 meV ⇒ ~240 GHz, Γ ≈ 0.1 meV ⇒ ~24 GHz. So the coupling is
+  *directional* (smaller Γ ⇒ slower) but **mild at the relevant operating point** — at the
+  Γ ~ 0.1–1 meV where blockade would run, speed is still tens–hundreds of GHz. It only bites
+  below Γ ~ 0.01 meV. A real trade to note, not a hard contradiction. *(Corrected: an earlier
+  draft misquoted this as ~1.5 GHz.)*
+- **Shot noise.** Operating at single-photon amplitudes sits at the shot-noise floor, so accuracy
+  (SNR ∝ √N) costs integration time or repetition — a direct tax on effective throughput that a
+  per-MAC-energy comparison must carry.
+
+**Verdict: necessary, not sufficient — and unquantified on the upside.** RT single-emitter
+blockade is not causality- or thermodynamically forbidden (no one has proven the joint bound),
+so this axis stays *open*. But the honest state is soberer than the first pass implied: the best
+*measured* cold antibunching is ~14× short, the in-material RT ratio is ~12–47× short (lower
+bound, generous U_exc), and the two structural penalties (Hopfield, oscillator strength) push
+further the same way, so the RT gap is **~1–2 orders and not reliably quantified.** More
+decisively, **clearing it
+would not reopen the programme.** Grant U/Γ = 2 at room temperature tomorrow and not one
+conserved electrical cost — converter amortisation, thermal hold, laser bias, the 99.8%
+optical-drive share — moves; blockade is a *necessary* enabler of the one all-optical escape,
+never a *sufficient* one, and it arrives with its own bandwidth-vs-Γ and shot-noise costs. The
+materials question is real and worth watching. **It is not the deliverable — the joint condition
+below is.**
+
+## The joint condition — all seven at once (the deliverable that survives)
+
+The requirements below are a **conjunction, not a menu**: the nonlinearity must satisfy *all* of
+them *simultaneously, in one device*, and several are **mutually antagonistic**, so progress on
+one row can regress another. That structure — not any single ×N gap — is what survives review.
+
+| # | Requirement | Best demonstrated | In tension with |
+|---|---|---|---|
+| 1 | Switching energy ≤ 1 fJ/op **incl. pump** | 14 aJ (cryo blockade); RT case pump-dominated ~300 pJ | #7 (single-photon ⇒ shot-noise) |
+| 2 | Insertion loss ≤ ~1 dB/element | **unreported** for every polariton candidate | #6/#7 (dipolar-U ↓ oscillator strength) |
+| 3 | Speed ≥ GHz (ideally THz) | 8.4 GHz (cryo QD-cavity) | #7 (bw ∝ Γ; mild at Γ~0.1–1 meV) |
+| 4 | Depth ≤ ~8, **cascadable, no per-stage pump**, inference-only | not shown (RT case re-pumps each stage) | #1 (a pump *is* the energy) |
+| 5 | Temperature = RT | RT strong coupling ✓ (**not** RT blockade) | #7 (Γ_phonon(300 K) ⇒ larger U needed) |
+| 6 | Causality: non-χ³ (polariton) | polariton mechanism ✓ | #2 (matter fraction ⇒ loss) |
+| 7 | Blockade quality U/Γ above threshold at RT | **U/Γ ≈ 0.05 measured** (cryo) | **#1, #2, #3** |
+
+**No known mechanism satisfies the conjunction, and three pairs are physically opposed:**
+- **#7 ⇄ #3 (blockade vs speed).** Raising U/Γ by shrinking Γ lowers the Γ/2πħ operation
+  bandwidth — directional, though mild at the Γ~0.1–1 meV operating point (still tens–hundreds
+  of GHz); it only bites below ~0.01 meV.
+- **#7 ⇄ #1/#2 (blockade vs energy-accuracy and loss).** Single-photon operation invokes shot
+  noise (accuracy → integration time); dipolar U-enhancement invokes oscillator-strength loss
+  (→ #2, and → weaker coupling, → lower |X|).
+- **#4 ⇄ #1 (cascadability vs energy).** The only demonstrated RT nonlinearity restores signal
+  with a per-stage pump — the inter-layer amplification the energy budget forbids.
+
+**So the reusable result is the conjunction and its contradictions, not a single "gap ×N."** A
+lab can advance one row; the deliverable is that **advancing all seven at once, in one device,
+has no known path, and at least three of the rows trade against each other** — achieving RT
+blockade (row 7) actively *worsens* rows 1–3. This statement is independent of the withdrawn
+blockade estimate. And it is **necessary-but-not-sufficient for the programme**: every row here
+concerns the *nonlinearity only*. The conserved per-element *electrical* costs — conversion,
+thermal hold, laser bias, the 99.8% optical-drive share, the load-bearing converter-floor result
+— sit entirely *outside* this table and are untouched by any nonlinearity, RT blockade included.
 
 ## The spec sheet (the reusable output)
 
@@ -1200,8 +1272,12 @@ and it is specific enough to watch for.
 >   6–8 orders above the TPA-free ceiling). A non-χ³ mechanism (polariton/matter interaction)
 >   is required.
 > - **The nearest mechanism, and the actual remaining gap** (revised on review — see
->   *Corrections* below). Room-temperature operation and a single-photon-triggered
->   nonlinearity are **both already demonstrated**, so neither is the gap any longer:
+>   *Corrections* below). Two facts are settled — but note they were demonstrated in *different*
+>   systems and via a *different* mechanism than RT blockade, so they remove two objections
+>   without composing into a working device: RT strong coupling exists, and a RT single-photon-
+>   *triggered* nonlinearity exists (which is evidence against a *general* no-go for RT
+>   single-photon nonlinearity — **not** an existence proof of RT blockade, which remains
+>   unshown). With those two objections removed, the gap is:
 >   - *Room-temperature strong coupling is solved.* RT cavity polariton condensation in
 >     colloidal CsPbBr₃ QDs (Nat. Commun. 2025, s41467-025-60553-3, threshold ~160 µJ/cm²,
 >     first for any QD platform); RT single-QD strong coupling reproduced across ~840
@@ -1335,18 +1411,26 @@ pump-free (blockade) polariton nonlinearity, CMOS-integrable at telecom waveleng
 conserved and electrical, and the single remaining physical lever — an all-optical
 nonlinearity — is Kerr-forbidden by Kramers-Kronig and, in its one causality-permitted
 form, reduces to three specific unmet materials-physics requirements, not an architecture.**
-**One of those requirements is sharper than the rest, and is the single open door.** The
-QD-cavity blockade already meets energy (14 aJ) and speed (8.4 GHz) and fails only on
-temperature (39 K), while room-temperature polariton strong coupling is now demonstrated in
-three systems — so the live question is whether *strong blockade at room temperature* is
-possible. It is **not causality- or thermodynamically forbidden**: blockade needs U/Γ > 1
-with U athermal and Γ carrying only a phonon-dephasing floor, so RT blockade reduces to a
-materials figure of merit, U > Γ_phonon(300 K), which no single-emitter system has yet met —
-because the collective enhancement (Ω ∝ √N) that buys RT strong coupling suppresses the
-per-particle nonlinearity (U ∝ 1/N) that blockade needs. **That is the honest end of the
-line: photonic compute does not beat digital in general; the one escape physics still permits
-is a materials moonshot — a room-temperature single-emitter photon blockade — and it is open
-only because no one has yet proven a temperature bound on U/Γ that would shut it.**
+**One of those requirements is sharper than the rest, and is the single open door — but it is
+necessary, not sufficient, and its size is not reliably quantified.** The QD-cavity blockade
+meets energy (14 aJ) and speed (8.4 GHz) and fails only on temperature (39 K), while RT polariton
+strong coupling is demonstrated in three systems — so the live question is *strong blockade at
+room temperature*. It is **not causality- or thermodynamically forbidden** (no one has proven the
+joint bound), so the axis is open. But the honest accounting (Follow-up 7, *open door* +
+*modelling correction*) is sober: the best *measured* cold antibunching is ~14× short
+(g²(0)=0.95 ↔ U/Γ≈0.05); the in-material RT ratio is ~12–47× short even with a generous exciton
+anharmonicity; the Hopfield weighting caps the ratio at the bare-exciton value U_exc/Γ_x(300 K)
+so a cavity cannot help; and the dipolar enhancement that might close it trades against
+oscillator strength by an unmeasured amount — so the gap is **roughly 1–2 orders and not exactly
+quantifiable**, and an earlier "~25×" cross-material estimate was withdrawn. **Decisively, RT
+blockade would not reopen the programme:** it concerns the *nonlinearity only*, worsens speed and
+shot-noise accuracy, and leaves every conserved per-element *electrical* cost — conversion,
+thermal hold, laser bias, the 99.8% optical-drive share, the load-bearing converter-floor result
+— untouched. **That is the honest end of the line: photonic compute does not beat digital in
+general; the one physics-permitted escape is a room-temperature single-emitter photon blockade
+that no one has built, whose size is unquantified, and which even if achieved is necessary but
+not sufficient. The surviving deliverable is the seven-requirement joint condition (with its
+internal contradictions), not any single materials number.**
 
 ---
 
