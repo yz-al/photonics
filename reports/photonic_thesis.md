@@ -887,6 +887,68 @@ mode-multiplexing, sparsity) has now been tried, and the cost is conserved.
 
 ---
 
+# Follow-up 6 — Shared source: stop giving each neuron its own gain medium
+
+**One-line answer: sharing removes the per-neuron *laser* but not the standing
+*optical-power* floor — it relocates and divides the bias by the share factor, but the
+share factor is capped at ~16 by the passive elements' bus-loss wall, and the fabricated
+per-spike energy stays ~60–125× the compute floor.** The apparent sub-floor per-MAC that
+sharing produces is an **equivalent-dense-MAC / fan-in accounting** effect that a *digital*
+sparse-SNN accelerator enjoys equally — not a photonics-specific win. Code:
+`src/energy_model/run_test1_spiking_shared.py`, data `data/test1_spiking_shared_results.json`.
+
+The escape is real and correctly aimed: the source cost was `N·P_bias` only because each
+neuron carried its own gain medium. One shared comb feeding N passive modulators divides
+the standing laser hardware and bias overhead by N. But the model, reconciled against the
+one architecture that costs this end-to-end (**SEPhIA**, Hejda et al., arXiv:2510.07427),
+shows the cost reappearing on exactly the two axes flagged in advance:
+
+- **Bus-loss wall caps the share factor.** SEPhIA's own power law is `2·N·IL_MRM +
+  10·log(N)` dB; at 0.2 dB/modulator this caps one shared tile at **N_T ≤ 16 neurons**
+  before an amplifier is needed (and that excludes propagation loss and crosstalk, so 16
+  is optimistic). Our share-factor sweep at N=1024 reproduces it: S=8 → ~7 fJ/eqMAC (bus
+  6 dB); **S=256 → 105 dB, undetectable.** So you get tiles of ~16, not one laser for all.
+- **The standing optical drive does not shrink.** SEPhIA's per-neuron energy is **99.8%
+  optical drive power** (P_λ ≈ 2.5 mW vs electronic P_E ≈ 4.6 µW). The passive element
+  does not make its own light; the µW–mW it modulates must be supplied continuously by the
+  shared source, *per element*, independent of N. Fabricated: **2.5 pJ/spike** (60–125×
+  the 20–40 fJ floor); idealized minimum (−14 dBm, losses excluded): **44 fJ/spike**.
+
+**Why the model still shows floor-crossings (24–86% of draws), and why they don't count.**
+Per *equivalent dense MAC*, one spike is amortised over its fan-in (N synaptic ops), so
+2.5 pJ/spike ÷ N=1024 ≈ 2.4 fJ — below the floor. That is the entire "win," and it is the
+standard SNN sparsity/fan-in accounting (spikes-per-neuron × fan-out), which is
+**contested and, crucially, equally available to a digital sparse-SNN accelerator** — so
+it is not a win *for photonics over digital*. Under the honest fabricated per-event metric
+(SEPhIA 2.5 pJ/spike) the source still dominates and the floor is missed by ~2 orders of
+magnitude, exactly as for every other track. The floor-crossing fraction also depends on
+allowing the idealized 44 µW drive; at the realistic 2.5 mW it collapses.
+
+**Accuracy (sourced, not run).** At the sparsity this needs (5–20% firing, T=4–10), trained
+CIFAR-10 SNNs reach 92–94% — a 1–2 pt penalty vs the ANN (DIET-SNN arXiv:2008.03658;
+arXiv:2205.07473). Usable, not free; and the digital SNN it is compared against gets the
+same sparsity benefit.
+
+### Sourced inputs (shared-source)
+
+| Quantity | Low – Nom – High | Source |
+|---|---|---|
+| Neurons per shared source | 8 – 16 – 64 | SEPhIA Op-Tile N_T≤16, power-limited (arXiv:2510.07427) |
+| Optical drive per element | 44 µW – 0.5 – 2.5 mW | SEPhIA P_λ 2.5 mW real / 44 µW ideal; µring self-pulse 80–223 µW |
+| Per-element bus IL | 0.2 – 0.4 – 1.0 dB | Si MRM 0.2 dB (SEPhIA); Sb₂Se₃ 0.4–0.65; GST several |
+| Photons per 1-bit spike | 1 – 20 – 100 | quantum limit ~1 (Ma et al. Nat.Commun.2023); reliable ~10–20 |
+| Fabricated energy/spike | 44 fJ – 2.5 pJ | SEPhIA idealized min / realistic |
+
+**Verdict.** The shared-source escape is the best-aimed of the programme — it attacks the
+one term (`N·P_bias`) that sharing can legitimately divide — and it is why photonic SNNs
+report their best numbers. But it does **not** produce a general, fabricated,
+photonics-specific win: sharing is bus-loss-capped at ~16, the optical drive floor is
+untouched (99.8% of SEPhIA's energy), the fabricated 2.5 pJ/spike is ~60–125× the floor,
+and the only sub-floor per-MAC comes from fan-in/sparsity accounting a digital SNN shares.
+Reported as a narrow, generously-accounted corner — the same flag as the PCM 13%.
+
+---
+
 ## Programme conclusion — five architectures, one table
 
 An N×N linear layer has N² weights; those weights must be physically instantiated in
@@ -908,7 +970,12 @@ of draws**; photonic spiking reaches it **only for projected sub-mW neurons that
 fabricated** (0% for the measured DFB-SA device class), and **biological sparsity does not
 rescue it** — the source cannot be gated per event (a continuous near-threshold bias is
 physically required), so sparsity leaves the dominant source term untouched (Follow-up 5).
-Both exceptions win the same way:
+**Sharing one source across the array** (Follow-up 6) is the best-aimed escape — it divides
+the standing bias by the share factor — but the passive elements' bus-loss wall caps the
+share at ~16 (SEPhIA), the optical drive power is 99.8% of the energy and does not shrink,
+the fabricated cost is 2.5 pJ/spike (~60–125× the floor), and the only sub-floor per-MAC
+comes from fan-in/sparsity accounting a digital SNN accelerator shares equally.
+All exceptions win the same way:
 by driving the **per-weight/per-neuron electrical cost toward zero** — PCM non-volatility
 removes hold power, non-resonant geometry removes locking, write-once removes programming,
 sub-mW bias removes the source floor. Neither touches the general case (8-bit, trainable,
