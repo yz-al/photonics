@@ -1,0 +1,59 @@
+{
+  "depth": 2,
+  "sweep": [
+    {
+      "width": 16,
+      "macs": 12960,
+      "mean_acc": 0.9568
+    },
+    {
+      "width": 24,
+      "macs": 19632,
+      "mean_acc": 0.9672
+    },
+    {
+      "width": 32,
+      "macs": 26432,
+      "mean_acc": 0.9718
+    },
+    {
+      "width": 48,
+      "macs": 40416,
+      "mean_acc": 0.9763
+    },
+    {
+      "width": 64,
+      "macs": 54912,
+      "mean_acc": 0.9781
+    },
+    {
+      "width": 96,
+      "macs": 85440,
+      "mean_acc": 0.9811
+    },
+    {
+      "width": 128,
+      "macs": 118016,
+      "mean_acc": 0.9831
+    }
+  ],
+  "note": "swept to W128 (>=SNN 98.22%); W192/256 skipped (above target)",
+  "matched_targets": {
+    "acc_0.982": {
+      "width": 128,
+      "macs": 118016
+    },
+    "acc_0.9822": {
+      "width": 128,
+      "macs": 118016
+    },
+    "acc_0.955_d2nn": {
+      "width": 16,
+      "macs": 12960
+    },
+    "acc_0.975": {
+      "width": 48,
+      "macs": 40416
+    }
+  }
+}

@@ -1,0 +1,453 @@
+{
+  "network": {
+    "in": 784,
+    "width": 256,
+    "depth": 2,
+    "T": 8,
+    "N_neurons": 512
+  },
+  "matched_macs_98.2": 118016,
+  "matched_width": 128,
+  "full_macs_98.4": 268800,
+  "edge_tops_w": [
+    2.0,
+    5.0,
+    30.0
+  ],
+  "e_sop_loihi_J": [
+    1.27e-11,
+    1.5e-11,
+    2.36e-11
+  ],
+  "sops_at_measured_f0.43": 1839882.24,
+  "measured_point": {
+    "E_spike_J": 8e-12,
+    "f": 0.43,
+    "optical_nJ": 26.216279368424637,
+    "npu_unmatched_nJ": 107.52,
+    "npu_matched_nJ": 47.2064,
+    "loihi_nJ": 27598.2336,
+    "beats_npu_matched": true,
+    "beats_loihi": true
+  },
+  "boundary_vs_npu_matched": [
+    {
+      "f": 0.005011872336272725,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.005721369546523267,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.0065313055264747295,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.0074558987202778156,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.008511380382023767,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.009716279515771068,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.011091748152624014,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.012661932675109443,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.01445439770745928,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.016500610013202285,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.01883649089489801,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.021503046793402564,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.02454708915685031,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.02802205621666748,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.031988951096913985,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.03651741272548377,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.04168693834703355,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.04758827909888171,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.054325033149243335,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.06201546436537854,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.0707945784384138,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.08081649291125376,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.09225714271547633,
+      "max_E_spike_win_pJ": 79.43282347242821,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.10531736871297159,
+      "max_E_spike_win_pJ": 79.43282347242821,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.12022644346174131,
+      "max_E_spike_win_pJ": 63.09573444801943,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.13724609610075625,
+      "max_E_spike_win_pJ": 50.118723362727145,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.15667510701081494,
+      "max_E_spike_win_pJ": 50.118723362727145,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.17885455291077712,
+      "max_E_spike_win_pJ": 39.8107170553497,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.20417379446695297,
+      "max_E_spike_win_pJ": 39.8107170553497,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.23307731152826386,
+      "max_E_spike_win_pJ": 31.622776601683793,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.26607250597988097,
+      "max_E_spike_win_pJ": 31.622776601683793,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.30373860919461043,
+      "max_E_spike_win_pJ": 25.118864315095824,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.34673685045253166,
+      "max_E_spike_win_pJ": 19.95262314968883,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.39582206483572263,
+      "max_E_spike_win_pJ": 19.95262314968883,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.4518559443749224,
+      "max_E_spike_win_pJ": 15.848931924611108,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.5158221650723056,
+      "max_E_spike_win_pJ": 15.848931924611108,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.588843655355589,
+      "max_E_spike_win_pJ": 12.589254117941662,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.672202309111567,
+      "max_E_spike_win_pJ": 12.589254117941662,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.7673614893618186,
+      "max_E_spike_win_pJ": 10.0,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 0.875991717633117,
+      "max_E_spike_win_pJ": 7.943282347242821,
+      "competitor_nJ": 47.2064
+    },
+    {
+      "f": 1.0,
+      "max_E_spike_win_pJ": 7.943282347242821,
+      "competitor_nJ": 47.2064
+    }
+  ],
+  "boundary_vs_loihi": [
+    {
+      "f": 0.005011872336272725,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24125.4346150333
+    },
+    {
+      "f": 0.005721369546523267,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24131.232285676804
+    },
+    {
+      "f": 0.0065313055264747295,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24137.850693735698
+    },
+    {
+      "f": 0.0074558987202778156,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24145.406025510725
+    },
+    {
+      "f": 0.008511380382023767,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24154.030915019313
+    },
+    {
+      "f": 0.009716279515771068,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24163.876772388714
+    },
+    {
+      "f": 0.011091748152624014,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24175.116441864127
+    },
+    {
+      "f": 0.012661932675109443,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24187.94723609331
+    },
+    {
+      "f": 0.01445439770745928,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24202.594399954458
+    },
+    {
+      "f": 0.016500610013202285,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24219.315064735085
+    },
+    {
+      "f": 0.01883649089489801,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24238.402762077476
+    },
+    {
+      "f": 0.021503046793402564,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24260.192576933227
+    },
+    {
+      "f": 0.02454708915685031,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24285.06702998699
+    },
+    {
+      "f": 0.02802205621666748,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24313.462792815622
+    },
+    {
+      "f": 0.031988951096913985,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24345.878353667456
+    },
+    {
+      "f": 0.03651741272548377,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24382.882768434545
+    },
+    {
+      "f": 0.04168693834703355,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24425.12565044155
+    },
+    {
+      "f": 0.04758827909888171,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24473.348574422096
+    },
+    {
+      "f": 0.054325033149243335,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24528.398094879707
+    },
+    {
+      "f": 0.06201546436537854,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24591.24060737098
+    },
+    {
+      "f": 0.0707945784384138,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24662.979313601067
+    },
+    {
+      "f": 0.08081649291125376,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24744.873588154165
+    },
+    {
+      "f": 0.09225714271547633,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24838.361086842368
+    },
+    {
+      "f": 0.10531736871297159,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 24945.082984785422
+    },
+    {
+      "f": 0.12022644346174131,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 25066.912787276488
+    },
+    {
+      "f": 0.13724609610075625,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 25205.989219209252
+    },
+    {
+      "f": 0.15667510701081494,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 25364.753770441017
+    },
+    {
+      "f": 0.17885455291077712,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 25545.993556201473
+    },
+    {
+      "f": 0.20417379446695297,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 25752.890244962597
+    },
+    {
+      "f": 0.23307731152826386,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 25989.07591269944
+    },
+    {
+      "f": 0.26607250597988097,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 26258.696804064715
+    },
+    {
+      "f": 0.30373860919461043,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 26566.486119805944
+    },
+    {
+      "f": 0.34673685045253166,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 26917.84710820987
+    },
+    {
+      "f": 0.39582206483572263,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 27318.947919246406
+    },
+    {
+      "f": 0.4518559443749224,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 27776.82988657857
+    },
+    {
+      "f": 0.5158221650723056,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 28299.531138331644
+    },
+    {
+      "f": 0.588843655355589,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 28896.227706611302
+    },
+    {
+      "f": 0.672202309111567,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 29577.394612951353
+    },
+    {
+      "f": 0.7673614893618186,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 30354.98975754989
+    },
+    {
+      "f": 0.875991717633117,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 31242.663840473364
+    },
+    {
+      "f": 1.0,
+      "max_E_spike_win_pJ": 100.0,
+      "competitor_nJ": 32255.999999999996
+    }
+  ],
+  "max_f_win_vs_npu_at_8pJ": null,
+  "max_f_win_vs_loihi_at_8pJ": null,
+  "mc_measured": {
+    "beats_matched_npu_frac": 0.5225,
+    "beats_loihi_frac": 1.0
+  }
+}
