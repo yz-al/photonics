@@ -36,6 +36,16 @@ Killing the energy half cheaply is the intended good outcome. Test 2 says the do
 is not closed by the nonlinearity — it is closed (for now) by loss and converters,
 which is where any future hardware advance must land.
 
+**All three buildable mesh topologies were subsequently tested and all three fail the
+compute floor** (see the two follow-up sections and the closing three-architecture
+table): the dense mesh dies on cascaded insertion loss, the O(log N) butterfly on
+converter amortisation, and the microring crossbar on thermal stabilisation of its N²
+resonances — three symptoms of one disease, that N² optical weights cannot participate
+in a computation without a per-weight physical cost (depth-loss, re-conversion, or
+standing power) that exceeds the digital MAC. The single actionable lever across every
+architecture is an order-of-magnitude drop in per-conversion / per-element electrical
+energy, not a new topology or activation.
+
 ---
 
 ## Scope and background (stated accurately)
@@ -553,6 +563,114 @@ the optics, are the cost), not a cleverer mesh topology.
 
 ---
 
+# Follow-up 2 — Does a microring crossbar reopen the thesis?
+
+**One-line answer: No — it is killed by thermal stabilisation of its N² resonances.**
+The microring crossbar is the one topology that *escapes the amortisation squeeze*: an
+N×N ring array does N² MACs at optical depth ~1 (light crosses a K-ring bus, not N
+cascaded stages), and WDM carries K≈14 inputs in parallel, so conversion amortises to
+**~65 fJ/MAC — near the compute floor**, and the bus loss stays ~3–4 dB (the loss wall
+does **not** reappear). But it fails on a mechanism the mesh model never contained:
+every ring is a **resonance that must be actively held on its channel against silicon's
+80 pm/K thermal drift**, continuously, whether or not it is computing. With N² rings
+that gives `thermal_stab/MAC = N·P_stab/(K·bw)` = **44 pJ/MAC at N=1024** (2.7 pJ at
+N=64, 702 pJ at N=16384), 30–10,000× over the 20–40 fJ floor. **Crossover vs the
+compute floor: 0% of Monte-Carlo draws, at every N, precision, and weight model.** Per
+the pre-registered gate, no accuracy study was run. Code:
+`src/energy_model/run_test1_crossbar.py`, data `data/test1_crossbar_results.json`.
+
+## The five failure modes, ranked by what binds
+
+| # | Failure mode | Modelled quantity | Binds? |
+|---|---|---|---|
+| 1 | **Thermal stabilisation** | N² rings × 1–30 mW held; `N·P_stab/(K·bw)` per MAC | **YES — first and decisively** |
+| 3 | WDM channel count K | K = FSR/(3.4–4.6·linewidth) ≈ 14 (demonstrated 4–16) | caps amortisation at ~65 fJ, but **not** below floor — not the killer |
+| 5 | Weight precision | Lorentzian + drift → **~4–5 bits** (Tait 3.1–5.1, Feldmann 5) | 8-bit is **unphysical** for a weight ring; 4-bit is the only real op point |
+| 2 | Fabrication yield | per-ring yield ≈ 1 when trim range ≥ 1 FSR (mandatory) | not binding — trim covers the ~1 nm scatter (at the cost of hold power, mode 1) |
+| 4 | Bus loss / crosstalk | K rings on bus × 0.01–0.2 dB → **3–4 dB** | **survives** — K-bounded, so "depth ~1" holds |
+
+**Answer to the three questions.** (1) No buildable (N,K) beats the compute floor, in
+0% of draws. (2) **Thermal stabilisation binds first**, unambiguously — not K (which
+was the other candidate: conversion is fine at ~65 fJ). (3) **"Depth ~1" survives** —
+the K≈14-ring bus is 3–4 dB, so the loss wall does *not* reappear for the resonant
+crossbar; the same K-bound that limits amortisation also bounds the loss.
+
+## Sourced inputs (new physics; ranges + citations)
+
+| Quantity | Low – Nom – High | Source |
+|---|---|---|
+| Per-ring thermal hold power | 1 – 6 – 30 mW | Feldmann Nature 2021 / Nahmias JSTQE 2020 (≈1 mW avg); undercut..full-FSR |
+| Ring loaded Q (weight bank) | 5×10³ – 1×10⁴ – 2×10⁴ | Tait et al., Opt. Express 24, 8895 (2016) |
+| Ring radius → FSR | 5–20 µm → 18–4.6 nm | FSR = λ²/(n_g·2πR), n_g 4.0–4.4 |
+| Channel spacing / linewidth | 3.4 – 4.0 – 4.6 | Tait et al., IEEE IPC 2017 (8116022), 1-pole, 3 dB penalty |
+| ⇒ WDM channels K | 4 – 14 – ~30 (148 optimistic) | Tait demonstrated 4–16; finesse limit |
+| Through-port loss per ring | 0.01 – 0.05 – 0.2 dB | Si add-drop microring literature |
+| Fab resonance scatter | 0.1 – 0.5 – 2 nm | Selvaraja JSTQE 2010; Lu Opt. Express 2017 (~1 nm wafer) |
+| Heater trim range (≥1 FSR) | 3 – 6 – 12 nm | Milanizadeh JLT 2021 (wafer-scale trimming) |
+| Ring weight precision | 3.1 – 4.0 – 5.1 bits | Tait 2016/2018; Feldmann 2021 (5 bit) |
+| Ring modulator switch energy | 0.9 – 3 – 6 fJ/bit | Timurdogan Nat. Commun. 2014 (confirmed) |
+
+## Feasibility (nominal, K≈14) and thermal-stabilisation floor
+
+| N | rings (N²) | bus loss | yield | idle stabilisation | thermal-stab/MAC (4-bit) | conversion/MAC |
+|---|---|---|---|---|---|---|
+| 64 | 4,096 | 3.7 dB | ~1 | 0.02 kW | 2.7 pJ | 88 fJ |
+| 256 | 65,536 | 3.7 dB | ~1 | 0.4 kW | 11 pJ | 71 fJ |
+| 1024 | 1.05 M | 3.7 dB | ~1 | 6.3 kW | **44 pJ** | 66 fJ |
+| 4096 | 16.8 M | 3.7 dB | ~1 | 101 kW | 176 pJ | 65 fJ |
+| 16384 | 268 M | 3.7 dB | ~1 | 1.6 MW | 702 pJ | 65 fJ |
+
+Conversion (the squeeze) is beaten — ~65 fJ, near the floor. **Thermal stabilisation
+is the whole story**, and it is *worse* than the dense MZI thermo-optic term (which
+already killed 8-bit at ~1 pJ/MAC) by a factor N/K: WDM parallelises K inputs, but you
+still hold N² rings, so per useful MAC the standing power is N/K× higher.
+
+## Honesty — charged vs not charged (all generosities favour optics)
+
+**Charged:** N² ring stabilisation at 1 mW/ring (the *optimistic* Feldmann average, not
+Tait's measured 40–52 mA bias); K-ring bus loss; N input DAC/mod + N²/K output ADC +
+N²/K digital accumulation; laser through the bus. PCM weights zero the weight-*hold*
+power but **not** the resonance lock (the ring still drifts), so the thermal term stays.
+
+**Not charged (each worsens the optical case):** per-ring feedback-control electronics
+(Tait's photoconductive-heater sensing + per-channel control loop — real and O(N²));
+inter-ring thermal crosstalk; the comb/laser source power for K carriers beyond WPE;
+and that ring weight precision (~5 bit) cannot reach 8-bit at all. The *non-resonant*
+PCM-crossing variant (Feldmann 2021) avoids the ring thermal term — but then light
+crosses N waveguide crossings at 0.12 dB each → **123 dB at N=1024**, i.e. the dense
+mesh's loss wall in a new guise (Feldmann measured only up to 32×32, explicitly
+loss-limited). Either way the crossbar does not scale.
+
+---
+
+## Programme conclusion — three architectures, one table
+
+An N×N linear layer has N² weights; those weights must be physically instantiated in
+the optics, and **that instantiation always costs more than the digital MAC it
+replaces** — the cost simply moves between depth, amortisation, and standing power:
+
+| Architecture | Optical depth | MACs / pass | Conversion amortises over | **Dies on** | Magnitude |
+|---|---|---|---|---|---|
+| **Dense Clements/Reck mesh** | N | N² | N (good) | **cascaded insertion loss** | 512 dB @ N=1024 |
+| **Butterfly / FFT mesh** | log₂N | N·log₂N | log₂N | **converter amortisation** | 120–400 fJ/MAC, never floor |
+| **Microring crossbar** | ~1 (K-ring bus) | N²·(K/N per pass) | K ≤ ~30 | **thermal stabilisation of N² rings** | 44 pJ/MAC @ N=1024 |
+
+**None reaches the 20–40 fJ/MAC digital compute floor at any buildable size, in 0% of
+sourced Monte-Carlo draws.** Dense dies on depth-loss, butterfly on amortisation,
+crossbar on standing power — three different symptoms of the same disease: you cannot
+make N² optical weights participate in a computation without paying, per weight, either
+a cascaded loss (depth), a re-conversion (too few MACs), or a continuous hold
+(resonance). In every case the electrical overhead — data converters and thermal
+control, **not** the "free" matmul — dominates, exactly the regime the 2026 market
+converged on (optical *interconnect* yes, optical *compute* no). The programme's single
+actionable lever is unchanged across all three architectures and both tests: an
+**order-of-magnitude reduction in per-conversion / per-element electrical energy**, not
+a new mesh topology and not a new activation. Test 2 separately established that the
+nonlinearity was never the barrier. **The photonic-compute thesis is closed on physics,
+cheaply, in code, with every input sourced — which was the goal.**
+
+---
+
 ## Reproducibility
 
 ```bash
@@ -560,6 +678,7 @@ the optics, are the cost), not a cleverer mesh topology.
 pip install numpy scipy matplotlib
 python src/energy_model/run_test1.py            # dense/tiled: data/test1_results.json + figures/
 python src/energy_model/run_test1_butterfly.py  # O(log N) butterfly: data/test1_butterfly_results.json
+python src/energy_model/run_test1_crossbar.py   # microring crossbar: data/test1_crossbar_results.json
 
 # Test 2 — architecture comparison
 pip install torch torchvision scikit-learn datasets
