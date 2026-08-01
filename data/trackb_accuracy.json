@@ -93,7 +93,51 @@
         "params": 856074,
         "mean_wall_s": 97.58,
         "macs_per_inference": 854528
+      },
+      "spiking": {
+        "n_seeds": 5,
+        "mean_acc": 0.39558,
+        "std_acc": 0.0028237563634279836,
+        "min_acc": 0.3911,
+        "max_acc": 0.4,
+        "per_seed_acc": [
+          0.4,
+          0.3911,
+          0.3952,
+          0.3959,
+          0.3957
+        ],
+        "params": 855050,
+        "mean_wall_s": 153.48000000000002,
+        "mean_firing_rate": 0.3911770135164261,
+        "std_firing_rate": 0.005519270887055078,
+        "T": 8,
+        "macs_per_timestep": 854528
+      },
+      "d2nn": {
+        "n_seeds": 5,
+        "mean_acc": 0.37278,
+        "std_acc": 0.003222049037491521,
+        "min_acc": 0.3674,
+        "max_acc": 0.3763,
+        "per_seed_acc": [
+          0.3723,
+          0.3763,
+          0.3674,
+          0.3759,
+          0.372
+        ],
+        "params": 29706,
+        "mean_wall_s": 124.75999999999999,
+        "grid_M": 48,
+        "phase_planes": 2,
+        "input": "grayscale32 (color discarded)"
+      },
+      "gap_vs_relu": {
+        "d2nn": 0.16222000000000003,
+        "spiking": 0.13942000000000004
       }
     }
-  }
+  },
+  "total_wall_s": 4808.9
 }

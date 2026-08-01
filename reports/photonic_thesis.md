@@ -1461,7 +1461,60 @@ optical interconnect (yes) and optical compute (no).**
 > - Pre-registered gate (programme-standard): if neither optical architecture beats the edge
 >   competitor on J/inference at matched accuracy in any draw, STOP and write the verdict.
 >
-> **Status: dispatched to a build thread; results to be appended below when they land.**
+> **Status: RUN and complete.** Results below.
+
+### Track B — results (edge inference, J/inference at matched accuracy)
+
+Code: `test2/trackb_models.py` (models), `test2/run_trackb.py` (training),
+`test2/trackb_energy.py` (accounting); data `data/trackb_accuracy.json`,
+`data/trackb_energy.json`. Three models at matched width/depth, 5 seeds each, trained
+through the existing `test2/` harness on a CPU.
+
+**Lead line: the only place either optical net beats an edge digital NPU on joules-per-
+inference *at matched accuracy* is the spiking net on MNIST (an easy task); on CIFAR-10 both
+optical nets collapse in accuracy and the comparison evaporates. This confirms the programme's
+verdict and locates optics' one honest niche — edge, fixed-model, easy-task inference — exactly
+where the handoff predicted, and it is a *different regime* from the closed datacentre J/MAC
+result, not a contradiction of it.**
+
+**Accuracy (mean of 5 seeds, ±std < 0.7 pt everywhere):**
+
+| Dataset | ReLU baseline | Diffractive D²NN | Spiking (LIF, T=8) |
+|---|---|---|---|
+| MNIST | 98.42% | 95.47% (**−2.95**) | 98.22% (**−0.20**) |
+| CIFAR-10 (conv-free MLP class) | 53.50% | 37.28% (**−16.2**) | 39.56% (**−13.9**) |
+
+D²NN lands in the pre-registered 90–97% MNIST band and collapses on CIFAR (a passive phase mask
+has no convolution and few parameters). The spiking net was the pre-registered *surprise*: only
+**0.2 pt** behind ReLU on MNIST (not the 1–5 I expected), firing rate ~0.43.
+
+**Energy — J/inference vs a whole-chip edge NPU (INT8, 2–30 TOPS/W sourced: Orin-class ~4–5,
+phone-NPU ~10–30), Monte-Carlo over the sourced ranges:**
+
+| Dataset | Edge digital (p50) | D²NN | Spiking | Matched-accuracy verdict |
+|---|---|---|---|---|
+| MNIST | 70 nJ [20–235] | 7 nJ (10-detector) / 23 nJ (full-plane) | **19 nJ** (spike-gen-dominated) | **Spiking: matched (−0.2 pt), beats in 80% of draws.** D²NN: −3 pt, *not matched* → discard. |
+| CIFAR-10 | 222 nJ [65–748] | 9 nJ | 45 nJ | **Neither matched** (−14 to −16 pt); the "beats 92–100%" figures are unmatched-accuracy artifacts, discarded. |
+
+**Reading the one real win, adversarially.** The spiking net beats the edge NPU on MNIST because
+the model is small with a high MAC-per-input ratio (268.8k MACs / 784 inputs ≈ 343×): the
+digital pays per-MAC while the optical pays once for I/O plus sparse 8 pJ spikes. **Four flags,
+all cutting toward optics:** (i) the competitor is the *whole-chip* edge NPU (0.2–1 pJ/MAC), **not
+the 20–40 fJ arithmetic floor** — against the floor, as everywhere else in the programme, optics
+loses; (ii) the win needs the task to be easy enough for the optical net to *match* digital
+accuracy — true on MNIST, false on CIFAR; (iii) spiking dominates on spike-generation energy at
+8 pJ/spike (the favourable measured end); (iv) the D²NN's cheapest number assumes only 10 output
+detectors. Reproduce-Xiang check passed before trusting the spiking model.
+
+**Compared to the pre-registration.** Predicted "neither beats at matched CIFAR accuracy" —
+**confirmed** (both collapse). Predicted the surprise that would reopen the edge question is
+"either optical net matching an edge NPU's J/inference at equal accuracy" — **the spiking net did
+so on MNIST** (matched accuracy, 80% of draws). So the honest result is bounded: the surprise is
+real but confined to the easy-task / whole-chip-competitor corner and vanishes the moment the
+task needs real capacity (CIFAR). **Track B verdict: photonic edge inference can win on
+J/inference only where the task is easy enough to match digital accuracy and the competitor is a
+whole-chip NPU rather than the arithmetic floor — a genuine but narrow niche, consistent with the
+programme's close, not a reopening of it.**
 
 **The one remaining lever, quantified (Follow-up 7).** All six escapes share a single
 root: light must become electricity at every layer because the activation is applied
