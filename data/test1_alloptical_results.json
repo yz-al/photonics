@@ -204,5 +204,29 @@
     "E_1.0fJ": 0.8533333333333334,
     "E_10.0fJ": 0.4033333333333333,
     "E_100.0fJ": 0.05366666666666667
+  },
+  "kramers_kronig": {
+    "tpa_free_needs_Eg_eV": 1.6,
+    "n2_ceiling_m2W": 1.1e-17,
+    "cases": {
+      "weakest_7fJ": {
+        "n2_req_wg": 1.1071428571428572e-11,
+        "gap_orders": 6.002810977333828,
+        "Q_to_reach_ceiling": 1006493.5064935065,
+        "tau_at_that_Q_ns": 0.8281922813873286
+      },
+      "robust_1fJ": {
+        "n2_req_wg": 7.75e-11,
+        "gap_orders": 6.847909017348085,
+        "Q_to_reach_ceiling": 7045454.545454546,
+        "tau_at_that_Q_ns": 5.797345969711302
+      },
+      "useful_0.1fJ": {
+        "n2_req_wg": 7.75e-10,
+        "gap_orders": 7.847909017348085,
+        "Q_to_reach_ceiling": 70454545.45454545,
+        "tau_at_that_Q_ns": 57.97345969711301
+      }
+    }
   }
 }

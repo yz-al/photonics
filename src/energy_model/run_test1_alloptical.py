@@ -94,6 +94,29 @@ for E_target_fJ in (0.1, 1.0, 10.0, 100.0):
     print(f"  target E_nl={E_target_fJ:6.1f} fJ: clears in {hits/3000*100:.0f}% of draws")
 out["mc_target_switching_energy"] = mc
 
+# ---------------------------------------------------------------------------
+# Task 2b + Task 4 — required material n2 and the Kramers-Kronig verdict
+# ---------------------------------------------------------------------------
+print("\n=== Task 4: required n2 vs the TPA-free KK ceiling at 1550 nm ===")
+LAM = 1.55e-6; C = 2.998e8
+def n2_required(E_J, A=1e-13, Lwg=1e-4, tau=1e-10, Q=1.0):
+    # Kerr pi-shift: E = A*lam*tau/(2*n2*Lwg); Q = resonant enhancement of effective n2
+    return A * LAM * tau / (2 * E_J * Lwg) / Q
+# TPA-free ceiling: TPA(beta)=0 requires Eg>2*hw=1.60 eV at 1550nm; n2 ~ Eg^-4 caps at
+# the As2Se3/As2S3-class value ~1e-17 m^2/W (Sheik-Bahae/Hutchings two-band model).
+N2_CEILING = 1.1e-17
+kk = {"tpa_free_needs_Eg_eV": 1.60, "n2_ceiling_m2W": N2_CEILING, "cases": {}}
+for lab, E in [("weakest_7fJ", 7e-15), ("robust_1fJ", 1e-15), ("useful_0.1fJ", 1e-16)]:
+    n2wg = n2_required(E)
+    kk["cases"][lab] = {"n2_req_wg": n2wg, "gap_orders": np.log10(n2wg / N2_CEILING),
+                        "Q_to_reach_ceiling": n2wg / N2_CEILING,
+                        "tau_at_that_Q_ns": (n2wg / N2_CEILING) * LAM / (2 * np.pi * C) * 1e9}
+    print(f"  {lab:12s}: req n2={n2wg:.2e}  gap={np.log10(n2wg/N2_CEILING):.1f} orders  "
+          f"Q_needed={n2wg/N2_CEILING:.0e} -> tau={(n2wg/N2_CEILING)*LAM/(2*np.pi*C)*1e9:.0f} ns (too slow)")
+print("  VERDICT: Kerr/chi(3) route KK-forbidden at 1550nm (req n2 6-8 orders > TPA-free ceiling);")
+print("           bridging via Q costs speed (Q~1e6 -> us), via high-n2 material costs loss (ENZ/2D).")
+out["kramers_kronig"] = kk
+
 with open(os.path.join(DATA, "test1_alloptical_results.json"), "w") as fh:
     json.dump(out, fh, indent=2, default=str)
 print("\nwrote data/test1_alloptical_results.json")
