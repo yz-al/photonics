@@ -61,7 +61,7 @@ def stage_b_table():
         out += ["**Quantisation** (real MLP, ReLU vs x², activation bit depth):", "",
                 "| activation | full | 8-bit | 4-bit |", "|---|---|---|---|"]
         for a in ["relu", "square"]:
-            out.append(f"| {a} | {fmt(q.get(a+'_None'))} | {fmt(q.get(a+'_8b'))} | {fmt(q.get(a+'_4b'))} |")
+            out.append(f"| {a} | {fmt(q.get(a+'_Noneb'))} | {fmt(q.get(a+'_8b'))} | {fmt(q.get(a+'_4b'))} |")
         out.append("")
     o = B.get("optics_native_mlp", {})
     if o:

@@ -169,7 +169,7 @@ def stage_b():
 
     # complex-linear + |.|^2 optics-native MLP, matched param count to ReLU ref
     print("[B] optics-native complex + |.|^2 (matched params)")
-    ref_p = quant["relu_None"]["params"]
+    ref_p = quant["relu_Noneb"]["params"]
     ow = 256
     for w in range(64, 512, 4):
         if count_params(OpticsMLP(meta["in_dim"], meta["n_classes"], width=w, depth=DEPTH)) >= ref_p:
