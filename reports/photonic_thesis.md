@@ -956,8 +956,10 @@ activation (sub-fJ for useful depth/width), with ≤ ~1 dB loss, at GHz–THz sp
 temperature — and the nearest *fabricated, fast, room-temperature* material is ~10–100×
 away on energy, while the *direct Kerr/χ³ route is Kramers-Kronig-forbidden at 1550 nm by
 6–8 orders of magnitude. The only escape that survives causality is the matter-mediated
-one — exciton-polaritons — and its strong versions are cryogenic; its room-temperature
-version (perovskite) sits right at the edge of the spec and has never been cascaded.**
+one — exciton-polaritons. Room-temperature operation and a single-photon-*triggered*
+nonlinearity are both now demonstrated (Corrections, below), so the remaining gap is three
+specific unmet requirements: a cascadable, pump-free (blockade, not pump-powered
+stimulation) nonlinearity, CMOS-integrable at telecom wavelength and ≤1 dB loss.**
 
 Six escapes were tested and the per-element electrical/optical cost was conserved every
 time. The surviving diagnosis is that light must become electricity at every layer, because
@@ -1007,17 +1009,25 @@ m²/W** (weakest) to **7.8×10⁻¹⁰ m²/W** (useful) — for reference, chalc
 
 ## Task 3 — the gap to every published candidate (ranked by smallest max-gap)
 
-Spec to beat: **≤1 fJ, ≤1 dB loss, ≥GHz speed, room temperature, cascadable.**
+**Lead (revised on review): room-temperature operation and a single-photon-*triggered*
+nonlinearity are both now demonstrated, so the remaining gap is neither of those — it is
+(1) cascadability without a per-stage optical pump, (2) a pump-free blockade rather than a
+pump-powered stimulation mechanism, and (3) CMOS/photonic integration at telecom wavelength
+and ≤1 dB loss.** The energy metric that matters is *per operation including the pump*, not
+the single-photon seed.
 
-| Rank | Candidate (mechanism) | Energy/op | Speed | Loss | Temp | Gap to spec | Source |
+Spec to beat: **≤1 fJ/op (incl. pump), ≤1 dB loss, ≥GHz speed, room temperature, cascadable.**
+
+| Rank | Candidate (mechanism) | Energy/op (incl. pump) | Speed | Loss | Temp | Gap to spec | Source |
 |---|---|---|---|---|---|---|---|
-| 1 | **QD-in-cavity polariton** (cavity-QED) | **14 aJ** | 8.4 GHz | low | **~39 K (cryo)** | meets energy+speed; **1 axis: temperature** | Sridharan/Waks, Opt. Express 19, 5551 (2011) |
-| 2 | **GaAs 0D polariton blockade** | **~0.6 aJ** | ps | — | **<10 K (cryo)** | energy far under; **temperature + U/Γ≈0.42 (blockade not fully reached)** | Delteil, Nat. Mater. 18, 219 (2019) |
-| 3 | **Perovskite polariton (RT)** | **~6 fJ** (derived) | ps | RT linewidth large | **RT (real)** | at weakest-spec edge; **saturation not clean Kerr, never cascaded** | Fieramosca, Sci. Adv. 5, eaav9967 (2019) |
-| 4 | **Free-carrier Si PhC** (Nozaki) | **0.42 fJ** | ~10–30 GHz (carrier recovery) | low | RT | meets energy+RT; **speed/throughput-capped, resonant** | Nozaki, Nat. Photon. 4, 477 (2010) |
-| 5 | **χ²-cascade LiNbO₃** | 80 fJ | **46 fs** | low | RT | fast+RT+low-loss; **~80× energy** | Guo/Marandi, Nat. Photon. 16, 625 (2022) |
-| 6 | **Plasmonic graphene** | 35 fJ | 260 fs | **dB/µm (fails)** | RT | ~35× energy; **loss-disqualified** | all-optical plasmonic switch, 2021 |
-| 7 | **Chalcogenide As₂S₃** | **pJ–nJ** | fs Kerr | 0.05 dB/cm | RT | FOM_T≫2 (clears FOM) but **10³–10⁶× energy** — *the proof FOM isn't binding, energy is* | Lamont, Opt. Express 2007 |
+| 1 | **RT organic polariton, single-photon-*triggered*** (bosonic stimulation, MeLPPP) | seed ~1 photon (sub-aJ) **but ~300 pJ pump/op** | not measured (150 fs pulses, 500 Hz) | not reported | **RT (real)** | RT+single-photon-control **solved**; **energy ~10⁴–10⁷× (pump), speed/loss unreported, not cascaded** | Zasedatelev, Nature 597, 493 (2021) |
+| 2 | **QD-in-cavity polariton blockade** (cavity-QED) | **14 aJ** | 8.4 GHz | low | **~39 K (cryo)** | meets energy+speed; **temperature** (but RT polariton strong-coupling now shown separately, below) | Sridharan/Waks, Opt. Express 19, 5551 (2011) |
+| 3 | **GaAs 0D polariton blockade** | **~0.6 aJ** | ps | — | **<10 K (cryo)** | energy far under; **temperature + U/Γ≈0.42 (blockade not fully reached)** | Delteil, Nat. Mater. 18, 219 (2019) |
+| — | *RT polariton strong-coupling / condensation (context)* | — | — | — | **RT (real)** | proves RT strong coupling is solved (not itself a switch): CsPbBr₃ QD condensation; ~840 plasmonic single-QD (electrical); topological CsPbCl₃ | Nat. Commun. 2025 s41467-025-60553-3; 2024 s41467-024-51170-7; Nat. Nanotechnol. 19, 1283 (2024) |
+| 4 | **χ²-cascade LiNbO₃** | 80 fJ | **46 fs** | low | RT | fast+RT+low-loss; **~80× energy** (best conventional-material candidate) | Guo/Marandi, Nat. Photon. 16, 625 (2022) |
+| 5 | **Plasmonic graphene** | 35 fJ | 260 fs | **dB/µm (fails)** | RT | ~35× energy; **loss-disqualified** | all-optical plasmonic switch, 2021 |
+| 6 | **Chalcogenide As₂S₃** | **pJ–nJ** | fs Kerr | 0.05 dB/cm | RT | FOM_T≫2 (clears FOM) but **10³–10⁶× energy** — *the proof FOM isn't binding, energy is* | Lamont, Opt. Express 2007 |
+| 7 | **Free-carrier Si (all-optical, Nozaki)** | 0.42 fJ | ~10–30 GHz (**carrier recovery**) | low | RT | energy+RT meet but **recombination-speed-capped, resonant** — and the fast fJ/bit p-n devices are **electrical modulators, not all-optical** (excluded) | Nozaki, Nat. Photon. 4, 477 (2010); (cf. Timurdogan, Nat. Commun. 5, 5008 (2014), *electrical*) |
 | 8 | **ITO-ENZ** | GW/cm² intensities | 360 fs | **α~10⁴ cm⁻¹ (fails)** | RT | n₂ and loss peak together; **loss-disqualified, no device** | Alam/Boyd, Science 352, 795 (2016) |
 | — | **BIC / slow-light** | Q- or n_g²-enhanced | **capped by Q/n_g lifetime** | — | RT | enhancement ∝ speed⁻¹; **speed-disqualified** | Koshelev; Corcoran, Nat. Photon. 2009 |
 | — | **Rydberg-EIT** | 0.25 aJ (single-photon) | µs (slow light) | — | cold atoms | strongest known, **but not a chip: UHV+MOT, ~10¹⁰× overhead** | Peyronel, Nature 488, 57 (2012) |
@@ -1061,13 +1071,62 @@ as a cascadable multilayer network.**
 > - **Causality:** for a Kerr/χ³ material this is **forbidden at 1550 nm** (required n₂ is
 >   6–8 orders above the TPA-free ceiling). A non-χ³ mechanism (polariton/matter interaction)
 >   is required.
-> - **Three nearest candidates and what each needs:**
->   1. *QD-cavity polariton (14 aJ, 8.4 GHz):* raise operating temperature from ~39 K to
->      ~300 K — a materials problem (higher-binding-energy excitons) of ~1 order in kT.
->   2. *Perovskite polariton (RT, ~6 fJ):* demonstrate clean, cascadable blockade (not
->      saturation) and narrow the RT linewidth — reduce energy ~6× and prove multilayer cascade.
->   3. *Free-carrier Si PhC (0.42 fJ, RT):* break the carrier-lifetime speed ceiling
->      (~10–30 GHz → THz) without losing the energy — a device-physics problem of ~1–2 orders.
+> - **The nearest mechanism, and the actual remaining gap** (revised on review — see
+>   *Corrections* below). Room-temperature operation and a single-photon-triggered
+>   nonlinearity are **both already demonstrated**, so neither is the gap any longer:
+>   - *Room-temperature strong coupling is solved.* RT cavity polariton condensation in
+>     colloidal CsPbBr₃ QDs (Nat. Commun. 2025, s41467-025-60553-3, threshold ~160 µJ/cm²,
+>     first for any QD platform); RT single-QD strong coupling reproduced across ~840
+>     plasmonic nanocavities with **electrical** injection (Nat. Commun. 2024,
+>     s41467-024-51170-7, Ω/ω₀≈0.2); RT topological CsPbCl₃ valley-Hall condensation
+>     (Nat. Nanotechnol. 19, 1283 (2024)). **Strike "temperature" from the gap.**
+>   - *A room-temperature single-photon-triggered nonlinearity exists* — Zasedatelev et al.,
+>     *Nature* 597, 493 (2021), MeLPPP organic polariton, ~490 nm, ambient. But scored against
+>     this spec it does **not** clear it: the single photon is the **control/seed** (~1–2.5
+>     photons, sub-aJ), while each operation is powered by a **separate ~300 pJ optical pump**
+>     (80 µJ/cm² ≈ 2·P_th) — so per-operation energy is **~10⁴–10⁷× the spec**, not sub-fJ.
+>     Contrast at one photon is ~11% (single-shot); **switching time is not measured**
+>     (150 fs pulse widths, 500 Hz laser rate; "sub-picosecond" is cited, not shown);
+>     **insertion loss is not reported.** *(Parameters flagged as unreported, per rule 9.)*
+>   - **So the remaining gap is three specific problems, not temperature or existence:**
+>     1. **Cascadability.** The 2021 element is a single localized condensate whose output must
+>        be re-pumped at ~80 µJ/cm² at every stage. That per-stage pump **is** the inter-layer
+>        amplification the Task-1 gate forbids — so as a network element it trips the
+>        pre-registered gate and the escape closes **unless the pump is shared/eliminated**.
+>        Cascadability is asserted only by a cited companion (arXiv:2005.04802), not shown.
+>     2. **Blockade vs stimulation.** The 2021 mechanism is **bosonic stimulation**
+>        (pump-powered amplification: threshold + saturating gain, ~23,000× polariton gain),
+>        not **blockade**. Stimulation gives a monotonic activation-like curve but needs the
+>        pump and carries large shot-to-shot condensate-population noise; the clean, pump-free,
+>        low-energy version is **blockade**, which every source calls "notoriously elusive"
+>        and which is the same open problem for the QD route.
+>     3. **Integration and loss.** Organic microcavities (~490 nm), colloidal-QD films, and
+>        plasmonic nanocavities are not CMOS/photonic-process-compatible, operate in the
+>        **visible** (not 1550 nm), and the plasmonic route carries **metal loss**; per-element
+>        insertion loss is unreported for all of them and must be scored against the ≤1 dB max.
+>   - *Not a candidate for this spec:* **free-carrier silicon modulators** (e.g. Timurdogan
+>     et al., Nat. Commun. 5, 5008 (2014): 1 fJ/bit, 25 Gb/s, depletion-mode reverse-biased
+>     p-n, 250 pm/V — fast because depletion sweep-out avoids the recombination cap of
+>     forward-biased injection). These are **electrically driven modulators** — light switched
+>     by *electronics* — and therefore do not remove the per-layer conversion the all-optical
+>     architecture exists to eliminate. The genuinely all-optical free-carrier switch (Nozaki
+>     0.42 fJ) remains carrier-recombination speed-limited. This conflation is what made the
+>     earlier "target 3" look close.
+
+**Corrections (caught on review).** The first version of this spec sheet stated two of its
+three "nearest candidate" targets against results that already exist in the literature:
+(1) *room-temperature polariton operation* was listed as an open target, but RT strong
+coupling and condensation are demonstrated (colloidal CsPbBr₃ QDs, Nat. Commun. 2025;
+electrically-injected single-QD plasmonic strong coupling, Nat. Commun. 2024; topological
+CsPbCl₃, Nat. Nanotechnol. 2024) — *temperature is struck from the gap*; and (2) a
+*room-temperature single-photon nonlinearity* was implied not to exist, but a single-photon-
+*triggered* one does (Zasedatelev, Nature 2021) — though on honest per-operation accounting
+it is pump-dominated (~300 pJ), speed/loss unreported, and uncascaded, so it does not clear
+the spec. The third target (free-carrier silicon) conflated an electrically-driven modulator
+with an all-optical nonlinearity. The **derived spec and the Kramers-Kronig verdict are
+unchanged**; only the candidate assessment and the definition of the remaining gap are
+corrected. Recording this per the standing rule to withdraw a claim cleanly when it is
+found to have been stated against prior art.
 
 ---
 
@@ -1132,17 +1191,25 @@ inference-only, ≤ ~8 layers.** And the Kramers-Kronig check makes the verdict 
 than merely discouraging: for a **Kerr/χ³ material the spec is causality-forbidden at
 1550 nm** — the required n₂ is 6–8 orders above the two-photon-absorption-free ceiling, and
 every route to bridge it (resonant Q, high-n₂ material) fails on speed or loss respectively.
-The **only** physical escape is a non-χ³, matter-mediated nonlinearity — exciton-polaritons
-— whose strong forms are cryogenic (<40 K) and whose one room-temperature form (perovskite,
-~6 fJ) sits at the very edge of the weakest spec and has never been cascaded into a network.
-**So the last lever is not just hard, it is causality-bounded for conventional materials;
-the sole opening is a cryogenic or unproven-room-temperature polariton device. The
-programme therefore closes completely: across six architectural escapes the cost is
+The **only** physical escape is a non-χ³, matter-mediated nonlinearity — exciton-polaritons.
+Here the picture updated on review (Follow-up 7, *Corrections*): **room-temperature strong
+coupling and a room-temperature single-photon-*triggered* nonlinearity are both now
+demonstrated**, so the escape is no longer blocked by temperature or by whether a
+single-photon nonlinearity can exist. What remains is that the demonstrated RT nonlinearity
+(Zasedatelev, Nature 2021) is **bosonic stimulation powered by a ~300 pJ per-stage optical
+pump** — and that per-stage pump is exactly the inter-layer amplification the Task-1 gate
+forbids — with speed and insertion loss unreported and cascading unshown; the pump-free,
+low-energy version is **photon blockade**, which every source still calls elusive.
+**So the last lever is causality-bounded for conventional (Kerr/χ³) materials, and for the
+one mechanism that bypasses causality the open problem is now precise: a cascadable,
+pump-free (blockade) polariton nonlinearity, CMOS-integrable at telecom wavelength and
+≤1 dB loss. The programme therefore closes: across six architectural escapes the cost is
 conserved and electrical, and the single remaining physical lever — an all-optical
-nonlinearity — is Kramers-Kronig-forbidden in the Kerr regime and reachable only in a
-narrow, mostly-cryogenic, never-demonstrated corner. That is the honest end of the line:
-photonic compute does not beat digital in general, and the one escape physics still permits
-is a materials moonshot, not an architecture.**
+nonlinearity — is Kerr-forbidden by Kramers-Kronig and, in its one causality-permitted
+form, reduces to three specific unmet materials-physics requirements, not an architecture.
+That is the honest end of the line: photonic compute does not beat digital in general, and
+the one escape physics still permits is a materials moonshot — now with its remaining gap
+stated exactly.**
 
 ---
 
