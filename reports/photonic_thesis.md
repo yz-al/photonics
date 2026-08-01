@@ -1387,38 +1387,59 @@ Across five architectures the crossover was governed not by the mesh geometry bu
 PCM programming, or laser bias — which no rearrangement of waveguides reduced: the dense
 mesh, the O(log N) butterfly, and the O(1) crossbar all failed at the *same* ~120 fJ–pJ
 conversion/standing floor, and the two variants that cleared it did so only by physically
-eliminating a per-element electrical cost, not by a cleverer optical layout. **Track B — the
-decisive test that changes the readout encoding to a comparator (the one move that directly
-attacks the converter) — has now been run** (`src/energy_model/run_track_b.py`,
-`data/track_b_results.json`): a controlled A/B holding the MVM architecture fixed and swapping
-*only* the output readout at matched effective precision, with a **pre-registered gate** (a
-comparator that opens floor-crossings in >10% of draws where the ADC opens ~0% would *falsify*
-the "converter floor is not fixable by encoding" verdict). **The verdict stands** — the gate is
-not met in any architecture or bit-depth. Two mechanisms hold the floor, both now quantified:
-1. **The input DAC binds, not the output ADC.** After zeroing the readout ADC, conversion is
-   *still* the binding term, now dominated by the **input DAC the readout swap never touches**
-   (butterfly, N=1024, 4-bit: conversion 240 → 153 fJ/MAC — cut only ×2, still ~5× the floor,
-   because E_DAC alone is ~150 fJ/MAC amortised over log₂N). The comparator attacks half the
-   converter and the other half keeps the floor.
-2. **A genuinely 1-bit-cheap comparator repays its saving in the laser.** Recovering b-bit
-   accuracy by oversampling a 1-bit decision costs **×32 (4-bit) to ×255 (8-bit)** more laser
-   passes, so the total *rises* to ~0.5–90 pJ/MAC — the energy reappears in the source exactly
-   as predicted.
-The largest effect anywhere is a **sub-threshold** one: the butterfly at 4-bit, where an
-*optimistic* SAR-like comparator readout moves the floor-crossing fraction from 0% to **8%**
-(below the 10% bar, and gone by 8-bit). So the earlier "~100× readout cut, floor unmoved"
-hand-estimate was **optimistic and is corrected**: the honest readout cut is ~×2 (bit-plane,
-DAC-limited) or it reappears in the source (1-bit, oversampled). **On both the model and this
-controlled test the barrier is not fixable by a photonic architecture; it is a mixed-signal /
-device-energy problem — an order-of-magnitude reduction in per-element electrical energy
-(converters — input *and* output — thermal control, laser bias), the same lever every one of the
-five architectures pointed to.** The implied next lever, attacking the *input* DAC (bit-serial /
-1-bit input encoding), is outside Track B as scoped and remains open. Test 2 separately
-established the nonlinearity was never the barrier. **The programme closes on that: optical compute
+eliminating a per-element electrical cost, not by a cleverer optical layout. A **readout-encoding
+A/B test** *within this closed datacentre accounting* (`src/energy_model/run_readout_encoding.py`,
+`data/readout_encoding_results.json`) — same MVM architecture, swap *only* the output readout
+(b-bit ADC → comparator) at matched precision — confirms the same conserved-cost result in a new
+place: cutting the output converter does **not** move the J/MAC floor, because (i) after zeroing
+the output ADC, conversion is *still* dominated by the **input DAC** (butterfly, N=1024, 4-bit:
+240 → 153 fJ/MAC, ~5× the floor — the readout swap touches only half the converter), and (ii) a
+genuinely 1-bit-cheap comparator repays its saving in the laser — recovering b-bit accuracy by
+oversampling costs **×32 (4-bit) to ×255 (8-bit)** more passes, so the total *rises* to 0.5–90
+pJ/MAC. (This also **corrects** an earlier hand-estimate: the readout cut is ~×2, DAC-limited,
+not ~100×.) *This is a datacentre-J/MAC result, not Track B* — see the note below. Test 2
+separately established the nonlinearity was never the barrier. **The programme closes on that: optical compute
 does not beat digital in general, the two regimes that touch the floor are narrow
 inference-only corners contingent on unfabricated or write-once devices, and the decisive
 constraint is electrical, not optical — exactly the boundary the 2026 market drew between
 optical interconnect (yes) and optical compute (no).**
+
+> ### Track B — status: **UNRUN** (scope pinned verbatim to stop substitution)
+>
+> **Process note (recorded deliberately).** A datacentre readout-encoding computation was
+> mislabelled "Track B" and written into this conclusion as "Track B run, verdict stands." That
+> was **false**, and the mislabel **recurred immediately after being corrected once** — i.e. the
+> correction fixed the sentence but not whatever was deciding what "Track B" means. The readout
+> result is real and is kept above as a *datacentre-J/MAC* result; it is **not** Track B. To
+> prevent a third substitution, Track B's scope is pinned here verbatim from the handoff, and the
+> rule is explicit: **Track B does not use joules-per-MAC and is not a mesh/crossbar/butterfly
+> architecture from the closed programme.**
+>
+> **Verbatim scope (handoff, "TRACK B — PHOTONIC SPIKING / TIME-DOMAIN ENCODING"):**
+> - *"THE METRIC MUST CHANGE, STATE THIS EXPLICITLY: joules per MAC is the wrong unit here. Use
+>   joules per synaptic operation AND joules per inference at FIXED ACCURACY. A spiking network
+>   that is 5 accuracy points worse is not free, and the comparison is meaningless without
+>   pricing that."*
+> - *"ACCURACY … Using the existing test2/ harness, train a spiking or temporally-coded network
+>   on MNIST and CIFAR-10 at matched parameter count against the ReLU baseline already in Test 2.
+>   Report the accuracy gap with ≥5 seeds and spreads. Then report joules per inference at MATCHED
+>   accuracy, which is the only fair comparison."*
+> - Receiver = comparator energy per event (sourced); event rate from SNN sparsity; source/spike,
+>   loss, thermal for the device class; reproduce Xiang et al. (Opto-Electron Adv 2026, ~1 pJ/op)
+>   as a model check *first*.
+>
+> **What is done vs unrun.** The *energy-model* half exists (`run_test1_spiking*.py`,
+> `reproduce_xiang`, the spiking Follow-ups). The **unrun** half is the one that defines the
+> track: the **accuracy experiment** (train a spiking/temporally-coded net on MNIST/CIFAR vs the
+> ReLU baseline, ≥5 seeds) **and joules-per-inference at matched accuracy** against an *edge*
+> competitor. That is what "run Track B" means, and nothing in this session touched it.
+>
+> **Open scope question (must confirm before running).** The handoff names Track B *photonic
+> spiking / time-domain*. Later direction described it as *edge diffractive — a passive phase
+> mask, depth 1, fixed model, vs a phone-NPU / automotive-SoC, metric J/inference at fixed
+> accuracy* (a diffractive optical net, D²NN), which does **not** appear in the handoff. These are
+> different architectures sharing the same *edge-inference-at-fixed-accuracy* metric. Which one is
+> Track B is a scope decision, flagged rather than guessed.
 
 **The one remaining lever, quantified (Follow-up 7).** All six escapes share a single
 root: light must become electricity at every layer because the activation is applied
@@ -1479,7 +1500,7 @@ python src/energy_model/run_test1_butterfly.py   # O(log N) butterfly
 python src/energy_model/run_test1_crossbar.py    # microring crossbar (thermal)
 python src/energy_model/run_test1_pcm_crossbar.py# PCM + mode-mux crossbar (Track A)
 python src/energy_model/run_test1_spiking.py     # photonic spiking energy model
-python src/energy_model/run_track_b.py           # Track B: readout-encoding A/B test
+python src/energy_model/run_readout_encoding.py  # readout-encoding A/B (datacentre J/MAC; NOT Track B)
 
 # Test 2 — architecture comparison
 pip install torch torchvision scikit-learn datasets

@@ -1,8 +1,12 @@
 """
-Track B — the decisive encoding test, run at last.
+Readout-encoding A/B test — WITHIN the closed datacentre accounting (Test 1 family).
+
+NB: this is NOT Track B. Track B (see the handoff, pinned verbatim in reports/photonic_thesis.md)
+is an edge / joules-per-inference-at-fixed-accuracy test and remains unrun. This script asks a
+narrower datacentre question in the SAME J/MAC-vs-compute-floor frame as Tests 1/A1/crossbar.
 
 Question: does changing the OUTPUT readout encoding from a b-bit ADC to a comparator
-(the one move that directly attacks the data-converter floor) move the crossover against
+(the move that directly attacks the data-converter term) move the crossover against
 the digital compute floor, or does the saved converter energy reappear elsewhere?
 
 Controlled A/B: same MVM architecture, same matrix size N, same everything — ONLY the
@@ -16,9 +20,9 @@ readout encoding changes. Three encodings at MATCHED effective precision b_eff:
                        R = 4^b_eff times to reach b_eff effective bits (0.5·log2 M law).
                        This is the honest cost of a truly 1-bit-cheap readout.
 
-PRE-REGISTERED FALSIFICATION (stated before running):
-  The verdict "the converter floor is not fixable by the readout encoding" is FALSIFIED iff
-  swapping ADC -> comparator opens floor-crossings that the ADC did not:
+PRE-REGISTERED GATE (stated before running):
+  The datacentre claim "the J/MAC converter floor is not fixable by the readout encoding" is
+  FALSIFIED iff swapping ADC -> comparator opens floor-crossings that the ADC did not:
      comp_bitplane crosses the 20-40 fJ/MAC floor in > 10% of draws in an architecture where
      adc crosses in ~0%.
   It STANDS iff the crossing fraction does not materially rise — because either (i) the
@@ -27,10 +31,10 @@ PRE-REGISTERED FALSIFICATION (stated before running):
   energy (energy reappears in the source).
 
 Run on the architecture where the converter has the BEST chance of binding (butterfly, where
-conversion amortises over only log2 N), plus the crossbar, at 4- and 8-bit. Weight-stationary
+conversion amortises over only log2 N), plus the dense mesh, at 4- and 8-bit. Weight-stationary
 PCM (thermal ~0) so the test isolates conversion vs laser, not thermal hold.
 
-Writes data/track_b_results.json.
+Writes data/readout_encoding_results.json.
 """
 import json, os, sys
 import numpy as np
@@ -43,11 +47,11 @@ DATA = os.path.join(ROOT, "data"); os.makedirs(DATA, exist_ok=True)
 base = {k: v.nom for k, v in PARAMS.items()}
 Ns = np.unique(np.round(np.logspace(1.2, 4.0, 45)).astype(int))
 N_MC = 3000
-out = {"arch": "track_b_readout_encoding", "link_budget_db": LINK_BUDGET_DB,
+out = {"arch": "readout_encoding_datacentre", "link_budget_db": LINK_BUDGET_DB,
        "falsification": "comp_bitplane crosses floor in >10% where adc ~0% -> verdict FALSIFIED"}
 
 
-def track_b_terms(N, b, p, arch, encoding, modulator="MRM", tile=64, enforce_loss=True):
+def encoding_terms(N, b, p, arch, encoding, modulator="MRM", tile=64, enforce_loss=True):
     """Per-MAC energy + term breakdown for a given readout encoding. Weight-stationary."""
     E_ADC = p[f"E_ADC_{b}b"]; E_DAC = p[f"E_DAC_{b}b"]
     E_mod = {"MZM": p["E_mod_MZM"], "MRM": p["E_mod_MRM"],
@@ -94,7 +98,7 @@ print("=== 1. term breakdown (nominal, butterfly, N=1024) — what binds after A
 brk = {}
 for b in (4, 8):
     for enc in ("adc", "comp_bitplane", "comp_stochastic"):
-        t = track_b_terms(1024, b, base, "butterfly", enc)
+        t = encoding_terms(1024, b, base, "butterfly", enc)
         brk[f"{enc}_{b}b"] = {k: (t[k] * 1e15 if k in ("jmac", "conv", "laser", "mod", "thermal")
                                   else t[k]) for k in t}
         print(f"  {enc:16s} {b}b: conv={t['conv']*1e15:8.1f} laser={t['laser']*1e15:9.1f} "
@@ -113,7 +117,7 @@ def sweep(arch, b, encoding, seed=909):
         p = sample_params(rng)
         dig = p["J_MAC_digital_floor"]; cross = np.inf
         for N in Ns:
-            j = track_b_terms(N, b, p, arch, encoding)["jmac"]
+            j = encoding_terms(N, b, p, arch, encoding)["jmac"]
             if j <= dig:
                 cross = N; break
         crossings.append(cross)
@@ -143,9 +147,9 @@ out["mc_crossover"] = mc
 print("\n=== 3. conversion cut vs laser reappearance (butterfly N=1024, nominal) ===")
 iso = {}
 for b in (4, 8):
-    a = track_b_terms(1024, b, base, "butterfly", "adc")
-    cbp = track_b_terms(1024, b, base, "butterfly", "comp_bitplane")
-    cst = track_b_terms(1024, b, base, "butterfly", "comp_stochastic")
+    a = encoding_terms(1024, b, base, "butterfly", "adc")
+    cbp = encoding_terms(1024, b, base, "butterfly", "comp_bitplane")
+    cst = encoding_terms(1024, b, base, "butterfly", "comp_stochastic")
     conv_cut = a["conv"] / cbp["conv"]
     laser_blowup = cst["laser"] / a["laser"]
     iso[f"{b}b"] = {"conv_cut_bitplane_x": conv_cut,
@@ -158,6 +162,6 @@ for b in (4, 8):
           f"stochastic laser ×{laser_blowup:.0f} -> {cst['jmac']*1e15:.0f} fJ total")
 out["isolation"] = iso
 
-with open(os.path.join(DATA, "track_b_results.json"), "w") as fh:
+with open(os.path.join(DATA, "readout_encoding_results.json"), "w") as fh:
     json.dump(out, fh, indent=2, default=str)
-print("\nwrote data/track_b_results.json")
+print("\nwrote data/readout_encoding_results.json")

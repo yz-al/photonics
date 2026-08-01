@@ -1,5 +1,5 @@
 {
-  "arch": "track_b_readout_encoding",
+  "arch": "readout_encoding_datacentre",
   "link_budget_db": 33.0,
   "falsification": "comp_bitplane crosses floor in >10% where adc ~0% -> verdict FALSIFIED",
   "term_breakdown_butterfly_N1024": {
