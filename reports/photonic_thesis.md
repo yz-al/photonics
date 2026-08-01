@@ -811,6 +811,82 @@ optical source.**
 
 ---
 
+# Follow-up 5 — Spiking at biological sparsity: gated source, passive weights, single readout
+
+**One-line answer: the source still dominates — because it cannot be gated.** Biological
+sparsity only saves source energy if the laser can be switched off between spikes, but the
+laser-dynamics literature is unambiguous that a semiconductor spiking neuron must hold a
+**continuous near-threshold bias** — both for sub-nanosecond turn-on and to maintain the
+excitable regime — so its energy scales with **time, not events**, and sparsity buys almost
+nothing on the dominant term. In the model, the gated and continuous regimes give the
+**identical** floor-crossing fraction (65% = 65%), which is the direct proof. Code:
+`src/energy_model/run_test1_spiking_bio.py`, data `data/test1_spiking_bio_results.json`.
+
+### Sourced inputs (bio-variant)
+
+| Quantity | Low – Nom – High | Source |
+|---|---|---|
+| Near-threshold bias held continuously (gating buys 1−frac) | 0.80 – 0.95 – 1.0 | Coldren & Corzine (turn-on ∝ prebias); Opt. Lett. 36, 4476 (excitability needs continuous pump); arXiv:2012.08516 (130→67 pJ/spike rate-dependence) |
+| Neuron laser bias (standing) | 0.5 – 10 – 40 mW | VCSEL ~2 mW (1 mA×1.8 V); DFB 10–30 mW (up to ~100 mW high-speed / ~50 mA excitable); nanolaser nW–µW (unfabricated array) |
+| SNN activation (firing / timestep) | 5 – 10 – 20 % | VGG16 CIFAR-10 T=6: 5.8% (arXiv:2409.08290); ResNet-19 ~15% (arXiv:2511.13050) |
+| Low-latency timesteps T | 4 – 6 – 10 | DIET-SNN (arXiv:2008.03658); T=4–32 near-lossless conversion (2205.07473) |
+| Gated-pulse drive energy | 10 fJ – 0.1 – 1 pJ | gain-switched pulse ~0.96 pJ/200 ps; nanolaser 1 fJ/bit (arXiv:2212.05148) |
+
+**Task 1 — audit of the prior spiking model.** It already assumed the pessimistic case:
+source continuously on (`bias = P_bias·T/bw`, independent of spike count), per-neuron
+per-timestep comparator readout, weights not separately held. So sparsity, passive weights
+and single readout are genuinely *new* levers here, not double-counted.
+
+**Task 2 — can the source be gated per event? (the crux, sourced).** No, for any fabricated
+device:
+- Sub-ns turn-on requires prebias *near threshold*; cold-start turn-on rises to the
+  carrier-lifetime scale (~2–3 ns) with large jitter (Coldren & Corzine).
+- Excitability itself needs it: "the continuous pump current to the gain section is
+  essential for maintaining the excitable regime" (Opt. Lett. 36, 4476; two-section InP
+  neuron literature).
+- The smoking gun: a fabricated DFB laser-neuron reports **130 pJ/spike at 230 MHz →
+  67 pJ/spike at 730 MHz** (arXiv:2012.08516) — per-spike energy *falls as rate rises*,
+  the unmistakable fingerprint of a continuous standing bias amortised over spikes, i.e.
+  time-scaling. Encoding this (gating removes <20% of the near-threshold bias) makes the
+  **gated regime numerically identical to continuous**. Gating fully off (gain-switching)
+  is possible only to a few GHz and reintroduces standing power via the stabilising
+  bias/seed. The only escape is architectural — nanolaser (nW–µW threshold),
+  event-driven optoelectronic neurons, or <1 laser/neuron sharing — none fabricated as a
+  compute array.
+
+**Task 3 — sparsity sweep (sourced: CIFAR-10 SNNs fire 5–20%/step at T=4–10, 92–94% acc;
+arXiv:2409.08290, DIET-SNN 2008.03658; cortex <1% but far sparser than any trained SNN).**
+Across 0.5–20% activation the **source term dominates** the per-eqMAC breakdown at every
+usable sparsity (it only yields to per-spike generation above ~20%). Sparsity moves the
+total by <2×, never by the order of magnitude the floor requires.
+
+**Task 4 — single-readout loss wall.** Detecting only at the final layer works: with PCM
+weights at 0.1–1 dB/element plus routing, **13–20 layers** can propagate optically before
+the signal falls below the 33 dB budget — so readout elimination is real and not tightly
+bounded. But it removes comparator cost, not the source, so it does not change the verdict.
+
+**Honest nuance (flagged, not buried).** At the *realistic low-latency* regime (T≈6, not
+the rate-coded T≈2500), the source term `P_bias·T/(N·bw)` shrinks, so a **low-threshold
+VCSEL** neuron (~2 mW, fabricated) with 1/N amortisation at N≳30–100 does cross the floor
+in ~65% of draws. This is **not a sparsity effect** (gating failed; gated ≡ continuous) —
+it is the *same low-threshold-laser + amortisation corner* the spiking track already
+identified, enlarged only by using realistic low-latency timesteps. And it rests on three
+accountings generous to optics: (i) energy is charged per *equivalent dense MAC* while the
+SNN does only `s·N²` sparse SOPs — a fair digital baseline could exploit the same sparsity;
+(ii) the synaptic weight-mesh insertion loss is abstracted, not charged per element as it
+was for the crossbars; (iii) it assumes matched accuracy, which for such an SNN is
+unproven. Per the pre-registered gate — the source still dominates and the gated escape is
+physically closed — **the accuracy study is moot and was not run**; the residual VCSEL
+corner is reported as the narrow, device-limited, generously-accounted regime it is, the
+same way the PCM 13% was flagged.
+
+**Verdict.** The specific escape — biological sparsity via a gated source — is **closed on
+physics**: the source cannot be gated, so sparsity buys nothing and the source still
+dominates. Every physically-motivated escape (topology, encoding, non-volatile weights,
+mode-multiplexing, sparsity) has now been tried, and the cost is conserved.
+
+---
+
 ## Programme conclusion — five architectures, one table
 
 An N×N linear layer has N² weights; those weights must be physically instantiated in
@@ -829,7 +905,10 @@ replaces** — the cost moves between depth, amortisation, and standing power:
 other two touch it only in narrow, heavily-conditioned corners.** The PCM + mode-mux
 crossbar reaches it at **4-bit, write-once inference, low-loss non-resonant PCM, in ~13%
 of draws**; photonic spiking reaches it **only for projected sub-mW neurons that are not
-fabricated** (0% for the measured DFB-SA device class). Both exceptions win the same way:
+fabricated** (0% for the measured DFB-SA device class), and **biological sparsity does not
+rescue it** — the source cannot be gated per event (a continuous near-threshold bias is
+physically required), so sparsity leaves the dominant source term untouched (Follow-up 5).
+Both exceptions win the same way:
 by driving the **per-weight/per-neuron electrical cost toward zero** — PCM non-volatility
 removes hold power, non-resonant geometry removes locking, write-once removes programming,
 sub-mW bias removes the source floor. Neither touches the general case (8-bit, trainable,
