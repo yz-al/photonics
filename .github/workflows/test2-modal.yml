@@ -1,0 +1,70 @@
+name: Test 2 (optics-native architecture) on Modal GPU
+
+# Launches the Test-2 training sweep on a Modal GPU and commits the results
+# JSON back to this branch. Requires two repository secrets:
+#   MODAL_TOKEN_ID, MODAL_TOKEN_SECRET
+# Triggers on a push that touches test2/** (excluding the results it writes back),
+# or manually via the Actions tab.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/photonic-thesis-yimasz]
+    paths:
+      - 'test2/**'
+      - '.github/workflows/test2-modal.yml'
+      - '!test2/results/**'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: test2-modal-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  run-modal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal client
+        run: pip install "modal==1.5.3"
+
+      - name: Run Test 2 on Modal GPU
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: |
+          if [ -z "$MODAL_TOKEN_ID" ] || [ -z "$MODAL_TOKEN_SECRET" ]; then
+            echo "::error::MODAL_TOKEN_ID / MODAL_TOKEN_SECRET secrets are not set. Add them in repo Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          modal run test2/modal_app.py
+
+      - name: Upload results artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test2-results
+          path: test2/results/test2_results_full.json
+          if-no-files-found: warn
+
+      - name: Commit results back to branch
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add test2/results/test2_results_full.json
+          if git diff --cached --quiet; then
+            echo "no results change to commit"
+          else
+            git commit -m "Test 2: Modal GPU results [skip ci]"
+            git push origin HEAD:${{ github.ref_name }}
+          fi

@@ -8,3 +8,6 @@ env/
 *.env
 modal.env
 .DS_Store
+data/mnist/
+data/cifar/
+data/sklearn/
