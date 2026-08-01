@@ -1470,12 +1470,11 @@ Code: `test2/trackb_models.py` (models), `test2/run_trackb.py` (training),
 `data/trackb_energy.json`. Three models at matched width/depth, 5 seeds each, trained
 through the existing `test2/` harness on a CPU.
 
-**Lead line: the only place either optical net beats an edge digital NPU on joules-per-
-inference *at matched accuracy* is the spiking net on MNIST (an easy task); on CIFAR-10 both
-optical nets collapse in accuracy and the comparison evaporates. This confirms the programme's
-verdict and locates optics' one honest niche — edge, fixed-model, easy-task inference — exactly
-where the handoff predicted, and it is a *different regime* from the closed datacentre J/MAC
-result, not a contradiction of it.**
+**Lead line: after right-sizing the digital competitor to matched accuracy, no positive result
+survives.** The diffractive net is beaten on MNIST by a 13k-MAC digital MLP and collapses on
+CIFAR; the spiking net's apparent MNIST win falls to a coin-flip against a right-sized baseline,
+rests on generous optical-fan-out accounting, and stands only on MNIST-dense — a benchmark no edge
+vision workload resembles. Track B closes the way the rest of the programme did.
 
 **Accuracy (mean of 5 seeds, ±std < 0.7 pt everywhere):**
 
@@ -1484,37 +1483,54 @@ result, not a contradiction of it.**
 | MNIST | 98.42% | 95.47% (**−2.95**) | 98.22% (**−0.20**) |
 | CIFAR-10 (conv-free MLP class) | 53.50% | 37.28% (**−16.2**) | 39.56% (**−13.9**) |
 
-D²NN lands in the pre-registered 90–97% MNIST band and collapses on CIFAR (a passive phase mask
-has no convolution and few parameters). The spiking net was the pre-registered *surprise*: only
-**0.2 pt** behind ReLU on MNIST (not the 1–5 I expected), firing rate ~0.43.
+The spiking net was the pre-registered *surprise* on accuracy — only **0.2 pt** behind ReLU on
+MNIST (I expected 1–5), firing rate ~0.43. D²NN lands in the pre-registered 90–97% MNIST band and
+collapses on CIFAR (a passive phase mask has no convolution). *(The D²NN accuracies are upper
+bounds under ideal coherent monochromatic illumination — see the illumination-gate block below.)*
 
-**Energy — J/inference vs a whole-chip edge NPU (INT8, 2–30 TOPS/W sourced: Orin-class ~4–5,
-phone-NPU ~10–30), Monte-Carlo over the sourced ranges:**
+**Energy — the correction that decides it: right-size the digital competitor to matched accuracy.**
+The first pass priced the digital baseline at the full-width ReLU (98.4%, 268.8k MACs) and
+compared the optical nets to *that* — the same unmatched-accuracy error the CIFAR rows were
+discarded under. Corrected (`test2/trackb_rightsize.py`, `data/trackb_rightsize.json`), the
+competitor is the smallest ReLU MLP reaching each optical net's own accuracy:
 
-| Dataset | Edge digital (p50) | D²NN | Spiking | Matched-accuracy verdict |
+| Optical net (acc) | Right-sized digital | Optical J/inf | Digital J/inf | Verdict |
 |---|---|---|---|---|
-| MNIST | 70 nJ [20–235] | 7 nJ (10-detector) / 23 nJ (full-plane) | **19 nJ** (spike-gen-dominated) | **Spiking: matched (−0.2 pt), beats in 80% of draws.** D²NN: −3 pt, *not matched* → discard. |
-| CIFAR-10 | 222 nJ [65–748] | 9 nJ | 45 nJ | **Neither matched** (−14 to −16 pt); the "beats 92–100%" figures are unmatched-accuracy artifacts, discarded. |
+| D²NN, 95.5% | W16, **13k MAC** (95.7%) | 7–23 nJ | ~1–5 nJ | **loses — withdrawn** |
+| Spiking, 98.2% | W128, **118k MAC** (98.3%) | 26 nJ | 47 nJ | **coin-flip: 52% of draws** (was 80% vs the unmatched 268.8k baseline) |
 
-**Reading the one real win, adversarially.** The spiking net beats the edge NPU on MNIST because
-the model is small with a high MAC-per-input ratio (268.8k MACs / 784 inputs ≈ 343×): the
-digital pays per-MAC while the optical pays once for I/O plus sparse 8 pJ spikes. **Four flags,
-all cutting toward optics:** (i) the competitor is the *whole-chip* edge NPU (0.2–1 pJ/MAC), **not
-the 20–40 fJ arithmetic floor** — against the floor, as everywhere else in the programme, optics
-loses; (ii) the win needs the task to be easy enough for the optical net to *match* digital
-accuracy — true on MNIST, false on CIFAR; (iii) spiking dominates on spike-generation energy at
-8 pJ/spike (the favourable measured end); (iv) the D²NN's cheapest number assumes only 10 output
-detectors. Reproduce-Xiang check passed before trusting the spiking model.
+Right-sizing **withdraws the D²NN win outright** and **collapses the spiking win to a 52%
+coin-flip** — and the coin-flip does not survive scrutiny:
+- **It rests on near-free optical fan-out.** The SNN "wins" by charging energy per *spike* (~1,760)
+  while the digital pays per *MAC* (118k) — one laser pulse fanning out to many synapses. That
+  puts the optical synaptic op at ~10–33 fJ/SOP, at or below the 20–40 fJ arithmetic floor *only*
+  if the broadcast is loss-free — the same fan-out loss wall the crossbar and mesh died on. Charge
+  the broadcast honestly and the coin-flip erodes further. Generous-to-optics.
+- **The Loihi comparison is confounded, not a clean win.** Against a digital neuromorphic chip
+  (Loihi-class 12.7–23.6 pJ/SOP; ODIN 28 nm / Loihi, Davies IEEE Micro 2018) the model reports the
+  optical SNN "winning" 100% — but only because the net re-reads its dense input every timestep
+  (1.6M of 1.84M SOPs), inflating Loihi's per-SOP total ~1000×. That is the static-frame penalty,
+  not an optical advantage; on event-native input it disappears (and the competitor becomes an
+  event camera + digital SNN — a different track, not opened).
+- **It is MNIST-dense.** The win mechanism is 343 MACs per input pixel — an artifact of a dense MLP
+  on 784 inputs at a low accuracy bar, conv-free, a task nobody runs. Per the programme's own rule
+  (trace a favourable number to its source), the source of this margin is the benchmark, not the
+  physics.
 
-**Compared to the pre-registration.** Predicted "neither beats at matched CIFAR accuracy" —
-**confirmed** (both collapse). Predicted the surprise that would reopen the edge question is
-"either optical net matching an edge NPU's J/inference at equal accuracy" — **the spiking net did
-so on MNIST** (matched accuracy, 80% of draws). So the honest result is bounded: the surprise is
-real but confined to the easy-task / whole-chip-competitor corner and vanishes the moment the
-task needs real capacity (CIFAR). **Track B verdict: photonic edge inference can win on
-J/inference only where the task is easy enough to match digital accuracy and the competitor is a
-whole-chip NPU rather than the arithmetic floor — a genuine but narrow niche, consistent with the
-programme's close, not a reopening of it.**
+**Breakeven surface (`test2/trackb_breakeven.py`, `data/trackb_breakeven.json`).** Sweeping spike
+energy × firing rate against the right-sized NPU: at the *measured* device point (8 pJ/spike,
+f≈0.43) the optical SNN is a coin-flip (52% of draws), and both inputs were taken at the favourable
+end. A robust win requires spike energy and firing rate below what fabricated devices (2.5–130
+pJ/spike, Follow-up 5/6) and trained SNNs (f≈0.3–0.45) actually reach — i.e. the achievable device
+parameters do **not** sit inside a robust win region.
+
+**Compared to the pre-registration.** "Neither beats at matched CIFAR accuracy" — **confirmed**.
+"The surprise that would reopen it is either net matching an edge NPU at equal accuracy" — the
+spiking net *appeared* to on MNIST, but **right-sizing the competitor withdrew it to a coin-flip**,
+and the residual margin is a benchmark artifact on generous fan-out. **Track B verdict: no positive
+result survives. Photonic edge inference does not beat digital at matched accuracy on any task with
+real capacity demand — the diffractive net loses to a trivial MLP, the spiking net is a coin-flip
+on an artifact benchmark, and both close consistently with the programme's electrical-cost verdict.**
 
 **The one remaining lever, quantified (Follow-up 7).** All six escapes share a single
 root: light must become electricity at every layer because the activation is applied
