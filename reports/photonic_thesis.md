@@ -949,6 +949,128 @@ Reported as a narrow, generously-accounted corner — the same flag as the PCM 1
 
 ---
 
+# Follow-up 7 — Inverting the model: the spec sheet for an optical nonlinearity that would reopen photonic compute
+
+**One line: an all-optical net would need a nonlinear element that switches at ≲ 1 fJ per
+activation (sub-fJ for useful depth/width), with ≤ ~1 dB loss, at GHz–THz speed and room
+temperature — and the nearest *fabricated, fast, room-temperature* material is ~10–100×
+away on energy, while the *direct Kerr/χ³ route is Kramers-Kronig-forbidden at 1550 nm by
+6–8 orders of magnitude. The only escape that survives causality is the matter-mediated
+one — exciton-polaritons — and its strong versions are cryogenic; its room-temperature
+version (perovskite) sits right at the edge of the spec and has never been cascaded.**
+
+Six escapes were tested and the per-element electrical/optical cost was conserved every
+time. The surviving diagnosis is that light must become electricity at every layer, because
+the activation is applied electrically — so the last lever is a low-power optical
+nonlinearity that removes the per-layer tax. This section runs the model *backward*: it
+solves for what that element must be, then measures the gap to every published candidate.
+Code: `src/energy_model/run_test1_alloptical.py`, data `data/test1_alloptical_results.json`.
+**Scope, stated plainly: this — like every crossover in the programme — is inference-only
+(a network that never measures intermediate activations cannot produce gradients), and
+bounded to shallow depth (below).**
+
+## Task 1 — the architecture and the cascading gate
+
+Convert once at the input, once at the output; between them, per layer, a passive PCM
+linear stage (~0 hold, sourced loss) and a nonlinear element per neuron whose properties
+are the free unknowns; one input laser. Because conversion is now amortised over `L·N²`
+MACs it becomes negligible — so the binding term is the nonlinear element's **operating
+power** `P_op = E_nl·bw`, which the single input laser must hold at every one of N neurons
+through the accumulated per-layer loss `t^{-L}`, within a bounded on-chip input power.
+
+**Cascading gate (checked first, per pre-registration): passes only at shallow depth.**
+With sourced passive-layer loss (~2 dB/layer nominal), the signal stays inside the 33 dB
+link budget for **L ≤ ~8 layers**; at **L = 16 the total loss is 35–67 dB → inter-layer
+optical amplification is unavoidable, and that is a source cost by another name → the
+escape fails at depth.** So the architecture is real but **depth-bounded to ~8 layers**;
+this is not a full stop, but it is a hard scope limit and it is stated as one.
+
+## Task 2 — the required switching-energy spec (solved backward)
+
+The spec is a surface, not a number; the binding constraint is **always the power/cascading
+limit**, never energy-amortisation. Max tolerable switching energy per activation:
+
+| | N=64 | N=256 | N=1024 |
+|---|---|---|---|
+| **L=4** | **7 fJ** (weakest) | 1.2 fJ | 0.29 fJ |
+| **L=8** | 0.47 fJ | 0.12 fJ | **0.03 fJ** (useful, deep+wide) |
+| L=16 | — amplification needed (gate fails) — | | |
+
+Monte-Carlo over the sourced ranges: a nonlinearity at **1 fJ/activation clears the floor
+in 85% of draws; 10 fJ in only 40%; 100 fJ in 5%.** So the **robust target is ≲ 1 fJ**,
+the *weakest sufficient* corner is ~7 fJ (a small N=64, L=4, 4-bit net), and a *useful*
+deep+wide net needs **~0.03–0.1 fJ (30–100 aJ)**.
+
+**Required material n₂** (Kerr π-shift, A_eff≈0.1 µm², L≈100 µm, τ≈100 ps): **1.1×10⁻¹¹
+m²/W** (weakest) to **7.8×10⁻¹⁰ m²/W** (useful) — for reference, chalcogenide As₂S₃ is
+~3×10⁻¹⁸, ITO-ENZ ~10⁻¹⁴, graphene ~10⁻¹³.
+
+## Task 3 — the gap to every published candidate (ranked by smallest max-gap)
+
+Spec to beat: **≤1 fJ, ≤1 dB loss, ≥GHz speed, room temperature, cascadable.**
+
+| Rank | Candidate (mechanism) | Energy/op | Speed | Loss | Temp | Gap to spec | Source |
+|---|---|---|---|---|---|---|---|
+| 1 | **QD-in-cavity polariton** (cavity-QED) | **14 aJ** | 8.4 GHz | low | **~39 K (cryo)** | meets energy+speed; **1 axis: temperature** | Sridharan/Waks, Opt. Express 19, 5551 (2011) |
+| 2 | **GaAs 0D polariton blockade** | **~0.6 aJ** | ps | — | **<10 K (cryo)** | energy far under; **temperature + U/Γ≈0.42 (blockade not fully reached)** | Delteil, Nat. Mater. 18, 219 (2019) |
+| 3 | **Perovskite polariton (RT)** | **~6 fJ** (derived) | ps | RT linewidth large | **RT (real)** | at weakest-spec edge; **saturation not clean Kerr, never cascaded** | Fieramosca, Sci. Adv. 5, eaav9967 (2019) |
+| 4 | **Free-carrier Si PhC** (Nozaki) | **0.42 fJ** | ~10–30 GHz (carrier recovery) | low | RT | meets energy+RT; **speed/throughput-capped, resonant** | Nozaki, Nat. Photon. 4, 477 (2010) |
+| 5 | **χ²-cascade LiNbO₃** | 80 fJ | **46 fs** | low | RT | fast+RT+low-loss; **~80× energy** | Guo/Marandi, Nat. Photon. 16, 625 (2022) |
+| 6 | **Plasmonic graphene** | 35 fJ | 260 fs | **dB/µm (fails)** | RT | ~35× energy; **loss-disqualified** | all-optical plasmonic switch, 2021 |
+| 7 | **Chalcogenide As₂S₃** | **pJ–nJ** | fs Kerr | 0.05 dB/cm | RT | FOM_T≫2 (clears FOM) but **10³–10⁶× energy** — *the proof FOM isn't binding, energy is* | Lamont, Opt. Express 2007 |
+| 8 | **ITO-ENZ** | GW/cm² intensities | 360 fs | **α~10⁴ cm⁻¹ (fails)** | RT | n₂ and loss peak together; **loss-disqualified, no device** | Alam/Boyd, Science 352, 795 (2016) |
+| — | **BIC / slow-light** | Q- or n_g²-enhanced | **capped by Q/n_g lifetime** | — | RT | enhancement ∝ speed⁻¹; **speed-disqualified** | Koshelev; Corcoran, Nat. Photon. 2009 |
+| — | **Rydberg-EIT** | 0.25 aJ (single-photon) | µs (slow light) | — | cold atoms | strongest known, **but not a chip: UHV+MOT, ~10¹⁰× overhead** | Peyronel, Nature 488, 57 (2012) |
+| — | **PCM-as-Kerr / thermal / optomech.** | — | µs; g₀/κ≈10⁻³ | — | — | **speed-disqualified** (structural/thermal/mechanical) | Delaney 2020; Aspelmeyer RMP 2014 |
+
+## Task 4 — the Kramers-Kronig verdict (the decider)
+
+n₂ and two-photon absorption β are the real and imaginary parts of the same causal
+susceptibility (Sheik-Bahae, IEEE JQE 26, 760 (1990); two-band model, Hutchings 1992).
+TPA is **identically zero only below half the bandgap** — at 1550 nm (ħω=0.80 eV) that
+requires **E_g > 1.60 eV** — and n₂ then scales as **E_g⁻⁴**, capping the TPA-free n₂ at
+the **As₂Se₃/As₂S₃-class ceiling ~1×10⁻¹⁷ m²/W**.
+
+**The required n₂ (1.1×10⁻¹¹ … 7.8×10⁻¹⁰) is 6–8 orders of magnitude above that
+causality ceiling.** Every route to bridge it fails on a *different* axis:
+- **Resonant enhancement** would need Q ≈ 10⁶–10⁷ to make up the n₂ deficit → cavity
+  lifetime τ = Qλ/2πc ≈ 1–58 ns → **sub-GHz to few-GHz, too slow.**
+- **High-n₂ materials** (ITO-ENZ 10⁻¹⁴, graphene 10⁻¹³) have E_g < 1.6 eV or are metallic →
+  TPA turns on or linear loss reaches α~10⁴ cm⁻¹ → **≤1 dB budget violated by orders.**
+
+So for a **Kerr/χ³ material the spec is causality-forbidden at 1550 nm**: you cannot have
+the required n₂, ≤1 dB loss, and GHz speed simultaneously — it is a hard n₂–loss–speed
+trilemma set by Kramers-Kronig, not an engineering gap. **The only escape is a nonlinearity
+that is *not* bound-electron χ³** — exciton-polaritons, where the interaction comes from
+real exciton-exciton scattering (the matter half). That bypasses the KK bound, and it is
+why polaritons rank 1–3 above. But the strong polariton nonlinearities are **cryogenic**
+(GaAs, QD-cavity, <40 K), and the one **room-temperature** case (perovskite, ~6 fJ) sits at
+the weakest-spec edge, is saturation- rather than blockade-based, and **has never been built
+as a cascadable multilayer network.**
+
+## The spec sheet (the reusable output)
+
+> **Requirements for an optical nonlinearity that reopens photonic compute**
+> - **Switching energy:** ≤ 1 fJ/activation for robust (85% of draws); ~7 fJ in the easiest
+>   corner (N=64, L=4, 4-bit); **30–100 aJ for a useful deep+wide net.**
+> - **Insertion loss:** ≤ ~1 dB per element.
+> - **Speed:** ≥ GHz (ideally THz); must not be Q- or carrier-lifetime-limited.
+> - **Depth:** ≤ ~8 all-optical layers before inter-layer amplification (a source cost)
+>   reappears; **inference only.**
+> - **Temperature:** room temperature for a practical accelerator.
+> - **Causality:** for a Kerr/χ³ material this is **forbidden at 1550 nm** (required n₂ is
+>   6–8 orders above the TPA-free ceiling). A non-χ³ mechanism (polariton/matter interaction)
+>   is required.
+> - **Three nearest candidates and what each needs:**
+>   1. *QD-cavity polariton (14 aJ, 8.4 GHz):* raise operating temperature from ~39 K to
+>      ~300 K — a materials problem (higher-binding-energy excitons) of ~1 order in kT.
+>   2. *Perovskite polariton (RT, ~6 fJ):* demonstrate clean, cascadable blockade (not
+>      saturation) and narrow the RT linewidth — reduce energy ~6× and prove multilayer cascade.
+>   3. *Free-carrier Si PhC (0.42 fJ, RT):* break the carrier-lifetime speed ceiling
+>      (~10–30 GHz → THz) without losing the energy — a device-physics problem of ~1–2 orders.
+
+---
+
 ## Programme conclusion — five architectures, one table
 
 An N×N linear layer has N² weights; those weights must be physically instantiated in
@@ -999,6 +1121,28 @@ does not beat digital in general, the two regimes that touch the floor are narro
 inference-only corners contingent on unfabricated or write-once devices, and the decisive
 constraint is electrical, not optical — exactly the boundary the 2026 market drew between
 optical interconnect (yes) and optical compute (no).**
+
+**The one remaining lever, quantified (Follow-up 7).** All six escapes share a single
+root: light must become electricity at every layer because the activation is applied
+electrically. The only thing that removes that per-layer tax is a low-power *optical*
+nonlinearity — generate once, propagate through, detect once. Inverting the model to solve
+for what that element must be gives the number the field does not currently state: **≲ 1 fJ
+per activation (30–100 aJ for a useful net), ≤ ~1 dB loss, GHz–THz, room temperature,
+inference-only, ≤ ~8 layers.** And the Kramers-Kronig check makes the verdict sharp rather
+than merely discouraging: for a **Kerr/χ³ material the spec is causality-forbidden at
+1550 nm** — the required n₂ is 6–8 orders above the two-photon-absorption-free ceiling, and
+every route to bridge it (resonant Q, high-n₂ material) fails on speed or loss respectively.
+The **only** physical escape is a non-χ³, matter-mediated nonlinearity — exciton-polaritons
+— whose strong forms are cryogenic (<40 K) and whose one room-temperature form (perovskite,
+~6 fJ) sits at the very edge of the weakest spec and has never been cascaded into a network.
+**So the last lever is not just hard, it is causality-bounded for conventional materials;
+the sole opening is a cryogenic or unproven-room-temperature polariton device. The
+programme therefore closes completely: across six architectural escapes the cost is
+conserved and electrical, and the single remaining physical lever — an all-optical
+nonlinearity — is Kramers-Kronig-forbidden in the Kerr regime and reachable only in a
+narrow, mostly-cryogenic, never-demonstrated corner. That is the honest end of the line:
+photonic compute does not beat digital in general, and the one escape physics still permits
+is a materials moonshot, not an architecture.**
 
 ---
 
