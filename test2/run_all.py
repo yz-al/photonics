@@ -32,10 +32,10 @@ if MODE == "full":
                depths=[2, 4, 8, 16], noise_seeds=[0, 1, 2])
 elif MODE == "local":  # real statistics for CPU-feasible parts (skip CIFAR CNN)
     CFG = dict(seeds=[0, 1, 2, 3, 4],
-               mlp_epochs=15, mlp_subset=40000,
+               mlp_epochs=12, mlp_subset=20000,
                cnn_epochs=12, cnn_subset=8000,
-               tr_epochs=6, tr_subset=12000,
-               sb_epochs=12, mnist_subset=15000,
+               tr_epochs=5, tr_subset=10000,
+               sb_epochs=12, mnist_subset=12000,
                depths=[2, 4, 8, 16], noise_seeds=[0, 1, 2])
 else:  # fast local smoke test — validates code paths, not statistics
     CFG = dict(seeds=[0, 1],
