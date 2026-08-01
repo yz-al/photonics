@@ -1058,6 +1058,54 @@ why polaritons rank 1–3 above. But the strong polariton nonlinearities are **c
 the weakest-spec edge, is saturation- rather than blockade-based, and **has never been built
 as a cascadable multilayer network.**
 
+## Is room-temperature blockade forbidden, or just unbuilt? (the one open door)
+
+The table sets up a question it does not answer. Row 2 — QD-in-cavity blockade — **already
+meets energy (14 aJ) and speed (8.4 GHz); its only failing axis is the 39 K temperature.**
+And the context row shows **room-temperature polariton strong coupling is now demonstrated
+in three separate systems.** So the live question is whether the two can be combined —
+**strong blockade at room temperature** — and whether that is forbidden by physics or is a
+materials-integration problem.
+
+The blockade condition is **U/Γ > 1**, where U is the single-quantum anharmonicity (the
+energy to add a second polariton to an already-occupied mode) and Γ is the linewidth. The
+two respond to temperature oppositely, and that is what decides the question:
+- **U is essentially athermal** — set by exciton binding, oscillator strength, and mode
+  volume (U ∝ 1/V for a single emitter), not by T.
+- **Γ has an irreducible phonon-dephasing floor that rises monotonically with T:**
+  Γ(T) = Γ_rad + Γ_ac·T (acoustic phonons) + Γ_LO/(e^{ħω_LO/kT}−1) (Fröhlich/LO-phonon
+  dephasing). Between 40 K and 300 K a single quantum-emitter homogeneous line broadens from
+  ~µeV to meV–tens of meV (kT ≈ 25 meV at RT).
+
+So **U/Γ falls with temperature — but there is no thermodynamic no-go theorem here, no hard
+bound like the Kramers-Kronig one.** RT blockade is not forbidden; it reduces to a
+**materials figure of merit, U > Γ_phonon(300 K)** — a single (or few) emitter whose
+intrinsic anharmonicity beats its own room-temperature phonon-broadened linewidth. Nothing
+in physics forbids such a material; none is yet shown.
+
+**But it is not "just integration" either, and this is the tension the RT strong-coupling
+demonstrations hide.** Strong coupling needs **Ω > Γ**, and the vacuum Rabi splitting
+Ω = √N·g is **collectively enhanced** — large N makes Ω hundreds of meV in organics and
+perovskites, which is exactly how it beats RT phonon broadening. Blockade needs **U > Γ**,
+and U is the *per-particle* interaction, **suppressed as 1/N** by the same collectivity. The
+ensemble trick that delivers RT strong coupling therefore actively destroys the RT
+nonlinearity: the demonstrated RT systems live in the large-N (big Ω, tiny U) limit, and
+blockade lives in the N→1 (big U, no collective Ω) limit. The nearest RT single-emitter case
+— a single molecule in a plasmonic nanogap (Chikkaraddy et al., Nature 535, 127 (2016)) —
+reaches Ω > Γ but has **not** shown U > Γ; a room-temperature *single-emitter photon
+blockade* has never been demonstrated.
+
+**Verdict: the door is open but narrow, and now specific.** RT blockade is not causality- or
+thermodynamically forbidden — unlike the Kerr/χ³ route — so the programme does **not** close
+on this axis. It leaves one precise, watchable target: **a single- (or few-) emitter system
+with U > Γ_phonon(300 K)** — equivalently, room-temperature single-emitter photon blockade, a
+strictly stronger and different claim than the room-temperature *collective* strong coupling
+already in hand. Should someone prove a temperature-dependent lower bound on U/Γ (a floor on
+Γ_phonon that any RT-stable material must pay, set jointly with a ceiling on U), the
+programme closes completely and photonic compute is finished on physics. Absent that proof,
+this single gap — not temperature, not existence, not architecture — is the one open door,
+and it is specific enough to watch for.
+
 ## The spec sheet (the reusable output)
 
 > **Requirements for an optical nonlinearity that reopens photonic compute**
@@ -1206,10 +1254,19 @@ pump-free (blockade) polariton nonlinearity, CMOS-integrable at telecom waveleng
 ≤1 dB loss. The programme therefore closes: across six architectural escapes the cost is
 conserved and electrical, and the single remaining physical lever — an all-optical
 nonlinearity — is Kerr-forbidden by Kramers-Kronig and, in its one causality-permitted
-form, reduces to three specific unmet materials-physics requirements, not an architecture.
-That is the honest end of the line: photonic compute does not beat digital in general, and
-the one escape physics still permits is a materials moonshot — now with its remaining gap
-stated exactly.**
+form, reduces to three specific unmet materials-physics requirements, not an architecture.**
+**One of those requirements is sharper than the rest, and is the single open door.** The
+QD-cavity blockade already meets energy (14 aJ) and speed (8.4 GHz) and fails only on
+temperature (39 K), while room-temperature polariton strong coupling is now demonstrated in
+three systems — so the live question is whether *strong blockade at room temperature* is
+possible. It is **not causality- or thermodynamically forbidden**: blockade needs U/Γ > 1
+with U athermal and Γ carrying only a phonon-dephasing floor, so RT blockade reduces to a
+materials figure of merit, U > Γ_phonon(300 K), which no single-emitter system has yet met —
+because the collective enhancement (Ω ∝ √N) that buys RT strong coupling suppresses the
+per-particle nonlinearity (U ∝ 1/N) that blockade needs. **That is the honest end of the
+line: photonic compute does not beat digital in general; the one escape physics still permits
+is a materials moonshot — a room-temperature single-emitter photon blockade — and it is open
+only because no one has yet proven a temperature bound on U/Γ that would shut it.**
 
 ---
 
