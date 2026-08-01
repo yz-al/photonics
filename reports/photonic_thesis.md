@@ -643,31 +643,119 @@ loss-limited). Either way the crossbar does not scale.
 
 ---
 
-## Programme conclusion — three architectures, one table
+# Follow-up 3 — PCM weights + mode-multiplexing: the one variant that reaches the floor
+
+**One-line answer: a qualified yes, narrowly.** Non-volatile PCM weights in a
+*non-resonant* geometry remove the thermal-stabilisation term that killed the ring
+crossbar, mode-multiplexing raises the amortisation to K_eff = K_λ·M without adding bus
+loss (modes are a *parallel* lossless fan-in, not a series cascade), and low-loss
+Sb₂Se₃ keeps per-element loss bounded. The result is the **first architecture in the
+programme with a non-zero floor-crossing fraction: 4-bit, non-resonant, ~13% of sourced
+Monte-Carlo draws (N≈110)**. But it is a heavily-conditioned crack, not an open door: it
+holds **only** at 4-bit, **only** with low-loss (Sb₂Se₃, not GST) PCM, **only** in a
+non-resonant geometry, and **only** for write-once inference (endurance ~27 cycles). At
+8-bit it fails (2%); with resonant weights it fails (≤1%). Code:
+`src/energy_model/run_test1_pcm_crossbar.py`, data `data/test1_pcm_crossbar_results.json`.
+
+## What changed vs the thermal-ring crossbar (a parameter variant, not a new model)
+
+| Term | Thermal-ring crossbar | PCM + mode-mux variant | Source for the change |
+|---|---|---|---|
+| Weight hold power | N² rings × ~6 mW → **44 pJ/MAC** | **0** (non-volatile, non-resonant weight) | Feldmann Nature2021; Sun NatCommun2025 (weights on straight waveguides / MZI, not rings) |
+| Amortisation dim | K_λ ≤ ~30 | **K_eff = K_λ·M** (M spatial modes, parallel) | Sun NatCommun2025 "lossless mode fan-in" (M=3 demo) |
+| Bus loss | K_λ ring through-loss | K_λ·(PCM IL) + M·(mode IL) — **modes don't add series loss** | Sun 2025 (per-mode 0.2–0.32 dB, parallel) |
+| Weight-update | n/a (thermal tuning per op) | µJ/write, but **write-once** → ≈0 per MAC | Sun 2025 (~0.1–8 µJ, endurance ~27 cycles) |
+
+## Sourced inputs (PCM + mode-mux)
+
+| Quantity | Low – Nom – High | Source |
+|---|---|---|
+| PCM per-element insertion loss | 0.1 – 0.4 – 1.0 dB | Delaney SciAdv2021 (Sb₂Se₃ ~0.5 dB, 0.006 dB/µm); GST would be 0.8–3 dB and kills it |
+| PCM write energy | 1 nJ – 0.5 µJ – 8 µJ | Sun NatCommun2025 (foundry doped-Si heater, derived); Fang NatNano2022 (graphene, nJ) |
+| PCM weight precision | 3 – 6 – 9 bit | Sun2025 (3 b foundry, 7 levels); Gong ACSPhot2024 (6 b N-Sb₂Se₃); Zhou2026 (9 b, sim) |
+| Cycling endurance | 27 – 1000 – 10⁴ cycles | Sun2025 (27, foundry); Sb₂Se₃ sub-cell (>10⁴) — **write-once at foundry fidelity** |
+| Spatial mode count M | 2 – 4 – 10 | Sun2025 (M=3 demo); SciRep2019 (6 TE); crosstalk-limited, 16 exotic |
+| Per-mode fan-in loss | 0.2 – 0.35 – 0.5 dB | Sun NatCommun2025 (0.2–0.32 dB, near-lossless, parallel) |
+| Weight geometry | non-resonant (0 hold) | Feldmann/Sun/Gong/Zhou — straight waveguide / MZI / metasurface, not rings |
+
+## Crossover bands (MC, loss enforced, same protocol/baselines)
+
+| Scenario | vs whole-chip digital | vs compute floor (20–40 fJ) |
+|---|---|---|
+| 4-bit, non-resonant PCM | N≈21, exists 67% | **N≈109 [51–269], exists 13%** |
+| 4-bit, resonant PCM (ring weight) | N≈16, exists 32% | N≈61, exists 1% |
+| 8-bit, non-resonant PCM | N≈34, exists 69% | N≈584, exists 2% |
+| 8-bit, resonant PCM | N≈23, exists 33% | no crossover (0%) |
+
+## Where the cost went (per-MAC, nominal, non-resonant) — and the honest caveats
+
+With the thermal term gone and update energy amortised away, the residual per-MAC cost
+is **conversion (16–40 fJ at 4-bit, at the floor) plus a WDM ring-addressing residual
+(~150 fJ if the wavelength routing uses rings; →0 with a non-resonant AWG demux, Zhang
+Nanophotonics2024)**. The 13% of draws that clear the floor are exactly those with
+low-loss PCM, low ring-addressing power (or AWG), high K_eff, and 4-bit — the favourable
+tail, not the nominal. The conditions that make it work are also its limits:
+
+- **Material:** requires **low-loss Sb₂Se₃/Sb₂S₃**; GST (0.8–3 dB/element) reintroduces
+  the cascaded loss wall immediately.
+- **Regime:** endurance **~27 foundry cycles → write-once inference only.** Fine for a
+  fixed deployed model; **rules out training and frequent reconfiguration.**
+- **Precision:** foundry PCM is **~3–6 bit**, which *matches* the 4-bit operating point
+  but means 8-bit (where it fails on energy anyway) is also unsupported.
+- **Generosities still in optics' favour:** non-resonant AWG addressing charged at 0 in
+  the optimistic draws; PCM array fabrication yield of N² elements not charged;
+  mode-crosstalk-induced precision loss (M>3) not charged against accuracy.
+
+## Gate decision — a crossover exists, so scope (do not run) the accuracy study
+
+Unlike the butterfly and thermal-ring crossbar (0% at the floor), this variant crosses
+in a non-zero fraction, so the pre-registered gate says report it and **scope** what an
+accuracy study would test — it does **not** authorise running one, and the constraints
+are severe enough that the honest deliverable is the scoping, not a training run. An
+accuracy study for this hardware would need: (1) **weight precision at 3–6 bit**
+(PCM multi-level, quantisation-aware training), (2) **write-once weights** — no
+gradient updates to the optical weights after deployment, i.e. train-then-freeze or
+train digitally and program once, (3) **mode-crosstalk as a fixed weight-mixing matrix**
+(−13 to −17 dB between modes at M=3, growing with M) applied to the linear layer, and
+(4) **PCM level-drift / relaxation noise** on the held weights. Test 2 already showed the
+optics-native forward model (complex-linear + |·|², 4-bit) matches ReLU; the open
+question this scoping isolates is whether **3–6-bit write-once weights with fixed
+mode-crosstalk** hold that accuracy — a bounded, well-posed study, deferred here per the
+gate.
+
+---
+
+## Programme conclusion — four architectures, one table
 
 An N×N linear layer has N² weights; those weights must be physically instantiated in
-the optics, and **that instantiation always costs more than the digital MAC it
-replaces** — the cost simply moves between depth, amortisation, and standing power:
+the optics, and **that instantiation almost always costs more than the digital MAC it
+replaces** — the cost moves between depth, amortisation, and standing power:
 
-| Architecture | Optical depth | MACs / pass | Conversion amortises over | **Dies on** | Magnitude |
-|---|---|---|---|---|---|
-| **Dense Clements/Reck mesh** | N | N² | N (good) | **cascaded insertion loss** | 512 dB @ N=1024 |
-| **Butterfly / FFT mesh** | log₂N | N·log₂N | log₂N | **converter amortisation** | 120–400 fJ/MAC, never floor |
-| **Microring crossbar** | ~1 (K-ring bus) | N²·(K/N per pass) | K ≤ ~30 | **thermal stabilisation of N² rings** | 44 pJ/MAC @ N=1024 |
+| Architecture | Optical depth | Amortises over | **Dies on** | Floor-crossing draws |
+|---|---|---|---|---|
+| **Dense Clements/Reck mesh** | N | N (good) | **cascaded insertion loss** (512 dB @ N=1024) | 0% |
+| **Butterfly / FFT mesh** | log₂N | log₂N | **converter amortisation** (120–400 fJ/MAC) | 0% |
+| **Microring crossbar (thermal)** | ~1 | K ≤ ~30 | **thermal stabilisation of N² rings** (44 pJ/MAC) | 0% |
+| **PCM + mode-mux crossbar (non-res, 4-bit)** | ~1 | K_λ·M ≤ ~140 | **narrowly clears it** — WDM-addressing residual + converters | **13%** |
 
-**None reaches the 20–40 fJ/MAC digital compute floor at any buildable size, in 0% of
-sourced Monte-Carlo draws.** Dense dies on depth-loss, butterfly on amortisation,
-crossbar on standing power — three different symptoms of the same disease: you cannot
-make N² optical weights participate in a computation without paying, per weight, either
-a cascaded loss (depth), a re-conversion (too few MACs), or a continuous hold
-(resonance). In every case the electrical overhead — data converters and thermal
-control, **not** the "free" matmul — dominates, exactly the regime the 2026 market
-converged on (optical *interconnect* yes, optical *compute* no). The programme's single
-actionable lever is unchanged across all three architectures and both tests: an
-**order-of-magnitude reduction in per-conversion / per-element electrical energy**, not
-a new mesh topology and not a new activation. Test 2 separately established that the
-nonlinearity was never the barrier. **The photonic-compute thesis is closed on physics,
-cheaply, in code, with every input sourced — which was the goal.**
+**Three of four topologies never reach the 20–40 fJ/MAC compute floor, in 0% of sourced
+draws.** The fourth — non-volatile low-loss PCM weights in a non-resonant geometry with
+spatial-mode multiplexing — is the single exception, and only at **4-bit, write-once
+inference, in ~13% of draws**. It reaches the floor precisely because it removes the
+per-weight physical cost the other three could not: PCM makes the weight *non-volatile*
+(no hold power), non-resonant makes it *stable* (no lock), parallel modes raise
+amortisation *without* adding loss, and write-once makes the µJ programming cost vanish
+over a deployment lifetime. That is the whole disease stated as its cure: the barrier was
+never the "free" matmul but the **per-weight electrical cost** (conversion, hold,
+re-programming), and the one regime that beats digital is the one that drives every
+per-weight electrical cost toward zero — at the price of 4-bit, inference-only, low-loss-
+PCM operation in a favourable-parameter minority. For the general case (8-bit, trainable,
+reconfigurable, or GST) the thesis remains closed; the actionable lever is unchanged — an
+**order-of-magnitude drop in per-conversion / per-element electrical energy**. Test 2
+separately established the nonlinearity was never the barrier. **The honest verdict:
+optical compute does not beat digital in general, and the one buildable regime that
+touches the floor is a narrow, write-once, 4-bit, low-loss-PCM inference corner — not the
+datacenter matmul the thesis set out to win.**
 
 ---
 

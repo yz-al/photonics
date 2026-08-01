@@ -140,11 +140,19 @@ PARAMS = {
 
     # ---- PCM-weight + mode-multiplex crossbar variant ------------------------
     # RECONCILED with sourced ranges; see report "PCM/mode-mux inputs" table.
-    "pcm_loss_db":     Param(0.05, 0.4, 1.5, "per-element PCM IL; Sb2Se3 low..GST high"),
-    "pcm_switch_J":    Param(1e-12, 5e-11, 1e-9, "PCM weight-update switching energy (foundry, Sun2025)"),
-    "pcm_bits":        Param(6.0, 7.0, 9.0, "PCM multi-level weight precision (bits)"),
-    "n_modes":         Param(2.0, 4.0, 10.0, "spatial-mode count M (mode-division multiplex)"),
-    "inferences_per_load": Param(1e3, 1e5, 1e7, "inferences between weight reloads (fixed model)"),
+    # low-loss Sb2Se3/Sb2S3 (Delaney SciAdv2021 ~0.5dB, Sb2S3 k<1e-5); GST 0.8-3dB kills it
+    "pcm_loss_db":     Param(0.1, 0.4, 1.0, "per-element PCM IL; Sb2Se3 (GST would be 0.8-3)"),
+    # foundry doped-Si heater ~0.1-8 uJ/write (Sun NatCommun2025, derived); graphene ~nJ
+    "pcm_switch_J":    Param(1e-9, 5e-7, 8e-6, "PCM write energy; Sun2025 foundry (uJ), Fang2022 (nJ)"),
+    # foundry-measured ~3 bits (Sun, 7 levels); 6b N-Sb2Se3 (Gong2024); 9b sim (Zhou2026)
+    "pcm_bits":        Param(3.0, 6.0, 9.0, "PCM weight precision; Sun2025(3b)..Zhou2026(9b sim)"),
+    # M small & crosstalk-limited: compute demos use M=3 (Sun NatCommun2025), ~10 exotic
+    "n_modes":         Param(2.0, 4.0, 10.0, "spatial-mode count M; Sun2025 (M=3), SciRep2019"),
+    # modes are PARALLEL lossless fan-in (Sun2025) -> small per-mode loss, NOT xK_eff
+    "mode_loss_db":    Param(0.2, 0.35, 0.5, "per-mode fan-in loss; Sun NatCommun2025 (0.2-0.32)"),
+    # endurance ~27 cycles (Sun2025) FORCES write-once inference -> the uJ write
+    # amortises over the whole deployment lifetime (billions-to-quadrillions of inferences)
+    "inferences_per_load": Param(1e9, 1e12, 1e15, "write-once inference lifetime; endurance ~27 cyc"),
     # achievable ring weight precision (Lorentzian slope + drift limited): ~4-5 bits
     # -> 8-bit weights are NOT physically available from a weight ring (failure mode 5)
     "ring_weight_bits": Param(3.1, 4.0, 5.1, "ring weight precision; Tait2016/2018, Feldmann2021"),
@@ -430,12 +438,17 @@ def crossbar_pcm_j_per_mac(N, bits, p, resonant=False, enforce_loss=False,
       * weight-update energy = PCM switch energy amortised over inferences_per_load.
     """
     E_ADC = p[f"E_ADC_{bits}b"]; E_DAC = p[f"E_DAC_{bits}b"]; E_mod = p["E_mod_MRM"]
-    Keff = crossbar_pcm_Keff(N, p)
+    Kw = crossbar_K_max(p)                         # wavelength channels (physical elements)
+    M = p["n_modes"]
+    Keff = crossbar_pcm_Keff(N, p)                 # = min(N, Kw*M) amortisation dim
 
     conv = E_DAC / N + E_mod / N + E_ADC / Keff + p["digital_add_J"] / Keff
 
-    # bus traversal of K_eff PCM weight elements (the loss-wall check)
-    bus_loss_db = 2 * p["coupling_db"] + Keff * p["pcm_loss_db"]
+    # bus loss: light passes Kw PCM weight elements (one per wavelength); the M modes
+    # are a PARALLEL lossless fan-in (Sun NatCommun2025) -> add small per-mode loss,
+    # NOT Keff elements.  This is the loss-wall check for the PCM variant.
+    n_bus_elems = min(float(N), Kw)
+    bus_loss_db = 2 * p["coupling_db"] + n_bus_elems * p["pcm_loss_db"] + M * p["mode_loss_db"]
     if ignore_loss:
         trans = 1.0
     else:
@@ -445,9 +458,14 @@ def crossbar_pcm_j_per_mac(N, bits, p, resonant=False, enforce_loss=False,
     E_det = required_detector_energy(bits, p["responsivity"], p["tia_noise"], p["bandwidth"])
     laser = E_det / (Keff * trans * p["WPE_laser"])
 
-    # hold power: non-resonant PCM -> 0 ; resonant PCM ring -> still needs lock
-    thermal = (N * p["ring_stab_mW"] / (Keff * p["bandwidth"])) if resonant else 0.0
-    # PCM weight-update energy amortised over many inferences (fixed-model inference)
+    # hold power: non-resonant PCM weight -> 0.  Residual: ring-based WDM ADDRESSING
+    # (Feldmann) still needs Kw stabilised rings per bank -> Kw*P_stab/(Keff*bw).
+    # resonant=True keeps the full N^2-ring lock (ring-weight geometry).
+    if resonant:
+        thermal = N * p["ring_stab_mW"] / (Keff * p["bandwidth"])
+    else:
+        thermal = Kw * p["ring_stab_mW"] / (Keff * p["bandwidth"])   # WDM addressing residual
+    # PCM write energy amortised over inferences between reloads (write-once inference)
     update = p["pcm_switch_J"] / p["inferences_per_load"]
 
     return conv + laser + thermal + update
@@ -455,15 +473,19 @@ def crossbar_pcm_j_per_mac(N, bits, p, resonant=False, enforce_loss=False,
 
 def crossbar_pcm_terms(N, bits, p, resonant=False):
     E_ADC = p[f"E_ADC_{bits}b"]; E_DAC = p[f"E_DAC_{bits}b"]; E_mod = p["E_mod_MRM"]
+    Kw = crossbar_K_max(p); M = p["n_modes"]
     Keff = crossbar_pcm_Keff(N, p)
-    bus_loss_db = 2 * p["coupling_db"] + Keff * p["pcm_loss_db"]
+    n_bus_elems = min(float(N), Kw)
+    bus_loss_db = 2 * p["coupling_db"] + n_bus_elems * p["pcm_loss_db"] + M * p["mode_loss_db"]
     trans = 10.0 ** (-min(bus_loss_db, 300.0) / 10.0)
     E_det = required_detector_energy(bits, p["responsivity"], p["tia_noise"], p["bandwidth"])
+    thermal = (N * p["ring_stab_mW"] / (Keff * p["bandwidth"])) if resonant else \
+              (Kw * p["ring_stab_mW"] / (Keff * p["bandwidth"]))
     return {
-        "Keff": Keff, "K_wave": crossbar_K_max(p), "M_modes": p["n_modes"],
+        "Keff": Keff, "K_wave": Kw, "M_modes": M,
         "conversion": E_DAC / N + E_mod / N + E_ADC / Keff + p["digital_add_J"] / Keff,
         "laser": E_det / (Keff * trans * p["WPE_laser"]),
-        "thermal": (N * p["ring_stab_mW"] / (Keff * p["bandwidth"])) if resonant else 0.0,
+        "thermal": thermal,
         "update": p["pcm_switch_J"] / p["inferences_per_load"],
         "bus_loss_db": bus_loss_db,
     }

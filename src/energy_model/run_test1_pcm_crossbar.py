@@ -73,24 +73,26 @@ out["term_breakdown"] = brk
 # ---------------------------------------------------------------------------
 # Loss-wall check: bus_loss = 2*coupling + K_eff * pcm_loss.  Max buildable N.
 # ---------------------------------------------------------------------------
-print("\n=== loss-wall check: does K_eff PCM-element bus stay within 33 dB? ===")
+print("\n=== loss-wall check: Kw PCM-element bus (modes parallel) within 33 dB? ===")
 lw = {}
-for pcm_loss in (0.05, 0.4, 1.0, 1.5):
-    Kw = crossbar_K_max(base); M = base["n_modes"]; Keff = Kw*M
-    loss = 2*base["coupling_db"] + Keff*pcm_loss
-    lw[f"pcm_{pcm_loss}dB"] = {"K_eff": Keff, "bus_loss_db": loss, "ok": loss <= LINK_BUDGET_DB}
-    print(f"  pcm_loss={pcm_loss}dB, K_eff={Keff:.0f} -> bus_loss={loss:.1f}dB ok={loss<=LINK_BUDGET_DB}")
+Kw = crossbar_K_max(base); M = base["n_modes"]
+for pcm_loss in (0.1, 0.4, 1.0, 1.5):
+    loss = 2*base["coupling_db"] + Kw*pcm_loss + M*base["mode_loss_db"]
+    lw[f"pcm_{pcm_loss}dB"] = {"K_wave": Kw, "bus_loss_db": loss, "ok": loss <= LINK_BUDGET_DB}
+    print(f"  pcm_loss={pcm_loss}dB (Sb2Se3..GST), Kw={Kw:.0f} M={M:.0f} -> bus={loss:.1f}dB ok={loss<=LINK_BUDGET_DB}")
 out["loss_wall_check"] = lw
 
 # ---------------------------------------------------------------------------
 # Break-even: inferences per weight load before PCM update energy < floor
 # ---------------------------------------------------------------------------
 print("\n=== weight-update break-even (inferences/load for update < 40 fJ/MAC) ===")
+print("    endurance ~27 cycles (Sun2025) => write-once inference is the ONLY viable regime")
 be = {}
-for sw in (1e-12, 5e-11, 1e-9):
-    n_be = sw / 40e-15   # update/MAC = sw/inferences < 40fJ -> inferences > sw/40fJ
+for sw in (1e-9, 5e-7, 8e-6):   # graphene(nJ) .. foundry doped-Si(uJ)
+    n_be = sw / 40e-15
     be[f"switch_{sw:.0e}J"] = n_be
-    print(f"  PCM switch={sw:.0e} J -> need > {n_be:.0f} inferences/load (trivially met for fixed models)")
+    print(f"  PCM write={sw:.0e} J -> need > {n_be:.1e} inferences/load "
+          f"(met over lifetime; but only ~27 rewrites allowed)")
 out["update_breakeven"] = be
 
 with open(os.path.join(DATA, "test1_pcm_crossbar_results.json"), "w") as fh:

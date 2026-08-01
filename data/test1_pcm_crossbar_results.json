@@ -7,12 +7,12 @@
       "resonant": false,
       "digital_key": "J_MAC_digital_4b",
       "crossover": {
-        "exists_frac": 0.949,
+        "exists_frac": 0.67,
         "p05": 16.0,
         "p16": 16.0,
-        "p50": 16.0,
-        "p84": 16.0,
-        "p95": 16.0
+        "p50": 21.0,
+        "p84": 57.0,
+        "p95": 109.0
       }
     },
     "pcm_4b_FLOOR_nonres": {
@@ -20,12 +20,12 @@
       "resonant": false,
       "digital_key": "J_MAC_digital_floor",
       "crossover": {
-        "exists_frac": 0.387,
-        "p05": 21.0,
-        "p16": 28.799999999999983,
-        "p50": 51.0,
-        "p84": 161.0,
-        "p95": 513.0
+        "exists_frac": 0.13166666666666665,
+        "p05": 34.0,
+        "p16": 51.0,
+        "p50": 109.0,
+        "p84": 269.0,
+        "p95": 691.2999999999959
       }
     },
     "pcm_4b_wholechip_resonant": {
@@ -33,12 +33,12 @@
       "resonant": true,
       "digital_key": "J_MAC_digital_4b",
       "crossover": {
-        "exists_frac": 0.2886666666666667,
+        "exists_frac": 0.31866666666666665,
         "p05": 16.0,
         "p16": 16.0,
         "p50": 16.0,
-        "p84": 16.0,
-        "p95": 30.0
+        "p84": 23.0,
+        "p95": 44.0
       }
     },
     "pcm_4b_FLOOR_resonant": {
@@ -46,12 +46,12 @@
       "resonant": true,
       "digital_key": "J_MAC_digital_floor",
       "crossover": {
-        "exists_frac": 0.002,
-        "p05": 39.0,
-        "p16": 39.0,
-        "p50": 59.0,
-        "p84": 119.4,
-        "p95": 148.0
+        "exists_frac": 0.009333333333333334,
+        "p05": 40.75,
+        "p16": 44.0,
+        "p50": 61.0,
+        "p84": 109.0,
+        "p95": 118.74999999999997
       }
     },
     "pcm_8b_wholechip_nonres": {
@@ -59,12 +59,12 @@
       "resonant": false,
       "digital_key": "J_MAC_digital_8b",
       "crossover": {
-        "exists_frac": 0.6296666666666667,
+        "exists_frac": 0.6863333333333334,
         "p05": 16.0,
         "p16": 16.0,
-        "p50": 18.0,
-        "p84": 39.0,
-        "p95": 65.0
+        "p50": 34.0,
+        "p84": 85.0,
+        "p95": 183.0
       }
     },
     "pcm_8b_FLOOR_nonres": {
@@ -72,12 +72,12 @@
       "resonant": false,
       "digital_key": "J_MAC_digital_floor",
       "crossover": {
-        "exists_frac": 0.02033333333333333,
+        "exists_frac": 0.017666666666666667,
         "p05": 183.0,
-        "p16": 256.2,
-        "p50": 664.0,
-        "p84": 4028.0,
-        "p95": 7669.0
+        "p16": 237.0,
+        "p50": 584.0,
+        "p84": 1860.0,
+        "p95": 4582.0
       }
     },
     "pcm_8b_wholechip_resonant": {
@@ -85,12 +85,12 @@
       "resonant": true,
       "digital_key": "J_MAC_digital_8b",
       "crossover": {
-        "exists_frac": 0.21066666666666667,
+        "exists_frac": 0.3333333333333333,
         "p05": 16.0,
         "p16": 16.0,
-        "p50": 16.0,
-        "p84": 34.0,
-        "p95": 51.0
+        "p50": 23.0,
+        "p84": 51.0,
+        "p95": 85.0
       }
     },
     "pcm_8b_FLOOR_resonant": {
@@ -111,51 +111,51 @@
         "N": 64,
         "Keff": 56.0,
         "conversion_fJ": 39.64508928571429,
-        "laser_fJ": 40.42878765578481,
-        "update_fJ": 0.5,
-        "total_fJ": 80.5738769414991,
-        "dominant": "laser",
-        "bus_loss_db": 25.400000000000002
+        "laser_fJ": 1.1659789723249947,
+        "update_fJ": 0.0004999999999999999,
+        "total_fJ": 190.81156825803933,
+        "dominant": "thermal",
+        "bus_loss_db": 10.000000000000002
       },
       {
         "N": 256,
         "Keff": 56.0,
         "conversion_fJ": 22.03180803571429,
-        "laser_fJ": 40.42878765578481,
-        "update_fJ": 0.5,
-        "total_fJ": 62.9605956914991,
-        "dominant": "laser",
-        "bus_loss_db": 25.400000000000002
+        "laser_fJ": 1.1659789723249947,
+        "update_fJ": 0.0004999999999999999,
+        "total_fJ": 173.1982870080393,
+        "dominant": "thermal",
+        "bus_loss_db": 10.000000000000002
       },
       {
         "N": 1024,
         "Keff": 56.0,
         "conversion_fJ": 17.62848772321429,
-        "laser_fJ": 40.42878765578481,
-        "update_fJ": 0.5,
-        "total_fJ": 58.557275378999094,
-        "dominant": "laser",
-        "bus_loss_db": 25.400000000000002
+        "laser_fJ": 1.1659789723249947,
+        "update_fJ": 0.0004999999999999999,
+        "total_fJ": 168.7949666955393,
+        "dominant": "thermal",
+        "bus_loss_db": 10.000000000000002
       },
       {
         "N": 4096,
         "Keff": 56.0,
         "conversion_fJ": 16.527657645089285,
-        "laser_fJ": 40.42878765578481,
-        "update_fJ": 0.5,
-        "total_fJ": 57.456445300874094,
-        "dominant": "laser",
-        "bus_loss_db": 25.400000000000002
+        "laser_fJ": 1.1659789723249947,
+        "update_fJ": 0.0004999999999999999,
+        "total_fJ": 167.6941366174143,
+        "dominant": "thermal",
+        "bus_loss_db": 10.000000000000002
       },
       {
         "N": 16384,
         "Keff": 56.0,
         "conversion_fJ": 16.25245012555804,
-        "laser_fJ": 40.42878765578481,
-        "update_fJ": 0.5,
-        "total_fJ": 57.181237781342844,
-        "dominant": "laser",
-        "bus_loss_db": 25.400000000000002
+        "laser_fJ": 1.1659789723249947,
+        "update_fJ": 0.0004999999999999999,
+        "total_fJ": 167.41892909788305,
+        "dominant": "thermal",
+        "bus_loss_db": 10.000000000000002
       }
     ],
     "8b": [
@@ -163,79 +163,79 @@
         "N": 64,
         "Keff": 56.0,
         "conversion_fJ": 218.8861607142857,
-        "laser_fJ": 1298.5572560980524,
-        "update_fJ": 0.5,
-        "total_fJ": 1517.9434168123385,
-        "dominant": "laser",
-        "bus_loss_db": 25.400000000000002
+        "laser_fJ": 37.450800352004286,
+        "update_fJ": 0.0004999999999999999,
+        "total_fJ": 406.33746106628996,
+        "dominant": "conversion",
+        "bus_loss_db": 10.000000000000002
       },
       {
         "N": 256,
         "Keff": 56.0,
         "conversion_fJ": 101.66350446428572,
-        "laser_fJ": 1298.5572560980524,
-        "update_fJ": 0.5,
-        "total_fJ": 1400.7207605623382,
-        "dominant": "laser",
-        "bus_loss_db": 25.400000000000002
+        "laser_fJ": 37.450800352004286,
+        "update_fJ": 0.0004999999999999999,
+        "total_fJ": 289.11480481629,
+        "dominant": "thermal",
+        "bus_loss_db": 10.000000000000002
       },
       {
         "N": 1024,
         "Keff": 56.0,
         "conversion_fJ": 72.35784040178572,
-        "laser_fJ": 1298.5572560980524,
-        "update_fJ": 0.5,
-        "total_fJ": 1371.4150964998385,
-        "dominant": "laser",
-        "bus_loss_db": 25.400000000000002
+        "laser_fJ": 37.450800352004286,
+        "update_fJ": 0.0004999999999999999,
+        "total_fJ": 259.80914075379,
+        "dominant": "thermal",
+        "bus_loss_db": 10.000000000000002
       },
       {
         "N": 4096,
         "Keff": 56.0,
         "conversion_fJ": 65.03142438616071,
-        "laser_fJ": 1298.5572560980524,
-        "update_fJ": 0.5,
-        "total_fJ": 1364.0886804842132,
-        "dominant": "laser",
-        "bus_loss_db": 25.400000000000002
+        "laser_fJ": 37.450800352004286,
+        "update_fJ": 0.0004999999999999999,
+        "total_fJ": 252.48272473816505,
+        "dominant": "thermal",
+        "bus_loss_db": 10.000000000000002
       },
       {
         "N": 16384,
         "Keff": 56.0,
         "conversion_fJ": 63.19982038225447,
-        "laser_fJ": 1298.5572560980524,
-        "update_fJ": 0.5,
-        "total_fJ": 1362.257076480307,
-        "dominant": "laser",
-        "bus_loss_db": 25.400000000000002
+        "laser_fJ": 37.450800352004286,
+        "update_fJ": 0.0004999999999999999,
+        "total_fJ": 250.65112073425874,
+        "dominant": "thermal",
+        "bus_loss_db": 10.000000000000002
       }
     ]
   },
   "loss_wall_check": {
-    "pcm_0.05dB": {
-      "K_eff": 56.0,
+    "pcm_0.1dB": {
+      "K_wave": 14.0,
       "bus_loss_db": 5.800000000000001,
       "ok": "True"
     },
     "pcm_0.4dB": {
-      "K_eff": 56.0,
-      "bus_loss_db": 25.400000000000002,
+      "K_wave": 14.0,
+      "bus_loss_db": 10.000000000000002,
       "ok": "True"
     },
     "pcm_1.0dB": {
-      "K_eff": 56.0,
-      "bus_loss_db": 59.0,
-      "ok": "False"
+      "K_wave": 14.0,
+      "bus_loss_db": 18.4,
+      "ok": "True"
     },
     "pcm_1.5dB": {
-      "K_eff": 56.0,
-      "bus_loss_db": 87.0,
-      "ok": "False"
+      "K_wave": 14.0,
+      "bus_loss_db": 25.4,
+      "ok": "True"
     }
   },
   "update_breakeven": {
-    "switch_1e-12J": 25.0,
-    "switch_5e-11J": 1250.0,
-    "switch_1e-09J": 25000.0
+    "switch_1e-09J": 25000.0,
+    "switch_5e-07J": 12500000.0,
+    "switch_8e-06J": 200000000.0
   }
 }
