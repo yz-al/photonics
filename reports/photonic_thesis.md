@@ -1148,6 +1148,33 @@ bypass.** Proving a floor on Γ_phonon(300 K) *jointly* with a ceiling on the *d
 U — not just the saturation U — is the single result that would convert this open door into a
 closed one.
 
+**Simulated: can the numbers actually reach RT blockade? (driven-dissipative g²(0) model).**
+To make the door falsifiable rather than rhetorical, we simulated a single anharmonic (Kerr)
+polariton mode under weak coherent drive — Lindblad steady state, blockade quality
+g²(0) = ⟨a†a†aa⟩/⟨a†a⟩² minimised over drive detuning — fed with the *measured* U and Γ(T)
+above (`src/energy_model/run_blockade_sim.py`, `data/blockade_sim_results.json`):
+- **Threshold (mechanism-independent):** g²(0) < 0.5 needs **U/Γ ≥ 0.71**; strong antibunching
+  (g²(0) < 0.1) needs U/Γ ≥ 2.85. The model reproduces the literature — the best measured cold
+  ratio **U/Γ = 0.42 (Delteil) gives g²(0) = 0.66**, i.e. modest suppression, *blockade not
+  reached* — which is exactly what that paper reports, so the engine is calibrated.
+- **Pure thermal penalty (fewest assumptions):** take that best cold ratio and apply *only* the
+  measured Γ(300 K)/Γ(4 K) rise (≈7–12× from the phonon fit for TMD / perovskite) — U/Γ(300 K)
+  falls to **0.035–0.056, i.e. 13–20× below threshold, from thermal broadening alone**, before
+  any material-transfer cost. This number depends on no extrapolation of mine.
+- **Full estimate + Monte Carlo:** folding in the a_B²-material-transfer penalty and dipolar
+  enhancement (×10 bilayer MoS₂ → ×200 dipolariton), **0% of 4,000 sourced draws reach RT
+  blockade** in *any* mechanism/material combination. But the gap shrinks monotonically with the
+  enhancement: median **~4,750× short** (bare saturation, TMD) → **~414×** (dipolar ×10) →
+  **~25×** (dipolariton ×200 on TMD, the best corner).
+- **Reading:** the door is quantitatively still shut *today* — 0% of draws — but the best-corner
+  gap is **~25×, about 1.4 orders, not the ~3 orders of the naive case**, and it closes by
+  exactly the lever the physics identifies: stack the largest dipolar U-enhancement onto the
+  lowest-Fröhlich (smallest-RT-Γ) material. That is a hard materials number, not an infinity,
+  consistent with there being no proven no-go. *(Generous-to-optics flags: the ×200 dipolariton
+  boost was measured in cryogenic GaAs, not an RT material, and the a_B² U-transfer is an
+  estimate — both flatter optics; the assumption-light thermal-only result, 13–20× short, relies
+  on neither.)*
+
 **Verdict: the door is open but narrow, and now specific.** RT blockade is not causality- or
 thermodynamically forbidden — unlike the Kerr/χ³ route — so the programme does **not** close
 on this axis. It leaves one precise, watchable target: **a single- (or few-) emitter system

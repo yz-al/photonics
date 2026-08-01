@@ -1,0 +1,101 @@
+{
+  "model": "driven-dissipative Kerr mode, Lindblad steady state, g2(0)<0.5 = blockade",
+  "threshold_UoverGamma": {
+    "g2_0.5": 0.7073470400464679,
+    "g2_0.1": 2.846474442803876,
+    "g2_0.01": 9.905556278782488
+  },
+  "g2_curve": {
+    "0.1": 0.9049774107416254,
+    "0.42": 0.6594256500496544,
+    "0.7": 0.5034565095627058,
+    "1": 0.3820233959817805,
+    "2": 0.17189541141925188,
+    "5": 0.03709013857943464
+  },
+  "required_U": {
+    "TMD": {
+      "gamma_4K_meV": 1.6400000000000001,
+      "gamma_300K_meV": 12.357681943632523,
+      "U_req_300K_meV": 8.741169744664147
+    },
+    "perovskite": {
+      "gamma_4K_meV": 4.08,
+      "gamma_300K_meV": 48.69597618235474,
+      "U_req_300K_meV": 34.444954614761926
+    }
+  },
+  "thermal_only": {
+    "TMD": {
+      "gamma_ratio_300_over_4": 7.535171916849099,
+      "U_over_G_300K": 0.0557386088379556,
+      "short_of_threshold_x": 12.69043226577257
+    },
+    "perovskite": {
+      "gamma_ratio_300_over_4": 11.935288279988907,
+      "U_over_G_300K": 0.035189765856278955,
+      "short_of_threshold_x": 20.100930564170124
+    }
+  },
+  "crossover_temperature": {
+    "saturation": {
+      "U_demo_meV": 0.0015,
+      "TMD": {
+        "U_over_G_300K": 0.00012138198788753397,
+        "T_blockade_max_K": 0
+      },
+      "perovskite": {
+        "U_over_G_300K": 3.0803366470832416e-05,
+        "T_blockade_max_K": 0
+      }
+    },
+    "dipolar_10x": {
+      "U_demo_meV": 0.015,
+      "TMD": {
+        "U_over_G_300K": 0.0012138198788753396,
+        "T_blockade_max_K": 0
+      },
+      "perovskite": {
+        "U_over_G_300K": 0.0003080336647083242,
+        "T_blockade_max_K": 0
+      }
+    },
+    "dipolariton_200x": {
+      "U_demo_meV": 0.3,
+      "TMD": {
+        "U_over_G_300K": 0.02427639757750679,
+        "T_blockade_max_K": 0
+      },
+      "perovskite": {
+        "U_over_G_300K": 0.006160673294166483,
+        "T_blockade_max_K": 0
+      }
+    }
+  },
+  "mc_rt_blockade": {
+    "saturation_TMD": {
+      "rt_blockade_frac": 0.0,
+      "median_gap_factor": 4750.977737487996
+    },
+    "saturation_perovskite": {
+      "rt_blockade_frac": 0.0,
+      "median_gap_factor": 19365.85792371728
+    },
+    "dipolar_10x_TMD": {
+      "rt_blockade_frac": 0.0,
+      "median_gap_factor": 414.472858734544
+    },
+    "dipolar_10x_perovskite": {
+      "rt_blockade_frac": 0.0,
+      "median_gap_factor": 1685.738201650857
+    },
+    "dipolariton_200x_TMD": {
+      "rt_blockade_frac": 0.0,
+      "median_gap_factor": 25.186480747089696
+    },
+    "dipolariton_200x_perovskite": {
+      "rt_blockade_frac": 0.0,
+      "median_gap_factor": 103.2905280641365
+    }
+  }
+}
