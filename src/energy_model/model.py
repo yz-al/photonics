@@ -156,6 +156,19 @@ PARAMS = {
     # achievable ring weight precision (Lorentzian slope + drift limited): ~4-5 bits
     # -> 8-bit weights are NOT physically available from a weight ring (failure mode 5)
     "ring_weight_bits": Param(3.1, 4.0, 5.1, "ring weight precision; Tait2016/2018, Feldmann2021"),
+
+    # ---- Photonic spiking / time-domain encoding (Track B) -------------------
+    # RECONCILED with sourced ranges; see report "Spiking inputs" table.
+    # comparator per event is MUCH cheaper than an ADC (fJ vs pJ) -- the track's thesis
+    "comparator_J":    Param(1e-15, 1e-14, 1e-13, "CMOS comparator energy per decision @GHz"),
+    # DFB-SA / VCSEL spiking neuron continuous BIAS power (biased near threshold) -- the
+    # spiking analog of ring hold power; likely why published arrays are ~1 pJ/op
+    "neuron_bias_mW":  Param(0.5, 5.0, 30.0, "per-neuron laser bias standing power (DFB-SA/VCSEL)"),
+    "E_spike_J":       Param(1e-15, 1e-13, 1e-11, "optical energy per emitted spike pulse"),
+    "spike_photons":   Param(10.0, 50.0, 200.0, "photons per spike for 1-bit comparator detection"),
+    # firing sparsity and timesteps -> effective operation count vs N^2
+    "firing_rate":     Param(0.02, 0.1, 0.3, "fraction of neurons firing per timestep (SNN)"),
+    "timesteps_T":     Param(4.0, 16.0, 64.0, "timesteps per inference (temporal..rate coding)"),
 }
 
 
@@ -528,6 +541,62 @@ def crossbar_feasibility(N, p=None):
         "per_ring_yield": y["per_ring"], "array_log10_yield": y["array_log10_yield"],
         "area_cm2": area_cm2, "idle_stab_kW": idle_stab_W / 1e3,
     }
+
+
+E_PHOTON_1550 = 1.28e-19  # J per photon at 1550 nm
+
+
+def spiking_terms(N, p):
+    """Photonic spiking energy, per SYNAPTIC OPERATION (SOP) and per EQUIVALENT MAC.
+
+    A spiking layer does SOPs = r*T*N^2 synaptic events to accomplish the same
+    linear work a dense layer does in N^2 MACs (r=firing rate, T=timesteps).  The
+    receiver is a COMPARATOR (fJ), not an ADC (pJ) -- the track's whole thesis.
+    But each spiking neuron (DFB-SA / VCSEL) draws continuous BIAS power near
+    threshold -- the spiking analog of hold power.
+
+    Per SOP:
+      bias : N neurons * P_bias, over inference time T/bw, / (r*T*N^2 SOPs)
+             = P_bias/(r*N*bw)
+      pulse: r*N*T spikes * E_spike/WPE, / (r*T*N^2 SOPs) = E_spike/(WPE*N)
+      comp : N*T comparator decisions * E_comp, / SOPs = E_comp/(r*N)
+    Per EQUIVALENT MAC = per-SOP * (SOPs/N^2) = per-SOP * r*T  (this is what the
+    20-40 fJ compute floor compares against)."""
+    r = p["firing_rate"]; T = p["timesteps_T"]; bw = p["bandwidth"]
+    E_comp = p["comparator_J"]
+    # 1-bit spike detection needs only ~spike_photons (vs 2^(2b) for a b-bit ADC)
+    E_spike = max(p["E_spike_J"], p["spike_photons"] * E_PHOTON_1550 / p["responsivity"])
+    bias_sop = (p["neuron_bias_mW"] * 1e-3) / (r * N * bw)   # mW -> W
+    pulse_sop = E_spike / (p["WPE_laser"] * N)
+    comp_sop = E_comp / (r * N)
+    jsop = bias_sop + pulse_sop + comp_sop
+    return {
+        "j_per_sop": jsop, "bias_sop": bias_sop, "pulse_sop": pulse_sop, "comp_sop": comp_sop,
+        "j_per_eqmac": jsop * r * T, "SOPs_per_eqmac": r * T,
+        "dominant": max({"bias": bias_sop, "pulse": pulse_sop, "comparator": comp_sop}.items(),
+                        key=lambda kv: kv[1])[0],
+    }
+
+
+def spiking_j_per_eqmac(N, p):
+    return spiking_terms(N, p)["j_per_eqmac"]
+
+
+def reproduce_xiang(p=None, N=8, P_bias_mW=None, r=None, T=None):
+    """Model check: compute GOPS/W for a DFB-SA-style spiking array config and
+    compare to Xiang OEA 2026 (~987 GOPS/W ~ 1 pJ/op).  If the model can't land
+    near their published figure for their small-array config, it is wrong."""
+    if p is None:
+        p = {k: v.nom for k, v in PARAMS.items()}
+    q = dict(p)
+    if P_bias_mW is not None: q["neuron_bias_mW"] = P_bias_mW   # in mW
+    if r is not None: q["firing_rate"] = r
+    if T is not None: q["timesteps_T"] = T
+    t = spiking_terms(N, q)
+    j_per_op = t["j_per_sop"]
+    gops_per_W = 1.0 / j_per_op / 1e9
+    return {"N": N, "j_per_op": j_per_op, "GOPS_per_W": gops_per_W,
+            "TOPS_per_W": gops_per_W / 1e3, "terms": t}
 
 
 def feasibility(N, p=None, arch="monolithic", tile=64):

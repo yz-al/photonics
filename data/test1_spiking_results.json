@@ -1,0 +1,104 @@
+{
+  "arch": "spiking",
+  "scenarios": {
+    "spk_wholechip4b": {
+      "digital_key": "J_MAC_digital_4b",
+      "crossover": {
+        "exists_frac": 1.0,
+        "p05": 16.0,
+        "p16": 16.0,
+        "p50": 44.0,
+        "p84": 237.0,
+        "p95": 664.0
+      }
+    },
+    "spk_wholechip8b": {
+      "digital_key": "J_MAC_digital_8b",
+      "crossover": {
+        "exists_frac": 1.0,
+        "p05": 16.0,
+        "p16": 16.0,
+        "p50": 23.0,
+        "p84": 142.0,
+        "p95": 451.0
+      }
+    },
+    "spk_FLOOR": {
+      "digital_key": "J_MAC_digital_floor",
+      "crossover": {
+        "exists_frac": 0.9993333333333333,
+        "p05": 21.0,
+        "p16": 65.0,
+        "p50": 397.0,
+        "p84": 2406.0,
+        "p95": 6742.0
+      }
+    }
+  },
+  "xiang_reproduction": {
+    "N4": {
+      "GOPS_per_W": 693.6416184971098,
+      "pJ_per_op": 1.4416666666666669
+    },
+    "N8": {
+      "GOPS_per_W": 1387.2832369942196,
+      "pJ_per_op": 0.7208333333333334
+    },
+    "N16": {
+      "GOPS_per_W": 2774.566473988439,
+      "pJ_per_op": 0.3604166666666667
+    },
+    "N32": {
+      "GOPS_per_W": 5549.132947976878,
+      "pJ_per_op": 0.18020833333333336
+    }
+  },
+  "term_breakdown": {
+    "64": {
+      "j_per_sop_fJ": 90.10416666666667,
+      "j_per_eqmac_fJ": 144.16666666666669,
+      "bias_fJ": 78.12500000000001,
+      "pulse_fJ": 10.416666666666668,
+      "comp_fJ": 1.5624999999999998,
+      "dominant": "bias"
+    },
+    "256": {
+      "j_per_sop_fJ": 22.526041666666668,
+      "j_per_eqmac_fJ": 36.04166666666667,
+      "bias_fJ": 19.531250000000004,
+      "pulse_fJ": 2.604166666666667,
+      "comp_fJ": 0.39062499999999994,
+      "dominant": "bias"
+    },
+    "1024": {
+      "j_per_sop_fJ": 5.631510416666667,
+      "j_per_eqmac_fJ": 9.010416666666668,
+      "bias_fJ": 4.882812500000001,
+      "pulse_fJ": 0.6510416666666667,
+      "comp_fJ": 0.09765624999999999,
+      "dominant": "bias"
+    },
+    "4096": {
+      "j_per_sop_fJ": 1.4078776041666667,
+      "j_per_eqmac_fJ": 2.252604166666667,
+      "bias_fJ": 1.2207031250000002,
+      "pulse_fJ": 0.16276041666666669,
+      "comp_fJ": 0.024414062499999997,
+      "dominant": "bias"
+    },
+    "16384": {
+      "j_per_sop_fJ": 0.3519694010416667,
+      "j_per_eqmac_fJ": 0.5631510416666667,
+      "bias_fJ": 0.30517578125000006,
+      "pulse_fJ": 0.04069010416666667,
+      "comp_fJ": 0.006103515624999999,
+      "dominant": "bias"
+    }
+  },
+  "receiver": {
+    "comparator_J_nom": 1e-14,
+    "E_ADC_4b": 9e-13,
+    "E_ADC_8b": 3.5e-12,
+    "comparator_cheaper_than_ADC4b": 90.0
+  }
+}
