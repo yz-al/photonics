@@ -6,48 +6,48 @@
       "gated": false,
       "digital_key": "J_MAC_digital_4b",
       "crossover": {
-        "exists_frac": 0.5896666666666667,
+        "exists_frac": 0.9113333333333333,
         "p05": 16.0,
         "p16": 16.0,
-        "p50": 85.0,
-        "p84": 513.0,
-        "p95": 1264.0
+        "p50": 18.0,
+        "p84": 85.0,
+        "p95": 161.0
       }
     },
     "spk_continuous_FLOOR": {
       "gated": false,
       "digital_key": "J_MAC_digital_floor",
       "crossover": {
-        "exists_frac": 0.318,
-        "p05": 21.0,
-        "p16": 60.83999999999992,
-        "p50": 269.0,
-        "p84": 1111.0,
-        "p95": 2737.0
+        "exists_frac": 0.6456666666666667,
+        "p05": 16.0,
+        "p16": 27.0,
+        "p50": 96.0,
+        "p84": 397.0,
+        "p95": 859.0
       }
     },
     "spk_gated_wholechip4b": {
       "gated": true,
       "digital_key": "J_MAC_digital_4b",
       "crossover": {
-        "exists_frac": 0.6353333333333333,
+        "exists_frac": 0.9183333333333333,
         "p05": 16.0,
         "p16": 16.0,
-        "p50": 65.0,
-        "p84": 451.0,
-        "p95": 1111.0
+        "p50": 18.0,
+        "p84": 85.0,
+        "p95": 161.0
       }
     },
     "spk_gated_FLOOR": {
       "gated": true,
       "digital_key": "J_MAC_digital_floor",
       "crossover": {
-        "exists_frac": 0.34933333333333333,
+        "exists_frac": 0.654,
         "p05": 16.0,
-        "p16": 44.0,
-        "p50": 208.0,
-        "p84": 1111.0,
-        "p95": 2406.0
+        "p16": 27.0,
+        "p50": 96.0,
+        "p84": 397.0,
+        "p95": 859.0
       }
     }
   },
@@ -56,70 +56,70 @@
       {
         "N": 64,
         "gated": false,
-        "source_fJ": 250.0,
-        "gen_fJ": 200.0,
-        "det_fJ": 0.06826666666666666,
-        "comp_fJ": 0.25,
-        "total_fJ": 450.31826666666666,
+        "source_fJ": 93.74999999999999,
+        "gen_fJ": 75.00000000000001,
+        "det_fJ": 0.025599999999999998,
+        "comp_fJ": 0.09375000000000001,
+        "total_fJ": 168.86935000000003,
         "dominant": "source",
-        "s": 1.6
+        "s": 0.6000000000000001
       },
       {
         "N": 256,
         "gated": false,
-        "source_fJ": 62.5,
-        "gen_fJ": 50.0,
-        "det_fJ": 0.06826666666666666,
-        "comp_fJ": 0.0625,
-        "total_fJ": 112.63076666666667,
+        "source_fJ": 23.437499999999996,
+        "gen_fJ": 18.750000000000004,
+        "det_fJ": 0.025599999999999998,
+        "comp_fJ": 0.023437500000000003,
+        "total_fJ": 42.2365375,
         "dominant": "source",
-        "s": 1.6
+        "s": 0.6000000000000001
       },
       {
         "N": 1024,
         "gated": false,
-        "source_fJ": 15.625,
-        "gen_fJ": 12.5,
-        "det_fJ": 0.06826666666666666,
-        "comp_fJ": 0.015625,
-        "total_fJ": 28.208891666666666,
+        "source_fJ": 5.859374999999999,
+        "gen_fJ": 4.687500000000001,
+        "det_fJ": 0.025599999999999998,
+        "comp_fJ": 0.005859375000000001,
+        "total_fJ": 10.578334375,
         "dominant": "source",
-        "s": 1.6
+        "s": 0.6000000000000001
       }
     ],
     "gated": [
       {
         "N": 64,
         "gated": true,
-        "source_fJ": 152.49999999999997,
-        "gen_fJ": 200.0,
-        "det_fJ": 0.06826666666666666,
-        "comp_fJ": 0.25,
-        "total_fJ": 352.8182666666666,
-        "dominant": "gen",
-        "s": 1.6
+        "source_fJ": 90.0,
+        "gen_fJ": 75.00000000000001,
+        "det_fJ": 0.025599999999999998,
+        "comp_fJ": 0.09375000000000001,
+        "total_fJ": 165.11935,
+        "dominant": "source",
+        "s": 0.6000000000000001
       },
       {
         "N": 256,
         "gated": true,
-        "source_fJ": 38.12499999999999,
-        "gen_fJ": 50.0,
-        "det_fJ": 0.06826666666666666,
-        "comp_fJ": 0.0625,
-        "total_fJ": 88.25576666666666,
-        "dominant": "gen",
-        "s": 1.6
+        "source_fJ": 22.5,
+        "gen_fJ": 18.750000000000004,
+        "det_fJ": 0.025599999999999998,
+        "comp_fJ": 0.023437500000000003,
+        "total_fJ": 41.2990375,
+        "dominant": "source",
+        "s": 0.6000000000000001
       },
       {
         "N": 1024,
         "gated": true,
-        "source_fJ": 9.531249999999998,
-        "gen_fJ": 12.5,
-        "det_fJ": 0.06826666666666666,
-        "comp_fJ": 0.015625,
-        "total_fJ": 22.115141666666666,
-        "dominant": "gen",
-        "s": 1.6
+        "source_fJ": 5.625,
+        "gen_fJ": 4.687500000000001,
+        "det_fJ": 0.025599999999999998,
+        "comp_fJ": 0.005859375000000001,
+        "total_fJ": 10.343959374999999,
+        "dominant": "source",
+        "s": 0.6000000000000001
       }
     ]
   },
@@ -127,64 +127,64 @@
     "continuous": [
       {
         "activation": 0.005,
-        "total_fJ": 65.06591333333334,
-        "source_fJ": 62.5,
+        "total_fJ": 24.399717499999998,
+        "source_fJ": 23.437499999999996,
         "dominant": "source"
       },
       {
         "activation": 0.01,
-        "total_fJ": 67.56932666666667,
-        "source_fJ": 62.5,
+        "total_fJ": 25.3384975,
+        "source_fJ": 23.437499999999996,
         "dominant": "source"
       },
       {
         "activation": 0.05,
-        "total_fJ": 87.59663333333334,
-        "source_fJ": 62.5,
+        "total_fJ": 32.8487375,
+        "source_fJ": 23.437499999999996,
         "dominant": "source"
       },
       {
         "activation": 0.1,
-        "total_fJ": 112.63076666666667,
-        "source_fJ": 62.5,
+        "total_fJ": 42.2365375,
+        "source_fJ": 23.437499999999996,
         "dominant": "source"
       },
       {
         "activation": 0.2,
-        "total_fJ": 162.69903333333335,
-        "source_fJ": 62.5,
+        "total_fJ": 61.012137499999994,
+        "source_fJ": 23.437499999999996,
         "dominant": "gen"
       }
     ],
     "gated": [
       {
         "activation": 0.005,
-        "total_fJ": 40.097163333333334,
-        "source_fJ": 37.53125,
+        "total_fJ": 23.239561249999994,
+        "source_fJ": 22.277343749999996,
         "dominant": "source"
       },
       {
         "activation": 0.01,
-        "total_fJ": 42.63182666666666,
-        "source_fJ": 37.5625,
+        "total_fJ": 24.19006,
+        "source_fJ": 22.289062499999996,
         "dominant": "source"
       },
       {
         "activation": 0.05,
-        "total_fJ": 62.90913333333333,
-        "source_fJ": 37.8125,
+        "total_fJ": 31.79404999999999,
+        "source_fJ": 22.382812499999996,
         "dominant": "source"
       },
       {
         "activation": 0.1,
-        "total_fJ": 88.25576666666666,
-        "source_fJ": 38.12499999999999,
-        "dominant": "gen"
+        "total_fJ": 41.2990375,
+        "source_fJ": 22.5,
+        "dominant": "source"
       },
       {
         "activation": 0.2,
-        "total_fJ": 138.94903333333335,
-        "source_fJ": 38.75,
+        "total_fJ": 60.309012499999994,
+        "source_fJ": 22.734375,
         "dominant": "gen"
       }
     ]

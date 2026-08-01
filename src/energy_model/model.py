@@ -175,9 +175,12 @@ PARAMS = {
 
     # ---- Spiking bio-sparsity variant (gated source / passive weights / 1 readout) ----
     # RECONCILED with sourced ranges; see report "Spiking bio-variant inputs" table.
-    # fraction of near-threshold bias held CONTINUOUSLY even when "gated off", to keep
-    # sub-ns turn-on (DML must sit near threshold); 1.0 = no gating benefit.
-    "subthr_bias_frac": Param(0.3, 0.6, 0.95, "sub-threshold hold frac for fast turn-on"),
+    # fraction of near-threshold bias held CONTINUOUSLY even when "gated off": sub-ns
+    # turn-on AND laser excitability both REQUIRE a continuous near-threshold pump
+    # (Coldren&Corzine; "continuous pump essential for excitability" OptLett 36,4476;
+    # DFB neuron 130->67 pJ/spike as rate rises = time-scaling fingerprint, arXiv:2012.08516).
+    # So gating removes <20% -> "gated" ~ "continuous" for fabricated devices.
+    "subthr_bias_frac": Param(0.8, 0.95, 1.0, "near-thr bias held continuously; gating buys <20%"),
     # SNN activation fraction (neurons firing per timestep) at usable accuracy:
     # CIFAR-10 5-20%/step (VGG16 T=6 5.8%, arXiv:2409.08290; ResNet-19 ~15%, 2511.13050)
     "snn_activation":   Param(0.05, 0.10, 0.20, "trained-SNN firing/step; arXiv:2409.08290/2511.13050"),
