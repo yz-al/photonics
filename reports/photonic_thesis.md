@@ -1124,6 +1124,30 @@ whose RT Γ is only ~10 meV to *lower* the target) push in the right direction. 
 watch-target the numbers define: a large-exciton-binding, low-Fröhlich material (TMD-class) in
 which an enhanced U reaches its own ~10 meV room-temperature linewidth.**
 
+**Is there a joint bound tying U's ceiling to Γ's floor? (the closest thing to a no-go — and
+the escape).** This is the question that would *close* the programme if answered yes, and the
+recent theory gets partway there. The interaction that **dominates every measured polariton
+system is oscillator-strength saturation**, not exciton–exciton scattering ("Excitonic
+oscillator-strength saturation dominates polariton-polariton interactions," Phys. Rev.
+Research (2025), arXiv:2501.07899: ~96% saturation-dominated, measured nonlinear scale
+E_nl ≈ 50–300 µeV, GaAs open-cavity FOM **U/γ ≈ 0.15**). That mechanism scales as
+**U_sat ∝ a_B²** (saturation density n_sat ∝ 1/a_B²), so it pulls in *exactly the opposite
+direction* to room-temperature stability, which demands a **large exciton binding energy →
+small Bohr radius a_B**. GaAs (a_B ≈ 10 nm, binding ≈ 4 meV) has the large U but ionizes above
+cryo; a TMD (a_B ≈ 1 nm, binding ≈ 0.5 eV) survives RT but its *saturation* U is intrinsically
+~10²× weaker by the a_B² scaling. **This is a genuine physical tension — a *soft* joint bound,
+not a proven no-go: the same parameter (a_B) that buys thermal robustness suppresses the
+dominant nonlinearity.** The door is not shut because the tension binds only for
+*saturation*-sourced U; sourcing U instead from a **static dipole** decouples it from a_B, and
+that is the fastest-moving lever — interlayer/dipolar excitons already show a **~10×
+nonlinearity boost** over intralayer A excitons ("Highly nonlinear dipolar exciton-polaritons
+in bilayer MoS₂," 2022), with Rydberg-exciton and Fermi-polaron routes adding more. So the
+honest statement is: **no one has proven the joint bound, and the one theory that gets closest
+(saturation ∝ a_B²) is precisely what the dipolar/Rydberg mechanisms are engineered to
+bypass.** Proving a floor on Γ_phonon(300 K) *jointly* with a ceiling on the *dipole-enhanced*
+U — not just the saturation U — is the single result that would convert this open door into a
+closed one.
+
 **Verdict: the door is open but narrow, and now specific.** RT blockade is not causality- or
 thermodynamically forbidden — unlike the Kerr/χ³ route — so the programme does **not** close
 on this axis. It leaves one precise, watchable target: **a single- (or few-) emitter system
