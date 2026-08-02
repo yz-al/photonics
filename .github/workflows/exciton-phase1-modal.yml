@@ -9,6 +9,14 @@ name: Excitonic Phase 1 (baseline surrogate) on Modal
 
 on:
   workflow_dispatch: {}
+  push:
+    branches:
+      - claude/excitonic-property-model-88byhk
+    paths:
+      - '.github/workflows/exciton-phase1-modal.yml'
+      - 'excitonic/modal_app.py'
+      - 'excitonic/src/exciton_fm/features.py'
+      - 'excitonic/scripts/phase1_train_baseline.py'
 
 permissions:
   contents: write
