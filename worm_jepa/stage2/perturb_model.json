@@ -1,0 +1,15 @@
+{
+  "synthetic": {
+    "forecaster_pred_r2": 0.7687,
+    "struct_correlation": 0.6582,
+    "struct_jacobian": 0.3208,
+    "struct_perturb_NPI": 0.5388
+  },
+  "real": {
+    "forecaster_pred_r2": 0.2688,
+    "struct_correlation": 0.3372,
+    "struct_jacobian": 0.0908,
+    "struct_perturb_NPI": 0.0588,
+    "reference_learned_coupling": 0.334
+  }
+}
