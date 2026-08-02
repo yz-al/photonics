@@ -38,8 +38,15 @@ EVAL_CROP = int(os.environ.get("WORM_S3_EVAL_CROP", "160"))
 NEVAL = int(os.environ.get("WORM_S3_NEVAL", "4"))
 rng = np.random.default_rng(0)
 
-SHORT = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]                 # attractive (z,y,x)
-LONG = [(0, 9, 0), (0, 0, 9), (2, 0, 0)]                  # repulsive (long-range)
+SHORT = [(1, 0, 0), (0, 1, 0), (0, 0, 1)]                 # attractive (z,y,x nearest)
+# Repulsive long-range offsets. Mutex watershed merges along ANY attractive edge
+# (in weight order) unless a repulsive edge has forced a mutex between the clusters
+# first -- so too FEW repulsive offsets under-constrains separation and the result
+# under-segments (merges). Use a denser multi-scale set (in-plane 4 & 9, diagonals,
+# small z) like standard MWS, not just 3. (Non-negative only: gt_affinity slices
+# assume positive offsets.)
+LONG = [(0, 9, 0), (0, 0, 9), (0, 9, 9), (0, 4, 0), (0, 0, 4), (0, 4, 4),
+        (2, 0, 0), (3, 0, 0)]                             # 8 repulsive offsets
 OFFS = SHORT + LONG
 NAFF = len(OFFS)
 
