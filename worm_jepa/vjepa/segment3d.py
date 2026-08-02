@@ -221,28 +221,35 @@ def main():
     def make_dec(source):
         return {"raw": RawAff3D, "sota": SotaUNet3D}.get(source, FeatAff3D)().to(DEV)
 
-    def train_dec(source, encoder, pool, sparse_k=None, seed=0, init_state=None):
+    def _rand_sparse_mask(pool, sparse_k, seed):
+        """A FIXED random set of sparse_k annotated voxel-edges on pool[0]."""
+        _, seg0 = pool[0]; _, val0 = gt_affinity(seg0, OFFS)
+        vi = np.argwhere(val0 > 0)
+        r = np.random.default_rng(1234 + seed)
+        pick = vi[r.choice(len(vi), min(sparse_k, len(vi)), replace=False)]
+        smask = np.zeros_like(val0); smask[tuple(pick.T)] = 1.0
+        return smask, val0
+
+    def train_dec(source, encoder, pool, sparse_k=None, smask=None, seed=0,
+                  init_state=None, steps=None):
         # pool = fixed labeled (subvol, seg) list. DENSE budget = len(pool) fully
         # labeled subvolumes. SPARSE budget (sparse_k) = ONE subvolume but the loss
         # is restricted to a FIXED set of sparse_k annotated voxel-edges -- the
         # genuinely label-scarce regime where SSL is supposed to win most.
+        # smask: a precomputed voxel-edge annotation mask (overrides sparse_k) -- used
+        # by active learning to hand in an uncertainty-selected label set.
         # init_state: warm-start from a pretrained model (the SOTA-base transfer test).
         dec = make_dec(source)
         if init_state is not None:
             dec.load_state_dict(init_state)
         opt = torch.optim.Adam(dec.parameters(), lr=2e-3)
-        smask = None
-        if sparse_k is not None:                          # fixed sparse annotation on pool[0]
-            _, seg0 = pool[0]; _, val0 = gt_affinity(seg0, OFFS)
-            vi = np.argwhere(val0 > 0)
-            r = np.random.default_rng(1234 + seed)
-            pick = vi[r.choice(len(vi), min(sparse_k, len(vi)), replace=False)]
-            smask = np.zeros_like(val0); smask[tuple(pick.T)] = 1.0
-        for step in range(DEC_STEPS):
+        if smask is None and sparse_k is not None:        # fixed random sparse annotation
+            smask, _ = _rand_sparse_mask(pool, sparse_k, seed)
+        for step in range(steps or DEC_STEPS):
             sub, seg = pool[step % len(pool)]
             aff, val = gt_affinity(seg, OFFS)
             if smask is not None:
-                val = val * smask                          # only the sparse_k labels count
+                val = val * smask                          # only the annotated labels count
             tgt = torch.tensor(aff, device=DEV); vmask = torch.tensor(val, device=DEV)
             logit = run_dec(source, dec, encoder, sub)
             pos = (tgt * vmask).sum((1, 2, 3)); neg = ((1 - tgt) * vmask).sum((1, 2, 3))
@@ -252,15 +259,41 @@ def main():
             opt.zero_grad(); loss.backward(); opt.step()
         dec.eval(); return dec
 
+    def train_dec_active(source, encoder, pool, sparse_k, seed=0, init_state=None):
+        # Active learning under the SAME K-label budget: spend half the budget on a
+        # random seed set, train a warm decoder, then spend the other half on the
+        # MOST-UNCERTAIN candidate edges (|p-0.5| smallest) and retrain. Tests whether
+        # smart label *selection* beats random selection -- the practical sparse win.
+        seed_k = max(1, sparse_k // 2)
+        smask_seed, val0 = _rand_sparse_mask(pool, seed_k, seed)
+        dec0 = train_dec(source, encoder, pool, smask=smask_seed, seed=seed,
+                         init_state=init_state, steps=max(1, DEC_STEPS // 2))
+        sub0, _ = pool[0]
+        aff0 = predict(source, dec0, encoder, sub0)        # (NAFF,Z,H,W) probabilities
+        unc = -np.abs(aff0 - 0.5)                          # higher = more uncertain
+        unc[val0 == 0] = -np.inf                           # only annotatable edges
+        unc[smask_seed > 0] = -np.inf                      # don't re-query the seed set
+        need = min(sparse_k - int(smask_seed.sum()), int(np.isfinite(unc).sum()))
+        smask_full = smask_seed.copy()
+        if need > 0:
+            idx = np.argpartition(unc.ravel(), -need)[-need:]
+            smask_full.ravel()[idx] = 1.0
+        return train_dec(source, encoder, pool, smask=smask_full, seed=seed,
+                         init_state=init_state)
+
     @torch.no_grad()
     def predict(source, dec, encoder, sub):
         return torch.sigmoid(run_dec(source, dec, encoder, sub)).cpu().numpy()
 
     POOL = [int(x) for x in os.environ.get("WORM_S3_LABEL_POOL", "1,16").split(",")]
     SPARSE = [int(x) for x in os.environ.get("WORM_S3_SPARSE", "").split(",") if x.strip()]
+    ACTIVE = [int(x) for x in os.environ.get("WORM_S3_ACTIVE", "").split(",") if x.strip()]
     SEEDS = [int(x) for x in os.environ.get("WORM_S3_SEEDS", "0,1,2").split(",")]
-    # budgets: dense (N fully-labeled subvols) + sparse (K annotated voxels on 1 subvol)
-    BUDGETS = [(str(P), "dense", P) for P in POOL] + [(f"sparse{K}", "sparse", K) for K in SPARSE]
+    # budgets: dense (N fully-labeled subvols) + sparse (K random annotated voxel-edges
+    # on 1 subvol) + active (same K, but uncertainty-selected -- the sparse-improvement test)
+    BUDGETS = ([(str(P), "dense", P) for P in POOL]
+               + [(f"sparse{K}", "sparse", K) for K in SPARSE]
+               + [(f"active{K}", "active", K) for K in ACTIVE])
     DENSE_MAX_KEY = str(max(POOL))
     ns = len(SHORT)
     # FIXED data across seeds -> isolates model-init/training variance (the thing we
@@ -319,6 +352,8 @@ def main():
                 init = sota_init if source == "sota" else None
                 if kind == "dense":
                     dec = train_dec(source, encmap[source], full_pool[:B], init_state=init)
+                elif kind == "active":
+                    dec = train_dec_active(source, encmap[source], full_pool[:1], sparse_k=B, seed=seed, init_state=init)
                 else:
                     dec = train_dec(source, encmap[source], full_pool[:1], sparse_k=B, seed=seed, init_state=init)
                 m, preds = evaluate(source, dec, encmap[source])
