@@ -1,0 +1,27 @@
+{
+  "device": "cuda",
+  "crop": 224,
+  "jepa_steps": 3000,
+  "label_slices": 12,
+  "n_test_crops": 24,
+  "sources": {
+    "jepa": {
+      "pixel_boundary_AUC": 0.7022,
+      "VOI": 3.6178,
+      "adapted_rand_error": 0.7709,
+      "ERL_proxy": 35.9
+    },
+    "random": {
+      "pixel_boundary_AUC": 0.7947,
+      "VOI": 3.1187,
+      "adapted_rand_error": 0.7221,
+      "ERL_proxy": 46.0
+    },
+    "raw": {
+      "pixel_boundary_AUC": 0.9425,
+      "VOI": 5.6083,
+      "adapted_rand_error": 0.9459,
+      "ERL_proxy": 18.7
+    }
+  }
+}
