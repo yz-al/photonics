@@ -1,0 +1,10 @@
+{
+  "n_neurons": 99,
+  "n_test_edges": 2911,
+  "test_edge_density": 0.1491,
+  "corrupt_rate": 0.5,
+  "f1_corrupted_before": 0.2287,
+  "f1_greedy_valuefn": 0.2099,
+  "f1_rl_policy": 0.231,
+  "f1_rl_shuffled_value_CONTROL": 0.2295
+}
