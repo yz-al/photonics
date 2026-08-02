@@ -31,7 +31,7 @@ permissions:
 
 concurrency:
   group: worm-stage2-gpu-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   run-modal:
