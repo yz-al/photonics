@@ -1,43 +1,34 @@
 """
-Modal GPU launcher for the stage-2 PERCEPTION + self-play runs.
+Modal GPU launcher for the 3D segmentation super run -- PARALLELIZED across seeds.
 
-Separate from modal_app.py (which runs the JEPA train/extract pipeline) so these
-can be fired on their own sentinel without re-running the whole pipeline. Runs, on
-one A10G:
-  1. vjepa/em_jepa.py       -- EM-JEPA self-supervised on real EPFL EM, at real
-                               scale, then the frozen-feature mito + context probes.
-  2. stage2/stage2_alphazero.py -- the self-play connectome builder at high episode
-                               count on GPU: empirical confirmation that its test
-                               AUC plateaus below the static baseline (the
-                               inverted-feature fixed point diagnosed on CPU).
-Collects the two result JSONs into artifacts/ and returns them to the runner.
+The seeds are independent, so instead of one A10G running them sequentially
+(~2 h), we fan out one A10G container PER SEED via .map() (~one seed's wall-clock,
+~40 min) and merge the per-seed results into mean +- std. Same GPU-dollars, ~3x
+faster wall-clock. (Further money optimisation -- moving the CPU-only mutex
+watershed off the billed GPU -- is a TODO noted below.)
 
 Launched from CI: modal run worm_jepa/modal_stage2_gpu.py
-(gRPC -> must run from GitHub Actions, not the sandboxed dev container.)
 """
 import os
-import base64
+import json
+import statistics
 import modal
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
-# Real-scale defaults for the GPU; overridable from the workflow env.
 _PASS = {
     "WORM_CREMI_SAMPLES": os.environ.get("WORM_CREMI_SAMPLES", "A,B,C"),
-    # 3D volumetric hierarchical JEPA backbone
     "WORM_VOL_CROP": os.environ.get("WORM_VOL_CROP", "160"),
     "WORM_VOL_ZC": os.environ.get("WORM_VOL_ZC", "8"),
     "WORM_VOL_DIM": os.environ.get("WORM_VOL_DIM", "256"),
     "WORM_VOL_DEPTH": os.environ.get("WORM_VOL_DEPTH", "6"),
     "WORM_VOL_BATCH": os.environ.get("WORM_VOL_BATCH", "8"),
-    # 3D affinities + mutex watershed segmentation (LEAN SUPER RUN: multi-seed,
-    # longer JEPA, 2 label budgets, error bars)
     "WORM_SEG_JEPA_STEPS": os.environ.get("WORM_SEG_JEPA_STEPS", "5000"),
     "WORM_SEG_DEC_STEPS": os.environ.get("WORM_SEG_DEC_STEPS", "600"),
     "WORM_S3_NEVAL": os.environ.get("WORM_S3_NEVAL", "3"),
-    "WORM_S3_SEEDS": os.environ.get("WORM_S3_SEEDS", "0,1,2"),
     "WORM_S3_LABEL_POOL": os.environ.get("WORM_S3_LABEL_POOL", "1,16"),
 }
+SEEDS = [int(x) for x in os.environ.get("WORM_S3_SEEDS", "0,1,2").split(",")]
 
 image = (
     modal.Image.debian_slim(python_version="3.11")
@@ -46,68 +37,62 @@ image = (
     .env(_PASS)
     .add_local_dir(HERE, remote_path="/root/worm_jepa", copy=True)
 )
-
 app = modal.App("worm-stage2-gpu")
 
 
-@app.function(gpu="A10G", image=image, timeout=18000)
-def run() -> str:
-    import io
+@app.function(gpu="A10G", image=image, timeout=10800)
+def run_seed(seed: int) -> dict:
+    """One A10G container runs segment3d for a SINGLE seed and returns its result
+    dict (each metric's 'mean' is that seed's value, 'std' 0)."""
     import sys
-    import shutil
-    import tarfile
     import runpy
-    import traceback
-
     os.chdir("/root/worm_jepa")
-    if "/root/worm_jepa" not in sys.path:
-        sys.path.insert(0, "/root/worm_jepa")
+    for p in ("/root/worm_jepa", "/root/worm_jepa/vjepa"):
+        if p not in sys.path:
+            sys.path.insert(0, p)
     os.environ["WORM_EM_DEVICE"] = "cuda"
-    os.environ["WORM_AZ_DEVICE"] = "cuda"
-
+    os.environ["WORM_S3_SEEDS"] = str(seed)          # this container = one seed
     import torch
-    print("[modal] torch", torch.__version__, "cuda", torch.cuda.is_available(),
-          torch.cuda.get_device_name(0) if torch.cuda.is_available() else "-", flush=True)
+    print(f"[modal] seed {seed} torch {torch.__version__} cuda {torch.cuda.is_available()}", flush=True)
+    runpy.run_path("/root/worm_jepa/vjepa/segment3d.py", run_name="__main__")
+    with open("/root/worm_jepa/vjepa/segment3d.json") as f:
+        return json.load(f)
 
-    art = "/root/worm_jepa/artifacts"
-    os.makedirs(art, exist_ok=True)
 
-    stages = [
-        # 3D: volumetric hierarchical EM-JEPA -> 3D affinities -> mutex watershed
-        # -> 3D VOI / adapted-Rand / ERL, comparing jepa vs random vs raw. The two
-        # highest-leverage moves toward CREMI SOTA (3D + learned agglomeration).
-        ("/root/worm_jepa/vjepa/segment3d.py",
-         "/root/worm_jepa/vjepa/segment3d.json", "segment3d.json"),
-    ]
-    if "/root/worm_jepa/vjepa" not in sys.path:      # segment.py imports hier_em_jepa
-        sys.path.insert(0, "/root/worm_jepa/vjepa")
-    failures = []
-    for script, out_json, art_name in stages:
-        try:
-            print(f"[modal] === running {os.path.basename(script)} ===", flush=True)
-            runpy.run_path(script, run_name="__main__")
-            if os.path.exists(out_json):
-                shutil.copy(out_json, os.path.join(art, art_name))
-        except Exception:
-            print(f"[modal] STAGE FAILED: {script}", flush=True)
-            traceback.print_exc()
-            failures.append(script)
-    if failures:
-        print(f"[modal] completed with stage failures: {failures}", flush=True)
-
-    buf = io.BytesIO()
-    with tarfile.open(fileobj=buf, mode="w:gz") as tar:
-        tar.add(art, arcname="artifacts")
-    return base64.b64encode(buf.getvalue()).decode()
+def _merge(dicts):
+    """Merge per-seed result dicts into mean +- std across seeds."""
+    def stats(vals):
+        return {"mean": round(statistics.mean(vals), 4),
+                "std": round(statistics.pstdev(vals), 4)}
+    base = dict(dicts[0])
+    base["seeds"] = [d.get("seeds", ["?"])[0] if d.get("seeds") else i for i, d in enumerate(dicts)]
+    # label_efficiency[source][pool][metric] -> aggregate the per-seed means
+    le = {}
+    for src in dicts[0]["label_efficiency"]:
+        le[src] = {}
+        for pool in dicts[0]["label_efficiency"][src]:
+            le[src][pool] = {}
+            for metric in dicts[0]["label_efficiency"][src][pool]:
+                le[src][pool][metric] = stats([d["label_efficiency"][src][pool][metric]["mean"] for d in dicts])
+    base["label_efficiency"] = le
+    es = {}
+    for grp in dicts[0]["error_set_analysis"]:
+        es[grp] = {m: stats([d["error_set_analysis"][grp][m]["mean"] for d in dicts])
+                   for m in dicts[0]["error_set_analysis"][grp]}
+    base["error_set_analysis"] = es
+    base["anticollapse"]["embedding_std_final_per_seed"] = [
+        (d["anticollapse"]["embedding_std_final_per_seed"] or [None])[0] for d in dicts]
+    return base
 
 
 @app.local_entrypoint()
 def main():
-    import io
-    import tarfile
-
-    payload = run.remote()
-    raw = base64.b64decode(payload)
-    with tarfile.open(fileobj=io.BytesIO(raw), mode="r:gz") as tar:
-        tar.extractall(path=HERE)
-    print(f"[modal] unpacked artifacts under {os.path.join(HERE, 'artifacts')}")
+    print(f"[modal] fanning out {len(SEEDS)} seeds in parallel: {SEEDS}", flush=True)
+    results = list(run_seed.map(SEEDS))              # PARALLEL: one A10G per seed
+    merged = _merge(results)
+    art = os.path.join(HERE, "artifacts")
+    os.makedirs(art, exist_ok=True)
+    with open(os.path.join(art, "segment3d.json"), "w") as f:
+        json.dump(merged, f, indent=2)
+    print(f"[modal] merged {len(results)} seeds -> {os.path.join(art, 'segment3d.json')}", flush=True)
+    print(json.dumps(merged.get("error_set_analysis", {}), indent=2))
