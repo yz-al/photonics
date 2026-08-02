@@ -219,18 +219,24 @@ K_POINTS automatic
     open(os.path.join(wd, "scf.in"), "w").write(scf)
     open(os.path.join(wd, "ph.in"), "w").write(ph)
 
-    # Modal containers run as root; OpenMPI refuses that without the flag. Also
-    # allow oversubscription in case the slot count is below -np.
-    MPI = ["mpirun", "--allow-run-as-root", "--oversubscribe", "-np", str(N_CORES)]
+    # Run the QE binaries directly as a single MPI rank (singleton MPI_Init):
+    # no mpirun launcher, so no ssh/rsh is needed (OpenMPI's rsh plm is absent in
+    # the container). Fine for this tiny 2-atom validation cell. Threading via
+    # OpenMP fills the cores instead. Larger seed-set jobs use a Modal image with
+    # an ssh-capable launcher or `srun`.
+    env = os.environ.copy()
+    env["OMP_NUM_THREADS"] = str(N_CORES)
+    env["OMPI_ALLOW_RUN_AS_ROOT"] = "1"
+    env["OMPI_ALLOW_RUN_AS_ROOT_CONFIRM"] = "1"
 
     def run(cmd, infile, outfile):
         with open(os.path.join(wd, outfile), "w") as fo:
             p = subprocess.run(cmd, stdin=open(os.path.join(wd, infile)),
-                               stdout=fo, stderr=subprocess.STDOUT, cwd=wd)
+                               stdout=fo, stderr=subprocess.STDOUT, cwd=wd, env=env)
         return p.returncode
 
-    rc_scf = run(MPI + ["pw.x"], "scf.in", "scf.out")
-    rc_ph = run(MPI + ["ph.x"], "ph.in", "ph.out")
+    rc_scf = run(["pw.x"], "scf.in", "scf.out")
+    rc_ph = run(["ph.x"], "ph.in", "ph.out")
     scf_out = open(os.path.join(wd, "scf.out")).read()
     ph_out = open(os.path.join(wd, "ph.out")).read()
     err_tail = ""
