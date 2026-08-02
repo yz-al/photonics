@@ -1,0 +1,167 @@
+{
+  "iters": 350,
+  "archive_cells": 8,
+  "baseline_struct_corr": 0.248,
+  "best_struct": {
+    "genome": {
+      "vel": false,
+      "acc": false,
+      "softplus": false,
+      "tanh_vel": false,
+      "square": false,
+      "coupling": "corr",
+      "k": 8,
+      "thresh_p": 0.2,
+      "couple_vel": true,
+      "ridge": 10.0
+    },
+    "metrics": {
+      "ok": true,
+      "pred_r2": 0.7804433456298981,
+      "struct_corr": 0.3356349595720597,
+      "seconds": 0.2
+    }
+  },
+  "best_struct_pred_gt_0.6": {
+    "genome": {
+      "vel": false,
+      "acc": false,
+      "softplus": false,
+      "tanh_vel": false,
+      "square": false,
+      "coupling": "corr",
+      "k": 8,
+      "thresh_p": 0.2,
+      "couple_vel": true,
+      "ridge": 10.0
+    },
+    "metrics": {
+      "ok": true,
+      "pred_r2": 0.7804433456298981,
+      "struct_corr": 0.3356349595720597,
+      "seconds": 0.2
+    }
+  },
+  "best_pred": {
+    "genome": {
+      "vel": false,
+      "acc": true,
+      "softplus": true,
+      "tanh_vel": false,
+      "square": false,
+      "coupling": "lowrank",
+      "k": 12,
+      "thresh_p": 0.1,
+      "couple_vel": true,
+      "ridge": 10.0
+    },
+    "metrics": {
+      "ok": true,
+      "pred_r2": 0.8021962257564139,
+      "struct_corr": 0.2705091469520355,
+      "seconds": 0.29
+    }
+  },
+  "top5_by_struct": [
+    {
+      "genome": {
+        "vel": false,
+        "acc": false,
+        "softplus": false,
+        "tanh_vel": false,
+        "square": false,
+        "coupling": "corr",
+        "k": 8,
+        "thresh_p": 0.2,
+        "couple_vel": true,
+        "ridge": 10.0
+      },
+      "metrics": {
+        "ok": true,
+        "pred_r2": 0.7804433456298981,
+        "struct_corr": 0.3356349595720597,
+        "seconds": 0.2
+      }
+    },
+    {
+      "genome": {
+        "vel": true,
+        "acc": false,
+        "softplus": false,
+        "tanh_vel": false,
+        "square": false,
+        "coupling": "lowrank",
+        "k": 8,
+        "thresh_p": 0.2,
+        "couple_vel": true,
+        "ridge": 10.0
+      },
+      "metrics": {
+        "ok": true,
+        "pred_r2": 0.7818772762668367,
+        "struct_corr": 0.3198364631273043,
+        "seconds": 0.23
+      }
+    },
+    {
+      "genome": {
+        "vel": false,
+        "acc": true,
+        "softplus": false,
+        "tanh_vel": false,
+        "square": false,
+        "coupling": "none",
+        "k": 4,
+        "thresh_p": 0.1,
+        "couple_vel": true,
+        "ridge": 30.0
+      },
+      "metrics": {
+        "ok": true,
+        "pred_r2": 0.5322728379835366,
+        "struct_corr": 0.2759353776252344,
+        "seconds": 0.16
+      }
+    },
+    {
+      "genome": {
+        "vel": false,
+        "acc": true,
+        "softplus": true,
+        "tanh_vel": false,
+        "square": false,
+        "coupling": "lowrank",
+        "k": 12,
+        "thresh_p": 0.1,
+        "couple_vel": true,
+        "ridge": 10.0
+      },
+      "metrics": {
+        "ok": true,
+        "pred_r2": 0.8021962257564139,
+        "struct_corr": 0.2705091469520355,
+        "seconds": 0.29
+      }
+    },
+    {
+      "genome": {
+        "vel": false,
+        "acc": false,
+        "softplus": false,
+        "tanh_vel": false,
+        "square": false,
+        "coupling": "none",
+        "k": 4,
+        "thresh_p": 0.1,
+        "couple_vel": false,
+        "ridge": 30.0
+      },
+      "metrics": {
+        "ok": true,
+        "pred_r2": 0.11256382654352826,
+        "struct_corr": 0.26152990966593165,
+        "seconds": 0.25
+      }
+    }
+  ]
+}
