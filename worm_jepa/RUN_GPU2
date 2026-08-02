@@ -1,1 +1,1 @@
-CREMI hierarchical EM-JEPA + VICReg anti-collapse 6219781: boundary+synapse, collapse monitor (embedding std)
+seg run 6759af1: gentle-VICReg encoder -> watershed/flood-fill -> VOI/Rand/ERL (jepa vs random vs raw), CREMI A/B/C
