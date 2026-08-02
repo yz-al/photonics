@@ -62,13 +62,23 @@ train_image = (
 @app.function(image=train_image, cpu=4.0, timeout=3600)
 def train_baseline() -> dict:
     """Pull C2DB, featurize, train the multi-task ensemble, return metrics."""
-    import runpy
+    import importlib.util
     import sys
     sys.path.insert(0, "/root/excitonic/src")
     os.chdir("/root/excitonic")
-    # Build dataset then train (both scripts write under /root/excitonic).
-    runpy.run_path("/root/excitonic/scripts/phase1_build_dataset.py", run_name="__main__")
-    runpy.run_path("/root/excitonic/scripts/phase1_train_baseline.py", run_name="__main__")
+
+    def _load(path: str, name: str):
+        # Import as a normal module (name != "__main__") so the scripts'
+        # `if __name__ == "__main__": raise SystemExit(main())` guard does NOT
+        # fire — then call main() directly. (runpy-as-__main__ turns the
+        # scripts' SystemExit(0) into an uncaught container exception.)
+        spec = importlib.util.spec_from_file_location(name, path)
+        mod = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(mod)
+        return mod
+
+    _load("/root/excitonic/scripts/phase1_build_dataset.py", "p1_build").main()
+    _load("/root/excitonic/scripts/phase1_train_baseline.py", "p1_train").main()
     with open("/root/excitonic/data/manifests/phase1_baseline_metrics.json") as fh:
         return json.load(fh)
 
