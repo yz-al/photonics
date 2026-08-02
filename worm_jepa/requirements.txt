@@ -1,0 +1,8 @@
+# worm_jepa dependencies
+# GPU run (Modal) pins torch==2.5.1; local CPU smoke test can use any recent torch.
+torch>=2.4
+numpy<2.3
+pandas
+pyarrow
+huggingface_hub
+scikit-learn

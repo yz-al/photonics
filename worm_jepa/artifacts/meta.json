@@ -1,0 +1,13 @@
+{
+  "data_mode": "synthetic",
+  "n_worms": 24,
+  "n_windows": 72,
+  "n_neurons": 48,
+  "device": "cpu",
+  "epochs": 5,
+  "final_loss": 0.22657404839992523,
+  "d_model": 64,
+  "depth": 2,
+  "window": 256,
+  "patch": 16
+}

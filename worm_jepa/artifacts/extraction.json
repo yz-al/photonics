@@ -1,0 +1,65 @@
+{
+  "n_token_feats": 1152,
+  "d_model": 64,
+  "sae": {
+    "final_recon": 0.006145638506859541,
+    "n_features": 512,
+    "dead_features": 1,
+    "mean_active_frac": 0.6547817587852478
+  },
+  "probe_latent_r2": 0.9050831198692322,
+  "probe_target": "synthetic_latents",
+  "ablation_top_features": [
+    {
+      "feature": 51,
+      "recon_err_increase": 0.0003526434302330017,
+      "activation_freq": 0.9930555820465088
+    },
+    {
+      "feature": 169,
+      "recon_err_increase": 0.0008309436962008476,
+      "activation_freq": 0.9861111044883728
+    },
+    {
+      "feature": 30,
+      "recon_err_increase": 0.0008636550046503544,
+      "activation_freq": 0.984375
+    },
+    {
+      "feature": 469,
+      "recon_err_increase": 0.0007897778414189816,
+      "activation_freq": 0.9835069179534912
+    },
+    {
+      "feature": 62,
+      "recon_err_increase": 0.0005699382163584232,
+      "activation_freq": 0.9826388955116272
+    },
+    {
+      "feature": 375,
+      "recon_err_increase": 0.0007714307866990566,
+      "activation_freq": 0.9800347089767456
+    },
+    {
+      "feature": 488,
+      "recon_err_increase": 0.0009292676113545895,
+      "activation_freq": 0.9774305820465088
+    },
+    {
+      "feature": 89,
+      "recon_err_increase": 0.0006933561526238918,
+      "activation_freq": 0.9748263955116272
+    },
+    {
+      "feature": 168,
+      "recon_err_increase": 0.0004725698381662369,
+      "activation_freq": 0.9748263955116272
+    },
+    {
+      "feature": 381,
+      "recon_err_increase": 0.0012391433119773865,
+      "activation_freq": 0.9748263955116272
+    }
+  ],
+  "sae_base_recon_err": 0.005997490603476763
+}

@@ -1,0 +1,93 @@
+name: C. elegans JEPA on Modal GPU
+
+# Trains the worm JEPA on a Modal GPU against the real HuggingFace dataset
+# (qsimeon/celegans_neural_data), runs the extraction (SAE + probes), and
+# commits the artifacts back to this branch. Requires two repository secrets:
+#   MODAL_TOKEN_ID, MODAL_TOKEN_SECRET
+# (falls back to the committed test2/modal_tokens.secret if secrets are unset).
+#
+# Manual trigger only -- a GPU run should be intentional, not on every push.
+
+on:
+  workflow_dispatch:
+    inputs:
+      epochs:
+        description: 'Training epochs'
+        required: false
+        default: '40'
+      max_worms:
+        description: 'Cap number of worms (empty = all)'
+        required: false
+        default: ''
+      synthetic:
+        description: 'Use offline toy data instead of the real dataset (1 = yes)'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+concurrency:
+  group: worm-jepa-modal-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  run-modal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal client
+        run: pip install "modal==1.5.3"
+
+      - name: Run worm JEPA on Modal GPU
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          WORM_JEPA_EPOCHS: ${{ inputs.epochs }}
+          WORM_JEPA_MAX_WORMS: ${{ inputs.max_worms }}
+          WORM_JEPA_SYNTHETIC: ${{ inputs.synthetic }}
+        run: |
+          # Prefer repo Actions secrets; fall back to the committed credentials file.
+          if [ -z "$MODAL_TOKEN_ID" ] && [ -f test2/modal_tokens.secret ]; then
+            set -a; . ./test2/modal_tokens.secret; set +a
+          fi
+          if [ -z "$MODAL_TOKEN_ID" ] || [ -z "$MODAL_TOKEN_SECRET" ]; then
+            echo "::error::No Modal credentials (neither secrets nor test2/modal_tokens.secret)."
+            exit 1
+          fi
+          modal run worm_jepa/modal_app.py
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: worm-jepa-artifacts
+          path: worm_jepa/artifacts/*
+          if-no-files-found: warn
+
+      - name: Commit artifacts back to branch
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Robust to the branch moving while the GPU job ran: stash artifacts,
+          # re-sync to the latest remote tip, re-apply, commit.
+          mkdir -p /tmp/wj && cp -r worm_jepa/artifacts/* /tmp/wj/ 2>/dev/null || true
+          git fetch origin ${{ github.ref_name }}
+          git checkout -B ${{ github.ref_name }} origin/${{ github.ref_name }}
+          mkdir -p worm_jepa/artifacts
+          cp -r /tmp/wj/* worm_jepa/artifacts/ 2>/dev/null || true
+          git add worm_jepa/artifacts
+          if git diff --cached --quiet; then
+            echo "no artifact change to commit"
+          else
+            git commit -m "worm JEPA: Modal GPU artifacts [skip ci]"
+            git push origin HEAD:${{ github.ref_name }}
+          fi
