@@ -30,10 +30,13 @@ _PASS = {
     "WORM_VOL_DIM": os.environ.get("WORM_VOL_DIM", "256"),
     "WORM_VOL_DEPTH": os.environ.get("WORM_VOL_DEPTH", "6"),
     "WORM_VOL_BATCH": os.environ.get("WORM_VOL_BATCH", "8"),
-    # 3D affinities + mutex watershed segmentation
-    "WORM_SEG_JEPA_STEPS": os.environ.get("WORM_SEG_JEPA_STEPS", "3000"),
+    # 3D affinities + mutex watershed segmentation (LEAN SUPER RUN: multi-seed,
+    # longer JEPA, 2 label budgets, error bars)
+    "WORM_SEG_JEPA_STEPS": os.environ.get("WORM_SEG_JEPA_STEPS", "5000"),
     "WORM_SEG_DEC_STEPS": os.environ.get("WORM_SEG_DEC_STEPS", "600"),
     "WORM_S3_NEVAL": os.environ.get("WORM_S3_NEVAL", "3"),
+    "WORM_S3_SEEDS": os.environ.get("WORM_S3_SEEDS", "0,1,2"),
+    "WORM_S3_LABEL_POOL": os.environ.get("WORM_S3_LABEL_POOL", "1,16"),
 }
 
 image = (
