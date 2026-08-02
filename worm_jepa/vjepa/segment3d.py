@@ -361,10 +361,11 @@ def main():
     SOURCES = ["jepa", "random", "raw", "sota"]
     DBB = os.environ.get("WORM_S3_DBB", "0") == "1"       # double black box analysis
     EDGE = os.environ.get("WORM_S3_EDGE", "0") == "1"     # sota edge-case (failure) analysis
+    BEAT = os.environ.get("WORM_S3_BEAT", "0") == "1"     # beat-sota failure-targeted strategies
     le_acc = {s: {key: [] for key, _, _ in BUDGETS} for s in SOURCES}
     es_acc = {"all_offsets": [], "long_range_merge_edges": []}
     std_finals = []
-    dbb_res = None; edge_res = None
+    dbb_res = None; edge_res = None; beat_res = None
     for seed in SEEDS:
         torch.manual_seed(seed)
         enc = V.train_vol_jepa(tr_raw, JEPA_STEPS, np.random.default_rng(seed))
@@ -400,6 +401,12 @@ def main():
                         import double_black_box as DBBM
                         dbb_res = DBBM.run(enc, dec, te_subs, te_gt, V.feature_grid, DEV, len(SHORT))
                         print(f"[s3d] double_black_box={dbb_res}", flush=True)
+        if BEAT and beat_res is None:                     # failure-targeted strategies vs SOTA
+            import beat_sota as BEATM
+            ctx = {"mutex_watershed": mutex_watershed, "seg_metrics": seg_metrics,
+                   "erl_proxy": erl_proxy, "OFFS": OFFS, "SHORT": SHORT}
+            beat_res = BEATM.run(full_preds, te_subs, te_gt, ctx)
+            print(f"[s3d] beat_sota={beat_res}", flush=True)
         es_acc["all_offsets"].append(recovery(full_preds, lambda j: np.ones_like(te_gt[j][1], bool)))
         es_acc["long_range_merge_edges"].append(recovery(
             full_preds, lambda j: np.concatenate([np.zeros((ns,) + te_gt[j][1].shape[1:], bool),
@@ -424,6 +431,8 @@ def main():
         res["double_black_box"] = dbb_res
     if edge_res is not None:
         res["sota_edge_cases"] = edge_res
+    if beat_res is not None:
+        res["beat_sota"] = beat_res
     print(json.dumps(res, indent=2))
     with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
         json.dump(res, f, indent=2)

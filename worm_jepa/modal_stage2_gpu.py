@@ -31,6 +31,7 @@ _PASS = {
     "WORM_S3_ACTIVE": os.environ.get("WORM_S3_ACTIVE", ""),          # active-learning: dropped (no uplift last run)
     "WORM_S3_DBB": os.environ.get("WORM_S3_DBB", "1"),              # double black box (mechinterp -> discovery)
     "WORM_S3_EDGE": os.environ.get("WORM_S3_EDGE", "1"),            # SOTA edge-case (failure) analysis
+    "WORM_S3_BEAT": os.environ.get("WORM_S3_BEAT", "1"),            # beat-sota failure-targeted strategies (VOI/Rand/ERL)
     "WORM_VOL_DENSE": os.environ.get("WORM_VOL_DENSE", "1"),         # V-JEPA-2.1 dense features
     "WORM_VOL_EMA": os.environ.get("WORM_VOL_EMA", "0.998"),        # collapse fix: slower EMA target
     "WORM_EM_VAR": os.environ.get("WORM_EM_VAR", "0.6"),           # collapse fix: stronger variance hinge (0.4 left 1/3 seeds collapsing)
@@ -116,7 +117,7 @@ def _merge(dicts):
     # these sections from the HEALTHIEST seed (max embedding std) instead of dicts[0],
     # and record which seed that was.
     healthy = max(range(len(dicts)), key=lambda i: (stds[i] if stds[i] is not None else -1))
-    for key in ("double_black_box", "sota_edge_cases"):
+    for key in ("double_black_box", "sota_edge_cases", "beat_sota"):
         if key in dicts[healthy]:
             base[key] = dicts[healthy][key]
     base["jepa_analysis_seed"] = {"index": healthy, "std_final": stds[healthy],
