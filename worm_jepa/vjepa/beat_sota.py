@@ -83,12 +83,13 @@ def run(full_preds, te_subs, te_gt, ctx, biases=(0.05, 0.1, 0.2), max_subs=2):
         results["ens_sota_raw"] = score(ens_lowconf(raw))
     # long-range specialist swap (attack the 79%-long-range errors)
     results["longrange_from_jepa"] = score(longrange_from(jepa))
-    # global-context Mamba head: its whole point is the long-range band SOTA fails on
-    if "mamba" in full_preds:
-        mamba = [full_preds["mamba"][j] for j in range(nsub)]
-        results["mamba_alone"] = score(mamba)
-        results["longrange_from_mamba"] = score(longrange_from(mamba))
-        results["ens_sota_mamba"] = score(ens_lowconf(mamba))
+    # global-context heads (mamba / transformer / gnn): their whole point is the
+    # long-range band SOTA fails on. Score each the same three ways.
+    for name in [s for s in full_preds if s not in ("sota", "jepa", "raw", "random")]:
+        arr = [full_preds[name][j] for j in range(nsub)]
+        results[f"{name}_alone"] = score(arr)
+        results[f"longrange_from_{name}"] = score(longrange_from(arr))
+        results[f"ens_sota_{name}"] = score(ens_lowconf(arr))
 
     # deltas vs baseline (VOI/Rand lower=better, ERL higher=better)
     for k, v in results.items():

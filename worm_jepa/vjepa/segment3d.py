@@ -239,16 +239,18 @@ def main():
     print(f"[s3d] device={DEV} crop={CROP} zc={ZC} eval_crop={ec} n_eval={NEVAL} "
           f"jepa_steps={JEPA_STEPS} dec_steps={DEC_STEPS} affs={NAFF}", flush=True)
 
+    CTX_KINDS = ("mamba", "transformer", "gnn")           # global-context image->affinity heads
+
     def run_dec(source, dec, encoder, sub):
         raw_t = torch.tensor(sub, device=DEV)[None, None].float()
-        if source in ("raw", "sota", "mamba"):            # image -> affinity nets
+        if source in ("raw", "sota") or source in CTX_KINDS:   # image -> affinity nets
             return dec(raw_t)
         return dec(V.feature_grid(encoder, sub.astype(np.float32))[None], raw_t)
 
     def make_dec(source):
-        if source == "mamba":
-            import mamba_head as MH                        # global-context long-range head
-            return MH.MambaLongRange3D(NAFF).to(DEV)
+        if source in CTX_KINDS:
+            import context_heads as CH                     # mamba / transformer / gnn
+            return CH.make_context_head(source, NAFF).to(DEV)
         return {"raw": RawAff3D, "sota": SotaUNet3D}.get(source, FeatAff3D)().to(DEV)
 
     def _rand_sparse_mask(pool, sparse_k, seed):
@@ -365,8 +367,9 @@ def main():
     DBB = os.environ.get("WORM_S3_DBB", "0") == "1"       # double black box analysis
     EDGE = os.environ.get("WORM_S3_EDGE", "0") == "1"     # sota edge-case (failure) analysis
     BEAT = os.environ.get("WORM_S3_BEAT", "0") == "1"     # beat-sota failure-targeted strategies
-    MAMBA = os.environ.get("WORM_S3_MAMBA", "0") == "1"   # global-context Mamba long-range head
-    MAMBA_STEPS = int(os.environ.get("WORM_S3_MAMBA_STEPS", str(DEC_STEPS)))
+    # global-context heads to train + compare (subset of mamba,transformer,gnn)
+    CTX_HEADS = [x.strip() for x in os.environ.get("WORM_S3_CTX", "").split(",") if x.strip()]
+    CTX_STEPS = int(os.environ.get("WORM_S3_CTX_STEPS", str(DEC_STEPS)))
     le_acc = {s: {key: [] for key, _, _ in BUDGETS} for s in SOURCES}
     es_acc = {"all_offsets": [], "long_range_merge_edges": []}
     std_finals = []
@@ -406,11 +409,13 @@ def main():
                         import double_black_box as DBBM
                         dbb_res = DBBM.run(enc, dec, te_subs, te_gt, V.feature_grid, DEV, len(SHORT))
                         print(f"[s3d] double_black_box={dbb_res}", flush=True)
-        if MAMBA and "mamba" not in full_preds:           # global-context long-range head (dense)
-            mdec = train_dec("mamba", None, full_pool, steps=MAMBA_STEPS)
-            mm, mpreds = evaluate("mamba", mdec, None)
-            full_preds["mamba"] = mpreds
-            print(f"[s3d] mamba dense metrics={mm}", flush=True)
+        for ctx in CTX_HEADS:                             # global-context heads (dense, once/seed)
+            if ctx in full_preds:
+                continue
+            cdec = train_dec(ctx, None, full_pool, steps=CTX_STEPS)
+            cm, cpreds = evaluate(ctx, cdec, None)
+            full_preds[ctx] = cpreds
+            print(f"[s3d] {ctx} dense metrics={cm}", flush=True)
         if BEAT and beat_res is None:                     # failure-targeted strategies vs SOTA
             import beat_sota as BEATM
             ctx = {"mutex_watershed": mutex_watershed, "seg_metrics": seg_metrics,
