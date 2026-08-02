@@ -1,0 +1,74 @@
+{
+  "purpose": "Physics validation gates \u2014 trustworthiness of pipeline numbers.",
+  "anchor_spread_required": {
+    "GaAs": "E_b~4 meV, a_B~10 nm (3D, cold)",
+    "MoS2": "E_b~0.5 eV, a_B~1 nm (2D)",
+    "halide_perovskite": "Fr\u00f6hlich LO ~40-70 meV",
+    "note": "4 orders of magnitude in binding + full polarity range; a pipeline that only gets TMDs is tuned to TMDs (the Phase-1 failure)."
+  },
+  "checks": [
+    {
+      "name": "gamma_T_shape",
+      "passed": true,
+      "gate": "model",
+      "detail": "monotonic=True, high-T linear (slopes 0.073,0.089)=True, low-T suppressed (\u0393(10)/\u0393(300)=0.000)=True"
+    },
+    {
+      "name": "chemical_trend_TMD",
+      "passed": true,
+      "gate": "dft",
+      "detail": "MoS2(0.547)>MoSe2(0.500)>MoTe2(0.455) = True; |MoS2-WS2|=0.031 eV (expect small)"
+    },
+    {
+      "name": "reduced_mass_direction",
+      "passed": true,
+      "gate": "dft",
+      "detail": "Spearman(mu,E_b)=0.471 (p=5.1e-21), n=356; expect >0"
+    },
+    {
+      "name": "born_charge_polarity",
+      "passed": null,
+      "gate": "dfpt",
+      "detail": "DFPT Born charges not available yet"
+    },
+    {
+      "name": "dimensionality_trend",
+      "passed": null,
+      "gate": "gw_bse",
+      "detail": "needs mono/bilayer/bulk BSE of the same material"
+    },
+    {
+      "name": "vacuum_truncation_plateau",
+      "passed": null,
+      "gate": "gw_bse",
+      "detail": "needs E_b at \u22653 increasing vacuum spacings"
+    },
+    {
+      "name": "bse_energy_reference",
+      "passed": null,
+      "gate": "gw_bse",
+      "detail": "needs GW gap, lowest BSE eigenvalue, and E_b"
+    },
+    {
+      "name": "interlayer_exciton_signature",
+      "passed": null,
+      "gate": "gw_bse",
+      "detail": "needs intra/inter exciton energies + oscillator strengths"
+    }
+  ],
+  "summary": {
+    "passed": [
+      "gamma_T_shape",
+      "chemical_trend_TMD",
+      "reduced_mass_direction"
+    ],
+    "failed": [],
+    "pending": [
+      "born_charge_polarity",
+      "dimensionality_trend",
+      "vacuum_truncation_plateau",
+      "bse_energy_reference",
+      "interlayer_exciton_signature"
+    ]
+  }
+}
