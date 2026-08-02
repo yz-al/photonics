@@ -1,0 +1,12 @@
+{
+  "n_nodes": 420,
+  "edge_density": 0.0548,
+  "alphazero_selfplay": {
+    "test_AUC": 0.5,
+    "test_F1": 0.0
+  },
+  "static_linkpred_baseline": {
+    "test_AUC": 0.5804,
+    "test_F1": 0.1181
+  }
+}
