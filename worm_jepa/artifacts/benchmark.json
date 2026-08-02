@@ -1,29 +1,47 @@
 {
-  "device": "cpu",
+  "device": "cuda",
   "runs": [
     {
       "data": "synthetic",
-      "n_windows": 240,
+      "n_windows": 120,
       "n_neurons": 48,
       "n_latents": 6,
-      "epochs": 8,
+      "epochs": 30,
       "results": {
         "flat_jepa": {
-          "latent_r2": 0.17194311245396654,
-          "slow_r2": 0.613674221092018,
-          "fast_r2": -0.26978799618408505
+          "latent_r2": -0.1995957982158996,
+          "slow_r2": 0.6081259908779977,
+          "fast_r2": -1.007317587309797
         },
         "hier_jepa": {
-          "latent_r2": 0.24202798632688585,
-          "slow_r2": 0.6578260784041884,
-          "fast_r2": -0.17377010575041685
+          "latent_r2": 0.04170778332643721,
+          "slow_r2": 0.773328036374458,
+          "fast_r2": -0.6899124697215839
         },
         "forecaster": {
-          "latent_r2": 0.15023442736209014,
-          "slow_r2": 0.7972022346861009,
-          "fast_r2": -0.49673337996192063,
-          "forecast_mse": 0.09468302769320351,
-          "connectome_corr": 0.4415477987018816
+          "latent_r2": -0.20276419534007498,
+          "slow_r2": 0.7389253373152526,
+          "fast_r2": -1.144453727995397,
+          "forecast_mse": 0.05263207480311394,
+          "connectome_corr": 0.5334751052920287
+        }
+      }
+    },
+    {
+      "data": "real",
+      "n_windows": 2757,
+      "n_neurons": 247,
+      "epochs": 30,
+      "results": {
+        "flat_jepa": {
+          "activity_r2": 0.48446695047601485
+        },
+        "hier_jepa": {
+          "activity_r2": 0.3966927342997081
+        },
+        "forecaster": {
+          "activity_r2": 0.9158151338416349,
+          "forecast_mse": 0.011046853945265675
         }
       }
     }

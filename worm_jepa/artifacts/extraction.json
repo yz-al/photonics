@@ -1,65 +1,65 @@
 {
-  "n_token_feats": 1152,
-  "d_model": 64,
+  "n_token_feats": 44112,
+  "d_model": 128,
   "sae": {
-    "final_recon": 0.006145638506859541,
-    "n_features": 512,
-    "dead_features": 1,
-    "mean_active_frac": 0.6547817587852478
+    "final_recon": 0.00020911011915025437,
+    "n_features": 1024,
+    "dead_features": 0,
+    "mean_active_frac": 0.7477120757102966
   },
-  "probe_latent_r2": 0.9050831198692322,
-  "probe_target": "synthetic_latents",
+  "probe_activity_r2": 0.6194140315055847,
+  "probe_target": "labeled_neuron_mean_activity",
   "ablation_top_features": [
     {
-      "feature": 51,
-      "recon_err_increase": 0.0003526434302330017,
-      "activation_freq": 0.9930555820465088
+      "feature": 342,
+      "recon_err_increase": 0.0005621023883577436,
+      "activation_freq": 0.9939472079277039
     },
     {
-      "feature": 169,
-      "recon_err_increase": 0.0008309436962008476,
-      "activation_freq": 0.9861111044883728
+      "feature": 445,
+      "recon_err_increase": 0.0009378189861308783,
+      "activation_freq": 0.9938111901283264
+    },
+    {
+      "feature": 147,
+      "recon_err_increase": 0.0007189663301687688,
+      "activation_freq": 0.9936298727989197
+    },
+    {
+      "feature": 141,
+      "recon_err_increase": 0.0009499134903308004,
+      "activation_freq": 0.9936071634292603
+    },
+    {
+      "feature": 963,
+      "recon_err_increase": 0.0008342858345713466,
+      "activation_freq": 0.9936071634292603
+    },
+    {
+      "feature": 31,
+      "recon_err_increase": 0.0009013678354676813,
+      "activation_freq": 0.9934711456298828
+    },
+    {
+      "feature": 900,
+      "recon_err_increase": 0.0007036144088488072,
+      "activation_freq": 0.9934031367301941
     },
     {
       "feature": 30,
-      "recon_err_increase": 0.0008636550046503544,
-      "activation_freq": 0.984375
+      "recon_err_increase": 0.0009976316650863737,
+      "activation_freq": 0.9933351278305054
     },
     {
-      "feature": 469,
-      "recon_err_increase": 0.0007897778414189816,
-      "activation_freq": 0.9835069179534912
+      "feature": 681,
+      "recon_err_increase": 0.001005806348985061,
+      "activation_freq": 0.9932671189308167
     },
     {
-      "feature": 62,
-      "recon_err_increase": 0.0005699382163584232,
-      "activation_freq": 0.9826388955116272
-    },
-    {
-      "feature": 375,
-      "recon_err_increase": 0.0007714307866990566,
-      "activation_freq": 0.9800347089767456
-    },
-    {
-      "feature": 488,
-      "recon_err_increase": 0.0009292676113545895,
-      "activation_freq": 0.9774305820465088
-    },
-    {
-      "feature": 89,
-      "recon_err_increase": 0.0006933561526238918,
-      "activation_freq": 0.9748263955116272
-    },
-    {
-      "feature": 168,
-      "recon_err_increase": 0.0004725698381662369,
-      "activation_freq": 0.9748263955116272
-    },
-    {
-      "feature": 381,
-      "recon_err_increase": 0.0012391433119773865,
-      "activation_freq": 0.9748263955116272
+      "feature": 491,
+      "recon_err_increase": 0.0009834607772063464,
+      "activation_freq": 0.9931084513664246
     }
   ],
-  "sae_base_recon_err": 0.005997490603476763
+  "sae_base_recon_err": 0.00029133682255633175
 }
