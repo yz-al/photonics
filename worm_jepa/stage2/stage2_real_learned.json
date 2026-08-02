@@ -1,0 +1,22 @@
+{
+  "n_neurons": 40,
+  "n_worms": 20,
+  "connectome": "Cook2019Herm",
+  "struct_corr_raw_correlation": 0.2909,
+  "struct_corr_raw_covariance": 0.2942,
+  "learned_r6": {
+    "pred_r2": 0.3546,
+    "struct_corr": 0.3208
+  },
+  "learned_r8": {
+    "pred_r2": 0.386,
+    "struct_corr": 0.3301
+  },
+  "learned_r12": {
+    "pred_r2": 0.4398,
+    "struct_corr": 0.3344
+  },
+  "best_learned_struct_corr": 0.3344,
+  "reference_raw_correlation_real": 0.2909,
+  "reference_synthetic_best": 0.806
+}
