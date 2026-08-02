@@ -9,6 +9,13 @@ name: C. elegans JEPA on Modal GPU
 # Manual trigger only -- a GPU run should be intentional, not on every push.
 
 on:
+  # Fire a GPU run by bumping the sentinel file worm_jepa/RUN and pushing.
+  # (workflow_dispatch needs the workflow on the default branch; this feature
+  # branch triggers on push instead. The artifact commit-back uses [skip ci] and
+  # touches only worm_jepa/artifacts/**, so it never re-triggers this.)
+  push:
+    branches: [claude/brain-foundation-models-xyxiga]
+    paths: ['worm_jepa/RUN']
   workflow_dispatch:
     inputs:
       epochs:
@@ -58,9 +65,10 @@ jobs:
         env:
           MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
           MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
-          WORM_JEPA_EPOCHS: ${{ inputs.epochs }}
-          WORM_JEPA_BENCH_EPOCHS: ${{ inputs.bench_epochs }}
-          WORM_JEPA_REAL: ${{ inputs.real }}
+          # `inputs.*` are empty on push events -> fall back to sensible defaults.
+          WORM_JEPA_EPOCHS: ${{ inputs.epochs || '40' }}
+          WORM_JEPA_BENCH_EPOCHS: ${{ inputs.bench_epochs || '30' }}
+          WORM_JEPA_REAL: ${{ inputs.real || '1' }}
           WORM_JEPA_MAX_WORMS: ${{ inputs.max_worms }}
           WORM_JEPA_SYNTHETIC: ${{ inputs.synthetic }}
         run: |
