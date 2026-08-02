@@ -46,7 +46,7 @@ def main():
     d = np.load(os.path.join(HERE, "data", "cook2019_connectome.npz"), allow_pickle=True)
     Aall = ((np.abs(d["CS"]) + np.abs(d["CS"].T) + np.abs(d["GJ"]) + np.abs(d["GJ"].T)) > 0).astype(int)
     np.fill_diagonal(Aall, 0)
-    keep = np.argsort(-Aall.sum(1))[:150]                 # top-150 by degree
+    keep = np.where(Aall.sum(1) >= 3)[0]                   # all reasonably-connected neurons
     A = Aall[np.ix_(keep, keep)]; N = len(keep)
     iu, ju = np.triu_indices(N, 1)
     allp = np.stack([iu, ju], 1); ytrue = A[iu, ju]
@@ -58,8 +58,9 @@ def main():
     Gtr = A.copy()
     for k in te[ytrue[te] == 1]:
         a, b = allp[k]; Gtr[a, b] = Gtr[b, a] = 0
-    gate = GradientBoostingClassifier().fit(feats(Gtr, allp[tr]), ytrue[tr])
-    gate_auc = roc_auc_score(ytrue[te], gate.predict_proba(feats(Gtr, allp[te]))[:, 1])
+    # gate uses TOPOLOGY only (drop the current-edge column, which would leak)
+    gate = GradientBoostingClassifier().fit(feats(Gtr, allp[tr])[:, :4], ytrue[tr])
+    gate_auc = roc_auc_score(ytrue[te], gate.predict_proba(feats(Gtr, allp[te])[:, :4])[:, 1])
 
     # ---- corruption + training-set builders ----
     def corrupt(nflip, adversary=None):
