@@ -1,12 +1,100 @@
 {
+  "device": "cpu",
+  "episodes": 200,
   "n_nodes": 420,
-  "edge_density": 0.0548,
   "alphazero_selfplay": {
-    "test_AUC": 0.5,
+    "test_AUC": 0.3981,
     "test_F1": 0.0
   },
   "static_linkpred_baseline": {
-    "test_AUC": 0.5804,
-    "test_F1": 0.1181
-  }
+    "test_AUC": 0.5743,
+    "test_F1": 0.1303
+  },
+  "diagnosis": {
+    "corr_logit_degree": -0.9055,
+    "degree_feature_AUC": 0.5783,
+    "note": "construction dynamic inverts degree: negative policy-degree corr despite positive degree AUC; converged fixed point, longer training does not help"
+  },
+  "learning_curve": [
+    {
+      "ep": 10,
+      "auc": 0.362
+    },
+    {
+      "ep": 20,
+      "auc": 0.3699
+    },
+    {
+      "ep": 30,
+      "auc": 0.3695
+    },
+    {
+      "ep": 40,
+      "auc": 0.3579
+    },
+    {
+      "ep": 50,
+      "auc": 0.3489
+    },
+    {
+      "ep": 60,
+      "auc": 0.3636
+    },
+    {
+      "ep": 70,
+      "auc": 0.3666
+    },
+    {
+      "ep": 80,
+      "auc": 0.3632
+    },
+    {
+      "ep": 90,
+      "auc": 0.3692
+    },
+    {
+      "ep": 100,
+      "auc": 0.3534
+    },
+    {
+      "ep": 110,
+      "auc": 0.3626
+    },
+    {
+      "ep": 120,
+      "auc": 0.3656
+    },
+    {
+      "ep": 130,
+      "auc": 0.3649
+    },
+    {
+      "ep": 140,
+      "auc": 0.3678
+    },
+    {
+      "ep": 150,
+      "auc": 0.3686
+    },
+    {
+      "ep": 160,
+      "auc": 0.369
+    },
+    {
+      "ep": 170,
+      "auc": 0.3506
+    },
+    {
+      "ep": 180,
+      "auc": 0.3686
+    },
+    {
+      "ep": 190,
+      "auc": 0.3438
+    },
+    {
+      "ep": 200,
+      "auc": 0.3576
+    }
+  ]
 }
