@@ -175,14 +175,14 @@ if __name__ == "__main__":
     results = {"device": DEVICE, "seeds": SEEDS, "depth": DEPTH, "datasets": {}}
     t0 = time.time()
     results["datasets"]["mnist"] = run_dataset(
-        "MNIST", mnist_loaders(), epochs_trained=15, epochs_control=10)
+        "MNIST", mnist_loaders(), epochs_trained=10, epochs_control=7)
     with open(OUT, "w") as fh:
         json.dump(results, fh, indent=2)
     print(f"[illum] flushed MNIST -> {OUT}")
     try:
         results["datasets"]["cifar10"] = run_dataset(
             "CIFAR-10 (grayscale)", cifar_gray_loaders(CIFAR_SUBSET),
-            epochs_trained=25, epochs_control=15)
+            epochs_trained=14, epochs_control=10)
     except Exception as e:
         print(f"[illum] CIFAR failed/partial: {e}")
         results["datasets"].setdefault("cifar10", {})["error"] = str(e)
