@@ -6,22 +6,22 @@
   "n_test_crops": 24,
   "sources": {
     "jepa": {
-      "pixel_boundary_AUC": 0.7022,
-      "VOI": 3.6178,
-      "adapted_rand_error": 0.7709,
-      "ERL_proxy": 35.9
+      "pixel_boundary_AUC": 0.639,
+      "VOI": 3.3486,
+      "adapted_rand_error": 0.7155,
+      "ERL_proxy": 46.6
     },
     "random": {
-      "pixel_boundary_AUC": 0.7947,
-      "VOI": 3.1187,
-      "adapted_rand_error": 0.7221,
-      "ERL_proxy": 46.0
+      "pixel_boundary_AUC": 0.823,
+      "VOI": 3.1735,
+      "adapted_rand_error": 0.7281,
+      "ERL_proxy": 39.4
     },
     "raw": {
-      "pixel_boundary_AUC": 0.9425,
-      "VOI": 5.6083,
-      "adapted_rand_error": 0.9459,
-      "ERL_proxy": 18.7
+      "pixel_boundary_AUC": 0.9368,
+      "VOI": 5.5664,
+      "adapted_rand_error": 0.9444,
+      "ERL_proxy": 19.0
     }
   }
 }
