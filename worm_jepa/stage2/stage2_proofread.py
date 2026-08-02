@@ -104,7 +104,7 @@ def main():
             st = policy_state(cand, vscore_te)
             logits = pol(st).squeeze(1)
             p = torch.sigmoid(logits)
-            act = torch.bernoulli(p) if train else (p > 0.5).float()
+            act = (torch.bernoulli(p) if train else (p > 0.5).float()).detach()
             newc = np.where(act.numpy().astype(bool), 1 - cand, cand)
             reward = (newc == te_y).mean() - (cand == te_y).mean()
             if train:
