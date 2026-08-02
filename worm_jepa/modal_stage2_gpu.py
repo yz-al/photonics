@@ -29,6 +29,7 @@ _PASS = {
     "WORM_S3_LABEL_POOL": os.environ.get("WORM_S3_LABEL_POOL", "1,16"),
     "WORM_S3_SPARSE": os.environ.get("WORM_S3_SPARSE", "500,5000"),  # scarce voxel-label budgets
     "WORM_S3_ACTIVE": os.environ.get("WORM_S3_ACTIVE", "500"),       # active-learning budget (uncertainty-selected)
+    "WORM_S3_DBB": os.environ.get("WORM_S3_DBB", "1"),              # double black box (mechinterp -> discovery)
     "WORM_VOL_DENSE": os.environ.get("WORM_VOL_DENSE", "1"),         # V-JEPA-2.1 dense features
 }
 SEEDS = [int(x) for x in os.environ.get("WORM_S3_SEEDS", "0,1,2").split(",")]

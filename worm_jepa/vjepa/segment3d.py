@@ -332,9 +332,11 @@ def main():
 
     # ---- multi-seed loop (mean +- std) ----
     SOURCES = ["jepa", "random", "raw", "sota"]
+    DBB = os.environ.get("WORM_S3_DBB", "0") == "1"       # double black box analysis
     le_acc = {s: {key: [] for key, _, _ in BUDGETS} for s in SOURCES}
     es_acc = {"all_offsets": [], "long_range_merge_edges": []}
     std_finals = []
+    dbb_res = None
     for seed in SEEDS:
         torch.manual_seed(seed)
         enc = V.train_vol_jepa(tr_raw, JEPA_STEPS, np.random.default_rng(seed))
@@ -360,6 +362,12 @@ def main():
                 le_acc[source][key].append(m)
                 if key == DENSE_MAX_KEY:
                     full_preds[source] = preds
+                    if source == "jepa" and DBB and dbb_res is None:
+                        # double black box: mechinterp the trained jepa dense decoder
+                        # + discover a compact mechanistic model (once, on seed 0's model)
+                        import double_black_box as DBBM
+                        dbb_res = DBBM.run(enc, dec, te_subs, te_gt, V.feature_grid, DEV, len(SHORT))
+                        print(f"[s3d] double_black_box={dbb_res}", flush=True)
         es_acc["all_offsets"].append(recovery(full_preds, lambda j: np.ones_like(te_gt[j][1], bool)))
         es_acc["long_range_merge_edges"].append(recovery(
             full_preds, lambda j: np.concatenate([np.zeros((ns,) + te_gt[j][1].shape[1:], bool),
@@ -380,6 +388,8 @@ def main():
            "label_efficiency": {s: {key: agg(le_acc[s][key]) for key, _, _ in BUDGETS}
                                 for s in SOURCES},
            "error_set_analysis": {k: agg(es_acc[k]) for k in es_acc}}
+    if dbb_res is not None:
+        res["double_black_box"] = dbb_res
     print(json.dumps(res, indent=2))
     with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
         json.dump(res, f, indent=2)
