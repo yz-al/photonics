@@ -2,8 +2,17 @@
   "device": "cuda",
   "crop": 160,
   "zc": 8,
-  "eval_crop": 160,
   "n_eval": 3,
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "jepa_steps": 5000,
+  "label_pool": [
+    1,
+    16
+  ],
   "offsets": {
     "short": [
       [
@@ -34,7 +43,32 @@
         9
       ],
       [
+        0,
+        9,
+        9
+      ],
+      [
+        0,
+        4,
+        0
+      ],
+      [
+        0,
+        0,
+        4
+      ],
+      [
+        0,
+        4,
+        4
+      ],
+      [
         2,
+        0,
+        0
+      ],
+      [
+        3,
         0,
         0
       ]
@@ -42,39 +76,185 @@
   },
   "backbone": "vol_jepa (3D hierarchical)",
   "anticollapse": {
-    "families": [
-      "distillation(EMA+predictor)",
-      "info-max(VICReg var+cov)",
-      "fine-pathway(FINE_AUX+coarse_drop)"
-    ],
     "var": 0.2,
     "cov": 0.01,
     "fine_aux": 3.0,
     "coarse_drop": 0.5,
-    "embedding_std_start": 0.029,
-    "embedding_std_final": 0.275
+    "target_std": true,
+    "embedding_std_final_per_seed": [
+      0.3594,
+      0.1167,
+      0.3911
+    ]
   },
-  "sources": {
+  "label_efficiency": {
     "jepa": {
-      "affinity_acc": 0.8137,
-      "VOI": 2.4867,
-      "adapted_rand_error": 0.3671,
-      "ERL_proxy": 120.0,
-      "n_segments": 453.7
+      "1": {
+        "affinity_acc": {
+          "mean": 0.7848,
+          "std": 0.0236
+        },
+        "VOI": {
+          "mean": 4.1863,
+          "std": 0.0813
+        },
+        "adapted_rand_error": {
+          "mean": 0.707,
+          "std": 0.0472
+        },
+        "ERL_proxy": {
+          "mean": 116.8626,
+          "std": 11.9502
+        },
+        "n_segments": {
+          "mean": 1294.3333,
+          "std": 433.2208
+        }
+      },
+      "16": {
+        "affinity_acc": {
+          "mean": 0.7728,
+          "std": 0.008
+        },
+        "VOI": {
+          "mean": 3.1994,
+          "std": 0.0609
+        },
+        "adapted_rand_error": {
+          "mean": 0.4232,
+          "std": 0.0212
+        },
+        "ERL_proxy": {
+          "mean": 108.4763,
+          "std": 1.905
+        },
+        "n_segments": {
+          "mean": 2078.5556,
+          "std": 83.4876
+        }
+      }
     },
     "random": {
-      "affinity_acc": 0.7882,
-      "VOI": 2.3308,
-      "adapted_rand_error": 0.2751,
-      "ERL_proxy": 115.1,
-      "n_segments": 596.3
+      "1": {
+        "affinity_acc": {
+          "mean": 0.7927,
+          "std": 0.0139
+        },
+        "VOI": {
+          "mean": 3.4401,
+          "std": 0.4105
+        },
+        "adapted_rand_error": {
+          "mean": 0.5447,
+          "std": 0.0997
+        },
+        "ERL_proxy": {
+          "mean": 109.544,
+          "std": 5.8308
+        },
+        "n_segments": {
+          "mean": 1650.8889,
+          "std": 311.2544
+        }
+      },
+      "16": {
+        "affinity_acc": {
+          "mean": 0.7744,
+          "std": 0.0032
+        },
+        "VOI": {
+          "mean": 3.2607,
+          "std": 0.2964
+        },
+        "adapted_rand_error": {
+          "mean": 0.4289,
+          "std": 0.076
+        },
+        "ERL_proxy": {
+          "mean": 109.0207,
+          "std": 3.8999
+        },
+        "n_segments": {
+          "mean": 1954.4445,
+          "std": 60.8047
+        }
+      }
     },
     "raw": {
-      "affinity_acc": 0.8459,
-      "VOI": 2.0024,
-      "adapted_rand_error": 0.2499,
-      "ERL_proxy": 110.7,
-      "n_segments": 708.3
+      "1": {
+        "affinity_acc": {
+          "mean": 0.8332,
+          "std": 0.0019
+        },
+        "VOI": {
+          "mean": 3.159,
+          "std": 0.2381
+        },
+        "adapted_rand_error": {
+          "mean": 0.4952,
+          "std": 0.0627
+        },
+        "ERL_proxy": {
+          "mean": 116.2056,
+          "std": 0.3715
+        },
+        "n_segments": {
+          "mean": 1415.3333,
+          "std": 50.6776
+        }
+      },
+      "16": {
+        "affinity_acc": {
+          "mean": 0.8394,
+          "std": 0.0102
+        },
+        "VOI": {
+          "mean": 2.4296,
+          "std": 0.1397
+        },
+        "adapted_rand_error": {
+          "mean": 0.3434,
+          "std": 0.0198
+        },
+        "ERL_proxy": {
+          "mean": 111.6178,
+          "std": 1.401
+        },
+        "n_segments": {
+          "mean": 1573.4445,
+          "std": 122.1124
+        }
+      }
+    }
+  },
+  "error_set_analysis": {
+    "all_offsets": {
+      "raw_error_rate": {
+        "mean": 0.1606,
+        "std": 0.0102
+      },
+      "jepa_recovers": {
+        "mean": 0.3139,
+        "std": 0.0283
+      },
+      "random_recovers": {
+        "mean": 0.3338,
+        "std": 0.0325
+      }
+    },
+    "long_range_merge_edges": {
+      "raw_error_rate": {
+        "mean": 0.1731,
+        "std": 0.0081
+      },
+      "jepa_recovers": {
+        "mean": 0.2939,
+        "std": 0.0207
+      },
+      "random_recovers": {
+        "mean": 0.3106,
+        "std": 0.0292
+      }
     }
   }
 }
