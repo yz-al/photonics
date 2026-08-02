@@ -1,5 +1,10 @@
 # Project memory
 
+## Working conventions
+- Whenever a section of work finishes, provide a copyable write-up (fenced code
+  block) summarizing everything the user should know happened: what changed, why,
+  key results, current state, and open items.
+
 ## Concepts / methodology
 
 ### Double black box
