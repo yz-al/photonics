@@ -1,0 +1,9 @@
+{
+  "n_neurons": 99,
+  "n_pairs": 9702,
+  "edge_density": 0.1375,
+  "logreg_heldout_edge_AUC": 0.6115,
+  "logreg_shuffled_AUC": 0.5093,
+  "gbm_heldout_edge_AUC": 0.7046,
+  "gbm_shuffled_AUC": 0.4754
+}
