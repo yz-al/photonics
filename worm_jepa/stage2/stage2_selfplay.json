@@ -1,0 +1,13 @@
+{
+  "n_nodes": 461,
+  "edge_density": 0.0467,
+  "perception_gate_AUC_topology": 0.9095,
+  "random_test": {
+    "fixer_random": 0.41,
+    "fixer_selfplay": 0.2086
+  },
+  "hard_test_vs_ref": {
+    "fixer_random": 0.4228,
+    "fixer_selfplay": 0.234
+  }
+}
