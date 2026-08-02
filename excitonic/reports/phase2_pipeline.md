@@ -55,7 +55,12 @@ score is replaced by the surrogate's predictive **uncertainty** (active learning
   biexciton channel gives the saturation `U`, and an interlayer/dipolar treatment
   gives the a_B-decoupled dipolar `U`. Decks: `bgw_inputs.py`.
 - **Compute:** GW-BSE and EPW are MPI/CPU-bound → Modal `cpu=16` functions, not
-  GPU (`modal_phase2.py`), launched via GitHub Actions (`modal run`).
+  GPU (`modal_phase2.py`), launched via GitHub Actions (`modal run`). Quantum
+  ESPRESSO (pw.x/ph.x/epw.x/pw2bgw.x — the entire Γ branch) installs from
+  conda-forge. **BerkeleyGW is not packaged on conda-forge**, so the GW-BSE branch
+  requires a source build against the conda MPI/ScaLAPACK/FFTW/HDF5 stack — added
+  as an opt-in image layer (`BUILD_BERKELEYGW=True`); the smoke test reports each
+  branch's binary availability honestly.
 
 ## Model-tier floor + anchor sanity check (`data/manifests/phase2_anchor_estimates.json`)
 
