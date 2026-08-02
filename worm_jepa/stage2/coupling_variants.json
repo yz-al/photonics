@@ -1,0 +1,18 @@
+{
+  "corr": {
+    "struct_corr": 0.3474,
+    "pred_r2": 0.7866
+  },
+  "cov": {
+    "struct_corr": 0.347,
+    "pred_r2": 0.7866
+  },
+  "precision": {
+    "struct_corr": 0.3438,
+    "pred_r2": 0.7866
+  },
+  "partial": {
+    "struct_corr": 0.3478,
+    "pred_r2": 0.7867
+  }
+}
