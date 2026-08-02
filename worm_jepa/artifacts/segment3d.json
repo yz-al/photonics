@@ -82,279 +82,457 @@
     "coarse_drop": 0.5,
     "target_std": true,
     "embedding_std_final_per_seed": [
-      0.8007,
-      0.8851,
-      0.8865
+      0.4264,
+      0.8703,
+      0.419
     ]
   },
   "label_efficiency": {
     "jepa": {
       "1": {
         "affinity_acc": {
-          "mean": 0.8111,
-          "std": 0.0065
+          "mean": 0.805,
+          "std": 0.0189
         },
         "VOI": {
-          "mean": 3.8852,
-          "std": 0.2615
+          "mean": 4.0456,
+          "std": 0.2401
         },
         "adapted_rand_error": {
-          "mean": 0.7069,
-          "std": 0.0265
+          "mean": 0.7203,
+          "std": 0.027
         },
         "ERL_proxy": {
-          "mean": 118.2922,
-          "std": 13.9892
+          "mean": 106.0862,
+          "std": 18.8763
         },
         "n_segments": {
-          "mean": 524.8889,
-          "std": 210.1168
+          "mean": 570.7778,
+          "std": 103.0499
         }
       },
       "16": {
         "affinity_acc": {
-          "mean": 0.7859,
-          "std": 0.0227
+          "mean": 0.7925,
+          "std": 0.0244
         },
         "VOI": {
-          "mean": 3.5642,
-          "std": 0.2455
+          "mean": 3.4258,
+          "std": 0.2692
         },
         "adapted_rand_error": {
-          "mean": 0.5229,
-          "std": 0.1101
+          "mean": 0.5095,
+          "std": 0.0363
         },
         "ERL_proxy": {
-          "mean": 115.5807,
-          "std": 14.1805
+          "mean": 114.5443,
+          "std": 11.3326
         },
         "n_segments": {
-          "mean": 1684.7778,
-          "std": 437.26
+          "mean": 1495.5556,
+          "std": 210.7912
         }
       },
       "sparse500": {
         "affinity_acc": {
-          "mean": 0.7854,
-          "std": 0.0267
+          "mean": 0.8168,
+          "std": 0.0066
         },
         "VOI": {
-          "mean": 4.7206,
-          "std": 0.4367
+          "mean": 4.5256,
+          "std": 0.3878
         },
         "adapted_rand_error": {
-          "mean": 0.763,
-          "std": 0.0264
+          "mean": 0.7611,
+          "std": 0.0128
         },
         "ERL_proxy": {
-          "mean": 90.0756,
-          "std": 21.231
+          "mean": 87.5415,
+          "std": 14.1607
         },
         "n_segments": {
-          "mean": 180.0,
-          "std": 131.258
+          "mean": 45.7778,
+          "std": 28.9333
         }
       },
       "sparse5000": {
         "affinity_acc": {
-          "mean": 0.804,
-          "std": 0.0123
+          "mean": 0.8012,
+          "std": 0.0129
         },
         "VOI": {
-          "mean": 4.8788,
-          "std": 0.256
+          "mean": 5.1474,
+          "std": 0.4388
         },
         "adapted_rand_error": {
-          "mean": 0.774,
-          "std": 0.0158
+          "mean": 0.7959,
+          "std": 0.0266
         },
         "ERL_proxy": {
-          "mean": 68.6823,
-          "std": 11.9738
+          "mean": 63.6001,
+          "std": 10.1195
         },
         "n_segments": {
-          "mean": 100.4444,
-          "std": 21.5979
+          "mean": 139.1111,
+          "std": 35.4154
+        }
+      },
+      "active500": {
+        "affinity_acc": {
+          "mean": 0.7953,
+          "std": 0.0216
+        },
+        "VOI": {
+          "mean": 5.1117,
+          "std": 0.4745
+        },
+        "adapted_rand_error": {
+          "mean": 0.7994,
+          "std": 0.0196
+        },
+        "ERL_proxy": {
+          "mean": 59.9641,
+          "std": 19.5125
+        },
+        "n_segments": {
+          "mean": 53.6667,
+          "std": 26.2904
         }
       }
     },
     "random": {
       "1": {
         "affinity_acc": {
-          "mean": 0.7207,
-          "std": 0.0834
+          "mean": 0.7642,
+          "std": 0.0232
         },
         "VOI": {
-          "mean": 3.9025,
-          "std": 0.7017
+          "mean": 3.918,
+          "std": 0.8098
         },
         "adapted_rand_error": {
-          "mean": 0.6305,
-          "std": 0.179
+          "mean": 0.5783,
+          "std": 0.1846
         },
         "ERL_proxy": {
-          "mean": 104.3042,
-          "std": 16.0169
+          "mean": 107.3752,
+          "std": 3.8014
         },
         "n_segments": {
-          "mean": 1095.6667,
-          "std": 837.8231
+          "mean": 1722.6667,
+          "std": 238.0403
         }
       },
       "16": {
         "affinity_acc": {
           "mean": 0.7825,
-          "std": 0.0074
+          "std": 0.0063
         },
         "VOI": {
-          "mean": 2.7782,
-          "std": 0.1841
+          "mean": 2.8255,
+          "std": 0.231
         },
         "adapted_rand_error": {
-          "mean": 0.314,
-          "std": 0.0432
+          "mean": 0.3229,
+          "std": 0.0628
         },
         "ERL_proxy": {
-          "mean": 109.2422,
-          "std": 2.1005
+          "mean": 109.2446,
+          "std": 0.7174
         },
         "n_segments": {
-          "mean": 2054.7778,
-          "std": 49.0203
+          "mean": 2074.3333,
+          "std": 70.9465
         }
       },
       "sparse500": {
         "affinity_acc": {
-          "mean": 0.8057,
-          "std": 0.0164
+          "mean": 0.7958,
+          "std": 0.0026
         },
         "VOI": {
-          "mean": 5.0495,
-          "std": 0.8193
+          "mean": 4.9043,
+          "std": 0.5034
         },
         "adapted_rand_error": {
-          "mean": 0.7777,
-          "std": 0.0665
+          "mean": 0.7792,
+          "std": 0.0241
         },
         "ERL_proxy": {
-          "mean": 69.3082,
-          "std": 27.6936
+          "mean": 76.7217,
+          "std": 11.9195
         },
         "n_segments": {
-          "mean": 184.1111,
-          "std": 144.1518
+          "mean": 68.6667,
+          "std": 44.0059
         }
       },
       "sparse5000": {
         "affinity_acc": {
-          "mean": 0.7846,
-          "std": 0.0169
+          "mean": 0.7811,
+          "std": 0.0157
         },
         "VOI": {
-          "mean": 3.7851,
-          "std": 0.3523
+          "mean": 3.9494,
+          "std": 0.4077
         },
         "adapted_rand_error": {
-          "mean": 0.6488,
-          "std": 0.0682
+          "mean": 0.6732,
+          "std": 0.0693
         },
         "ERL_proxy": {
-          "mean": 117.4512,
-          "std": 4.3888
+          "mean": 116.7418,
+          "std": 11.634
         },
         "n_segments": {
-          "mean": 1102.7778,
-          "std": 110.2026
+          "mean": 1119.1111,
+          "std": 435.3282
+        }
+      },
+      "active500": {
+        "affinity_acc": {
+          "mean": 0.8061,
+          "std": 0.0089
+        },
+        "VOI": {
+          "mean": 4.402,
+          "std": 0.4496
+        },
+        "adapted_rand_error": {
+          "mean": 0.7663,
+          "std": 0.0113
+        },
+        "ERL_proxy": {
+          "mean": 95.161,
+          "std": 20.3754
+        },
+        "n_segments": {
+          "mean": 78.7778,
+          "std": 58.4201
         }
       }
     },
     "raw": {
       "1": {
         "affinity_acc": {
-          "mean": 0.8411,
-          "std": 0.0058
+          "mean": 0.8441,
+          "std": 0.0099
         },
         "VOI": {
-          "mean": 3.1105,
-          "std": 0.0655
+          "mean": 3.1341,
+          "std": 0.1183
         },
         "adapted_rand_error": {
-          "mean": 0.488,
-          "std": 0.0364
+          "mean": 0.4929,
+          "std": 0.0387
         },
         "ERL_proxy": {
-          "mean": 113.2542,
-          "std": 1.0176
+          "mean": 118.8295,
+          "std": 7.7273
         },
         "n_segments": {
-          "mean": 1512.7778,
-          "std": 250.5174
+          "mean": 1427.5556,
+          "std": 179.9716
         }
       },
       "16": {
         "affinity_acc": {
-          "mean": 0.8383,
-          "std": 0.0107
+          "mean": 0.8402,
+          "std": 0.0048
         },
         "VOI": {
-          "mean": 2.3548,
-          "std": 0.1186
+          "mean": 2.4617,
+          "std": 0.0366
         },
         "adapted_rand_error": {
-          "mean": 0.2975,
-          "std": 0.0151
+          "mean": 0.3396,
+          "std": 0.0278
         },
         "ERL_proxy": {
-          "mean": 115.5704,
-          "std": 4.6221
+          "mean": 114.1637,
+          "std": 3.8724
         },
         "n_segments": {
-          "mean": 1675.4445,
-          "std": 171.2331
+          "mean": 1556.6667,
+          "std": 48.1941
         }
       },
       "sparse500": {
         "affinity_acc": {
-          "mean": 0.8104,
-          "std": 0.0039
+          "mean": 0.8134,
+          "std": 0.0055
         },
         "VOI": {
-          "mean": 5.756,
-          "std": 0.0609
+          "mean": 5.4359,
+          "std": 0.2892
         },
         "adapted_rand_error": {
-          "mean": 0.8229,
-          "std": 0.02
+          "mean": 0.7977,
+          "std": 0.0294
         },
         "ERL_proxy": {
-          "mean": 42.4297,
-          "std": 1.936
+          "mean": 47.7328,
+          "std": 12.0445
         },
         "n_segments": {
-          "mean": 165.1111,
-          "std": 10.84
+          "mean": 132.0,
+          "std": 24.8119
         }
       },
       "sparse5000": {
         "affinity_acc": {
-          "mean": 0.829,
-          "std": 0.0045
+          "mean": 0.8378,
+          "std": 0.0031
         },
         "VOI": {
-          "mean": 4.9768,
-          "std": 0.068
+          "mean": 5.0446,
+          "std": 0.1693
         },
         "adapted_rand_error": {
-          "mean": 0.7815,
-          "std": 0.0074
+          "mean": 0.7874,
+          "std": 0.0144
         },
         "ERL_proxy": {
-          "mean": 62.306,
-          "std": 7.8445
+          "mean": 60.4302,
+          "std": 6.2601
         },
         "n_segments": {
-          "mean": 262.3333,
-          "std": 133.1841
+          "mean": 261.8889,
+          "std": 20.3531
+        }
+      },
+      "active500": {
+        "affinity_acc": {
+          "mean": 0.8179,
+          "std": 0.0035
+        },
+        "VOI": {
+          "mean": 5.0768,
+          "std": 0.555
+        },
+        "adapted_rand_error": {
+          "mean": 0.7854,
+          "std": 0.0346
+        },
+        "ERL_proxy": {
+          "mean": 61.6245,
+          "std": 18.4273
+        },
+        "n_segments": {
+          "mean": 217.7778,
+          "std": 96.7266
+        }
+      }
+    },
+    "sota": {
+      "1": {
+        "affinity_acc": {
+          "mean": 0.8617,
+          "std": 0.0052
+        },
+        "VOI": {
+          "mean": 4.3678,
+          "std": 0.1186
+        },
+        "adapted_rand_error": {
+          "mean": 0.7389,
+          "std": 0.0158
+        },
+        "ERL_proxy": {
+          "mean": 70.0785,
+          "std": 4.901
+        },
+        "n_segments": {
+          "mean": 679.4444,
+          "std": 143.2342
+        }
+      },
+      "16": {
+        "affinity_acc": {
+          "mean": 0.8571,
+          "std": 0.0075
+        },
+        "VOI": {
+          "mean": 2.6629,
+          "std": 0.0964
+        },
+        "adapted_rand_error": {
+          "mean": 0.3623,
+          "std": 0.0327
+        },
+        "ERL_proxy": {
+          "mean": 113.4647,
+          "std": 4.4379
+        },
+        "n_segments": {
+          "mean": 1830.7778,
+          "std": 89.3459
+        }
+      },
+      "sparse500": {
+        "affinity_acc": {
+          "mean": 0.8468,
+          "std": 0.0016
+        },
+        "VOI": {
+          "mean": 3.3482,
+          "std": 0.0745
+        },
+        "adapted_rand_error": {
+          "mean": 0.7276,
+          "std": 0.0172
+        },
+        "ERL_proxy": {
+          "mean": 155.7554,
+          "std": 8.7673
+        },
+        "n_segments": {
+          "mean": 138.7778,
+          "std": 33.1219
+        }
+      },
+      "sparse5000": {
+        "affinity_acc": {
+          "mean": 0.8529,
+          "std": 0.0064
+        },
+        "VOI": {
+          "mean": 3.8368,
+          "std": 0.2386
+        },
+        "adapted_rand_error": {
+          "mean": 0.7062,
+          "std": 0.0276
+        },
+        "ERL_proxy": {
+          "mean": 103.3057,
+          "std": 5.6897
+        },
+        "n_segments": {
+          "mean": 525.3333,
+          "std": 200.596
+        }
+      },
+      "active500": {
+        "affinity_acc": {
+          "mean": 0.8481,
+          "std": 0.0057
+        },
+        "VOI": {
+          "mean": 3.3485,
+          "std": 0.3517
+        },
+        "adapted_rand_error": {
+          "mean": 0.6671,
+          "std": 0.0735
+        },
+        "ERL_proxy": {
+          "mean": 126.4382,
+          "std": 13.4518
+        },
+        "n_segments": {
+          "mean": 259.1111,
+          "std": 114.9935
         }
       }
     }
@@ -362,31 +540,91 @@
   "error_set_analysis": {
     "all_offsets": {
       "raw_error_rate": {
-        "mean": 0.1617,
-        "std": 0.0107
+        "mean": 0.1598,
+        "std": 0.0048
       },
       "jepa_recovers": {
-        "mean": 0.4164,
-        "std": 0.0985
+        "mean": 0.3802,
+        "std": 0.1001
       },
       "random_recovers": {
-        "mean": 0.2773,
-        "std": 0.0536
+        "mean": 0.3111,
+        "std": 0.0274
+      },
+      "sota_recovers": {
+        "mean": 0.5275,
+        "std": 0.0173
       }
     },
     "long_range_merge_edges": {
       "raw_error_rate": {
-        "mean": 0.1771,
-        "std": 0.0135
+        "mean": 0.1764,
+        "std": 0.0033
       },
       "jepa_recovers": {
-        "mean": 0.4093,
-        "std": 0.1128
+        "mean": 0.3823,
+        "std": 0.0955
       },
       "random_recovers": {
-        "mean": 0.2506,
-        "std": 0.0479
+        "mean": 0.2974,
+        "std": 0.0154
+      },
+      "sota_recovers": {
+        "mean": 0.5109,
+        "std": 0.0153
       }
+    }
+  },
+  "double_black_box": {
+    "method": "double black box (boundary-ablation -> sparse mechanistic distillation)",
+    "feat_dim": 768,
+    "decoder_boundary_bal_acc": 0.7394,
+    "top_channels": [
+      56,
+      127,
+      5,
+      216,
+      247,
+      143,
+      119,
+      201,
+      157,
+      7
+    ],
+    "top_channel_importance": [
+      0.0013,
+      0.0013,
+      0.0012,
+      0.0011,
+      0.0011,
+      0.0011,
+      0.0011,
+      0.0011,
+      0.001,
+      0.001
+    ],
+    "importance_mass_top8_frac": 0.0745,
+    "mechanistic_model": {
+      "k4": {
+        "fidelity_bal_acc": 0.7952,
+        "fidelity_auc": 0.8402,
+        "vs_gt_bal_acc": 0.6168,
+        "nonzero_terms": 4
+      },
+      "k8": {
+        "fidelity_bal_acc": 0.7947,
+        "fidelity_auc": 0.854,
+        "vs_gt_bal_acc": 0.6188,
+        "nonzero_terms": 8
+      },
+      "k16": {
+        "fidelity_bal_acc": 0.7969,
+        "fidelity_auc": 0.8598,
+        "vs_gt_bal_acc": 0.6281,
+        "nonzero_terms": 9
+      },
+      "decoder_boundary_bal_acc": 0.7394,
+      "best_fidelity_bal_acc": 0.7969
     }
   }
 }
