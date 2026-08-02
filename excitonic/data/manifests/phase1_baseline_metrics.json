@@ -143,6 +143,6 @@
   },
   "notes": [
     "Saved full-data ensembles to models/phase1_baseline_ensemble.joblib",
-    "Wrote figures/phase1_parity.png"
+    "figure skipped: No module named 'matplotlib'"
   ]
 }
