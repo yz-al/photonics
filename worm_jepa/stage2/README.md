@@ -74,6 +74,31 @@ python -c "import discover; print(discover.eval_program('candidates/gen4_tuned.p
 python llm_evolve.py --generations 12
 ```
 
+## Is stage 2 (the AlphaEvolve loop) good enough?
+
+We stress-tested this on the synthetic testbed with a diagnostic (`experiment.py`)
+and a data sweep (`experiment_scale.py`). Key finding: the modest single-frame
+score (0.197) was an **input** problem, not a **search** problem. Predicting the
+delta from one frame is phase-ambiguous (you can't tell an oscillator's
+direction from a snapshot), so *every* method caps ~0.27 there; three frames of
+history takes any method to ~0.80.
+
+Given that fair input, the AlphaEvolve loop is good enough — it beats the
+brute-force baselines on both metrics:
+
+| model (input) | pred_r2 | struct_corr |
+|---|---|---|
+| AlphaEvolve `tgen1_velocity` (3-frame) | **0.818** | **0.248** |
+| ridge (3-frame) | 0.802 | — |
+| MLP (3-frame) | 0.782 | — |
+| AlphaEvolve `gen4` (single frame) | 0.197 | 0.239 |
+
+`candidates_temporal/` holds the temporal-input programs; evaluate with
+`discover.get_problem(lags=3)`. Data-lever result: prediction saturates almost
+immediately with data (temporal *extraction* is the lever), but connectome
+recovery (`struct_corr`) keeps climbing with more worms (0.10→0.30 over 10→320)
+— structure recovery is the data-hungry part.
+
 ## Honest caveats
 
 - The delta is only partially predictable from a single frame (oscillator phase

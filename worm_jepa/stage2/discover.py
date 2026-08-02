@@ -49,22 +49,30 @@ def softplus(z):
     return np.log1p(np.exp(-np.abs(z))) + np.maximum(z, 0.0)
 
 
-def get_problem(n_worms=60, N=48, T=512, seed=0):
+def get_problem(n_worms=60, N=48, T=512, seed=0, lags=1):
+    """
+    Build (state -> delta) pairs. lags=1 gives a single frame x[t] as input
+    (the hard, phase-ambiguous target). lags=k stacks [x[t], x[t-1], ..., x[t-k+1]]
+    so the input carries velocity/history -- the fair operating point for stage 2.
+    The prediction target is always the delta x[t+1]-x[t]; N stays the output width.
+    """
     worms, names, gt = make_synthetic_worms(n_worms=n_worms, N=N, T=T, seed=seed)
     Xs, Ds, wid = [], [], []
     for i, w in enumerate(worms):
         a = w.activity
-        Xs.append(a[:-1]); Ds.append(a[1:] - a[:-1]); wid.append(np.full(len(a) - 1, i))
-    X = np.concatenate(Xs).astype(np.float64)
-    D = np.concatenate(Ds).astype(np.float64)
-    wid = np.concatenate(wid)
+        for t in range(lags - 1, len(a) - 1):
+            Xs.append(np.concatenate([a[t - j] for j in range(lags)]))   # [x_t, x_{t-1}, ...]
+            Ds.append(a[t + 1] - a[t]); wid.append(i)
+    X = np.asarray(Xs, dtype=np.float64)
+    D = np.asarray(Ds, dtype=np.float64)
+    wid = np.asarray(wid)
     n_test_worms = max(1, n_worms // 4)
     test_worms = set(range(n_worms - n_test_worms, n_worms))
     te = np.array([w in test_worms for w in wid])
     coupling = np.abs(gt["neuron_coupling"]).astype(np.float64)
     return {
         "Xtr": X[~te], "Dtr": D[~te], "Xte": X[te], "Dte": D[te],
-        "coupling": coupling, "N": N, "gt": gt,
+        "coupling": coupling, "N": N, "lags": lags, "gt": gt,
     }
 
 
@@ -101,7 +109,9 @@ def evaluate(build, prob, time_budget=20.0):
             return {"ok": False, "reason": "bad output shape/nan", "pred_r2": -9.9}
         r2 = _r2(prob["Dte"], Dhat)
         A = effective_operator(predict, prob["Xte"])
-        sc = struct_corr(A, prob["coupling"])
+        # with lags the operator is (lags*N, N); the instantaneous coupling lives
+        # in the x[t] block (first N rows).
+        sc = struct_corr(A[: prob["N"]], prob["coupling"])
         return {"ok": True, "pred_r2": r2, "struct_corr": sc,
                 "seconds": round(time.time() - t0, 2)}
     except Exception as e:
