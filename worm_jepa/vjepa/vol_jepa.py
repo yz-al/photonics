@@ -44,6 +44,10 @@ BATCH = int(os.environ.get("WORM_VOL_BATCH", "8"))
 # VICReg weight is too weak to prevent collapse on its own (which is what happened
 # at dim-256: std fell to ~0.01). Data2vec/BYOL-style target normalization.
 TGT_STD = os.environ.get("WORM_VOL_TGT_STD", "1") == "1"
+# EMA target momentum. Slower target (closer to 1) is a BYOL-style collapse guard:
+# the target can't chase the online net into a low-variance basin. Default keeps the
+# prior 0.996 for comparability; the super run bumps it toward 0.998.
+EMA_M = float(os.environ.get("WORM_VOL_EMA", "0.996"))
 # Dense-feature JEPA (V-JEPA-2.1-style, the two applicable techniques):
 #  (1) DEEP self-supervision -- the feature grid concatenates the last FEAT_LAYERS
 #      encoder blocks' fine-token outputs (not just the final layer), so local
@@ -195,7 +199,7 @@ def train_vol_jepa(tr_raw, steps, rng=None):
         opt.zero_grad(); loss.backward(); opt.step()
         with torch.no_grad():
             for pe, pt in zip(enc.parameters(), tgt.parameters()):
-                pt.mul_(0.996).add_(pe, alpha=0.004)
+                pt.mul_(EMA_M).add_(pe, alpha=1.0 - EMA_M)
         std_hist.append(on_std)
         if (step + 1) % max(1, steps // 5) == 0:
             print(f"[vol] step {step+1}/{steps} loss={float(loss.detach()):.4f} std={on_std:.3f}", flush=True)

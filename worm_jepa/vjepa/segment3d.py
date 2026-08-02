@@ -333,10 +333,11 @@ def main():
     # ---- multi-seed loop (mean +- std) ----
     SOURCES = ["jepa", "random", "raw", "sota"]
     DBB = os.environ.get("WORM_S3_DBB", "0") == "1"       # double black box analysis
+    EDGE = os.environ.get("WORM_S3_EDGE", "0") == "1"     # sota edge-case (failure) analysis
     le_acc = {s: {key: [] for key, _, _ in BUDGETS} for s in SOURCES}
     es_acc = {"all_offsets": [], "long_range_merge_edges": []}
     std_finals = []
-    dbb_res = None
+    dbb_res = None; edge_res = None
     for seed in SEEDS:
         torch.manual_seed(seed)
         enc = V.train_vol_jepa(tr_raw, JEPA_STEPS, np.random.default_rng(seed))
@@ -348,6 +349,10 @@ def main():
         # (from scratch) and jepa (SSL). Answers "should we use SOTA on base?".
         sota_base = train_dec("sota", None, full_pool)
         sota_init = sota_base.state_dict()
+        if EDGE and edge_res is None:                     # failure analysis of the SOTA base
+            import sota_edge_cases as EDGEM
+            edge_res = EDGEM.run(sota_base, enc, te_subs, te_gt, V.feature_grid, OFFS, len(SHORT), DEV)
+            print(f"[s3d] sota_edge_cases={edge_res}", flush=True)
         full_preds = {}
         for source in SOURCES:
             for key, kind, B in BUDGETS:
@@ -390,6 +395,8 @@ def main():
            "error_set_analysis": {k: agg(es_acc[k]) for k in es_acc}}
     if dbb_res is not None:
         res["double_black_box"] = dbb_res
+    if edge_res is not None:
+        res["sota_edge_cases"] = edge_res
     print(json.dumps(res, indent=2))
     with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
         json.dump(res, f, indent=2)
