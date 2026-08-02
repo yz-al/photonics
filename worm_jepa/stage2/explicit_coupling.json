@@ -1,0 +1,25 @@
+{
+  "reference_old_effective_operator": 0.35,
+  "reference_literature_eff_vs_struct": 0.49,
+  "fixed_covariance_coupling_TRANSFERABLE": {
+    "pred_r2": 0.7866,
+    "struct_corr": 0.6837
+  },
+  "exp_corrected_coupling_SYNTHETIC_ONLY": {
+    "pred_r2": 0.7832,
+    "struct_corr": 0.8063,
+    "note": "exp inverts the softplus generator nonlinearity; a prior tuned to the synthetic observation model. On real data the calcium (GCaMP) nonlinearity differs and must be estimated."
+  },
+  "learned_lowrank_symmetric_r4": {
+    "pred_r2": 0.5919,
+    "struct_corr": 0.5395
+  },
+  "learned_lowrank_symmetric_r6": {
+    "pred_r2": 0.6979,
+    "struct_corr": 0.6515
+  },
+  "learned_lowrank_symmetric_r8": {
+    "pred_r2": 0.7582,
+    "struct_corr": 0.6625
+  }
+}

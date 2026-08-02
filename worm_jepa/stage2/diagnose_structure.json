@@ -1,0 +1,10 @@
+{
+  "corr": 0.6491,
+  "cov": 0.6837,
+  "partial_corr": 0.5121,
+  "corr_lowrank_r6": 0.6399,
+  "cov_lowrank_r6": 0.6763,
+  "corr_lowrank_r12": 0.6465,
+  "reference_effective_operator": 0.35,
+  "reference_literature_eff_vs_struct": 0.49
+}
