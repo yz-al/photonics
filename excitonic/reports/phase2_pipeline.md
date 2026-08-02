@@ -31,8 +31,15 @@ seed select ──► structures ──►  QE  e-ph chain:  pw.x → ph.x → e
 | Model Γ estimate | `frohlich.py` (`frohlich_model`) | ✅ |
 | Model U estimate | `exciton_u.py` (`saturation_model`) | ✅ |
 | FOM w/ provenance | `fom.py` | ✅ |
-| Modal QE+BGW image | `modal_phase2.py` (`smoke_test`) | ▶ dispatch |
+| Modal QE image (Γ branch) | `modal_phase2.py` (`smoke_test`) | ✅ Modal-verified |
+| Modal BerkeleyGW (U branch) | source-build add-on | ⏸ opt-in build |
 | Production Γ/U labels | `modal_phase2.py::label_material` | ⏸ structure+pseudo-gated |
+
+**Modal smoke test (verified, `data/manifests/phase2_smoke.json`):** the QE/EPW Γ
+branch is live on Modal — `pw.x`, `ph.x`, `epw.x`, `pw2bgw.x`, and `mpirun` all
+present (`qe_ok=True`, `epw_branch_ok=True`). BerkeleyGW binaries are absent
+(`bgw_branch_ok=False`) — reported honestly; that branch is the opt-in source
+build.
 
 ## Seed set (`data/manifests/phase2_seed_set.json`)
 
