@@ -331,6 +331,333 @@
         ]
       },
       "illumination_baseline_coherent": 0.9491
+    },
+    "cifar10": {
+      "M": 48,
+      "in_side": 32,
+      "seeds": [
+        0
+      ],
+      "controls": {
+        "no_mask_zero": {
+          "mean": 0.3288,
+          "std": 0.0,
+          "per_seed": [
+            0.3288
+          ]
+        },
+        "random_frozen_mask": {
+          "mean": 0.3458,
+          "std": 0.0,
+          "per_seed": [
+            0.3458
+          ]
+        },
+        "trained_d2nn": {
+          "mean": 0.3405,
+          "std": 0.0,
+          "per_seed": [
+            0.3405
+          ]
+        },
+        "mask_uplift_over_nomask": 0.011700000000000044,
+        "mask_uplift_over_random": -0.005299999999999971
+      },
+      "illumination": {
+        "wavelength_delta": [
+          {
+            "pt": -0.1,
+            "mean": 0.2304,
+            "std": 0.0,
+            "per_seed": [
+              0.2304
+            ]
+          },
+          {
+            "pt": -0.05,
+            "mean": 0.2349,
+            "std": 0.0,
+            "per_seed": [
+              0.2349
+            ]
+          },
+          {
+            "pt": -0.02,
+            "mean": 0.2456,
+            "std": 0.0,
+            "per_seed": [
+              0.2456
+            ]
+          },
+          {
+            "pt": 0.0,
+            "mean": 0.3405,
+            "std": 0.0,
+            "per_seed": [
+              0.3405
+            ]
+          },
+          {
+            "pt": 0.02,
+            "mean": 0.2377,
+            "std": 0.0,
+            "per_seed": [
+              0.2377
+            ]
+          },
+          {
+            "pt": 0.05,
+            "mean": 0.2344,
+            "std": 0.0,
+            "per_seed": [
+              0.2344
+            ]
+          },
+          {
+            "pt": 0.1,
+            "mean": 0.2099,
+            "std": 0.0,
+            "per_seed": [
+              0.2099
+            ]
+          }
+        ],
+        "coherence_K": [
+          {
+            "pt": 0,
+            "mean": 0.3405,
+            "std": 0.0,
+            "per_seed": [
+              0.3405
+            ]
+          },
+          {
+            "pt": 1,
+            "mean": 0.1039,
+            "std": 0.0,
+            "per_seed": [
+              0.1039
+            ]
+          },
+          {
+            "pt": 2,
+            "mean": 0.1029,
+            "std": 0.0,
+            "per_seed": [
+              0.1029
+            ]
+          },
+          {
+            "pt": 4,
+            "mean": 0.1005,
+            "std": 0.0,
+            "per_seed": [
+              0.1005
+            ]
+          },
+          {
+            "pt": 8,
+            "mean": 0.1002,
+            "std": 0.0,
+            "per_seed": [
+              0.1002
+            ]
+          },
+          {
+            "pt": 16,
+            "mean": 0.1,
+            "std": 0.0,
+            "per_seed": [
+              0.1
+            ]
+          }
+        ],
+        "defocus_delta": [
+          {
+            "pt": -0.2,
+            "mean": 0.2552,
+            "std": 0.0,
+            "per_seed": [
+              0.2552
+            ]
+          },
+          {
+            "pt": -0.1,
+            "mean": 0.2217,
+            "std": 0.0,
+            "per_seed": [
+              0.2217
+            ]
+          },
+          {
+            "pt": -0.05,
+            "mean": 0.2277,
+            "std": 0.0,
+            "per_seed": [
+              0.2277
+            ]
+          },
+          {
+            "pt": 0.0,
+            "mean": 0.3405,
+            "std": 0.0,
+            "per_seed": [
+              0.3405
+            ]
+          },
+          {
+            "pt": 0.05,
+            "mean": 0.2375,
+            "std": 0.0,
+            "per_seed": [
+              0.2375
+            ]
+          },
+          {
+            "pt": 0.1,
+            "mean": 0.2169,
+            "std": 0.0,
+            "per_seed": [
+              0.2169
+            ]
+          },
+          {
+            "pt": 0.2,
+            "mean": 0.2266,
+            "std": 0.0,
+            "per_seed": [
+              0.2266
+            ]
+          }
+        ],
+        "pose_translate_px": [
+          {
+            "pt": 0,
+            "mean": 0.3405,
+            "std": 0.0,
+            "per_seed": [
+              0.3405
+            ]
+          },
+          {
+            "pt": 1,
+            "mean": 0.3269,
+            "std": 0.0,
+            "per_seed": [
+              0.3269
+            ]
+          },
+          {
+            "pt": 2,
+            "mean": 0.315,
+            "std": 0.0,
+            "per_seed": [
+              0.315
+            ]
+          },
+          {
+            "pt": 3,
+            "mean": 0.2935,
+            "std": 0.0,
+            "per_seed": [
+              0.2935
+            ]
+          },
+          {
+            "pt": 4,
+            "mean": 0.257,
+            "std": 0.0,
+            "per_seed": [
+              0.257
+            ]
+          }
+        ],
+        "pose_rotate_deg": [
+          {
+            "pt": 0,
+            "mean": 0.3405,
+            "std": 0.0,
+            "per_seed": [
+              0.3405
+            ]
+          },
+          {
+            "pt": 5,
+            "mean": 0.3339,
+            "std": 0.0,
+            "per_seed": [
+              0.3339
+            ]
+          },
+          {
+            "pt": 10,
+            "mean": 0.3185,
+            "std": 0.0,
+            "per_seed": [
+              0.3185
+            ]
+          },
+          {
+            "pt": 15,
+            "mean": 0.2992,
+            "std": 0.0,
+            "per_seed": [
+              0.2992
+            ]
+          },
+          {
+            "pt": 20,
+            "mean": 0.2772,
+            "std": 0.0,
+            "per_seed": [
+              0.2772
+            ]
+          }
+        ],
+        "pose_scale": [
+          {
+            "pt": 1.0,
+            "mean": 0.3405,
+            "std": 0.0,
+            "per_seed": [
+              0.3405
+            ]
+          },
+          {
+            "pt": 0.9,
+            "mean": 0.3187,
+            "std": 0.0,
+            "per_seed": [
+              0.3187
+            ]
+          },
+          {
+            "pt": 1.1,
+            "mean": 0.3336,
+            "std": 0.0,
+            "per_seed": [
+              0.3336
+            ]
+          },
+          {
+            "pt": 0.8,
+            "mean": 0.3033,
+            "std": 0.0,
+            "per_seed": [
+              0.3033
+            ]
+          },
+          {
+            "pt": 1.2,
+            "mean": 0.3193,
+            "std": 0.0,
+            "per_seed": [
+              0.3193
+            ]
+          }
+        ]
+      },
+      "illumination_baseline_coherent": 0.3405
     }
   }
 }

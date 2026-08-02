@@ -1573,8 +1573,11 @@ is order-of-magnitude, not marginal.) Two questions, both answered against the D
 
 The trained mask beats bare free-space blur by **+1.1 pt** and is **−1.2 pt *worse* than a random
 frozen diffuser.** So the classifier is the linear readout on blurred intensity; the trained
-diffractive optics contributes essentially nothing — "37% on CIFAR" (and 95% on MNIST) is blur + a
-linear head, exactly the control the reviewer asked for.
+diffractive optics contributes essentially nothing. **CIFAR-10 confirms it directly:** no-mask
+**32.9%**, random frozen mask **34.6%**, trained D²NN **34.1%** — the trained net is **+1.2 pt** over
+bare blur and again *below* a random diffuser, so the reviewer's exact prediction holds: "37% on
+CIFAR cannot be distinguished from blur plus a linear readout." Both datasets: the mask is not the
+classifier. (Illumination collapse reproduces on CIFAR too — incoherent light 34%→10% chance.)
 
 *Do the numbers survive realistic illumination?* (illumination gate on the trained D²NN; coherent
 baseline 94.9%)
