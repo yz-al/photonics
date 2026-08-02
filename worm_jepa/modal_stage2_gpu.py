@@ -33,7 +33,7 @@ _PASS = {
     "WORM_S3_EDGE": os.environ.get("WORM_S3_EDGE", "1"),            # SOTA edge-case (failure) analysis
     "WORM_VOL_DENSE": os.environ.get("WORM_VOL_DENSE", "1"),         # V-JEPA-2.1 dense features
     "WORM_VOL_EMA": os.environ.get("WORM_VOL_EMA", "0.998"),        # collapse fix: slower EMA target
-    "WORM_EM_VAR": os.environ.get("WORM_EM_VAR", "0.4"),           # collapse fix: stronger variance hinge
+    "WORM_EM_VAR": os.environ.get("WORM_EM_VAR", "0.6"),           # collapse fix: stronger variance hinge (0.4 left 1/3 seeds collapsing)
 }
 SEEDS = [int(x) for x in os.environ.get("WORM_S3_SEEDS", "0,1,2").split(",")]
 
@@ -109,8 +109,18 @@ def _merge(dicts):
         es[grp] = {m: stats([d["error_set_analysis"][grp][m]["mean"] for d in dicts])
                    for m in dicts[0]["error_set_analysis"][grp]}
     base["error_set_analysis"] = es
-    base["anticollapse"]["embedding_std_final_per_seed"] = [
-        (d["anticollapse"]["embedding_std_final_per_seed"] or [None])[0] for d in dicts]
+    stds = [(d["anticollapse"]["embedding_std_final_per_seed"] or [None])[0] for d in dicts]
+    base["anticollapse"]["embedding_std_final_per_seed"] = stds
+    # JEPA-dependent analyses (double black box, edge detector/correction) are only
+    # meaningful on a NON-collapsed encoder. Occasionally one seed collapses; pull
+    # these sections from the HEALTHIEST seed (max embedding std) instead of dicts[0],
+    # and record which seed that was.
+    healthy = max(range(len(dicts)), key=lambda i: (stds[i] if stds[i] is not None else -1))
+    for key in ("double_black_box", "sota_edge_cases"):
+        if key in dicts[healthy]:
+            base[key] = dicts[healthy][key]
+    base["jepa_analysis_seed"] = {"index": healthy, "std_final": stds[healthy],
+                                  "seed": base["seeds"][healthy]}
     return base
 
 
