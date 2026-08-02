@@ -82,147 +82,279 @@
     "coarse_drop": 0.5,
     "target_std": true,
     "embedding_std_final_per_seed": [
-      0.3594,
-      0.1167,
-      0.3911
+      0.8007,
+      0.8851,
+      0.8865
     ]
   },
   "label_efficiency": {
     "jepa": {
       "1": {
         "affinity_acc": {
-          "mean": 0.7848,
-          "std": 0.0236
+          "mean": 0.8111,
+          "std": 0.0065
         },
         "VOI": {
-          "mean": 4.1863,
-          "std": 0.0813
+          "mean": 3.8852,
+          "std": 0.2615
         },
         "adapted_rand_error": {
-          "mean": 0.707,
-          "std": 0.0472
+          "mean": 0.7069,
+          "std": 0.0265
         },
         "ERL_proxy": {
-          "mean": 116.8626,
-          "std": 11.9502
+          "mean": 118.2922,
+          "std": 13.9892
         },
         "n_segments": {
-          "mean": 1294.3333,
-          "std": 433.2208
+          "mean": 524.8889,
+          "std": 210.1168
         }
       },
       "16": {
         "affinity_acc": {
-          "mean": 0.7728,
-          "std": 0.008
+          "mean": 0.7859,
+          "std": 0.0227
         },
         "VOI": {
-          "mean": 3.1994,
-          "std": 0.0609
+          "mean": 3.5642,
+          "std": 0.2455
         },
         "adapted_rand_error": {
-          "mean": 0.4232,
-          "std": 0.0212
+          "mean": 0.5229,
+          "std": 0.1101
         },
         "ERL_proxy": {
-          "mean": 108.4763,
-          "std": 1.905
+          "mean": 115.5807,
+          "std": 14.1805
         },
         "n_segments": {
-          "mean": 2078.5556,
-          "std": 83.4876
+          "mean": 1684.7778,
+          "std": 437.26
+        }
+      },
+      "sparse500": {
+        "affinity_acc": {
+          "mean": 0.7854,
+          "std": 0.0267
+        },
+        "VOI": {
+          "mean": 4.7206,
+          "std": 0.4367
+        },
+        "adapted_rand_error": {
+          "mean": 0.763,
+          "std": 0.0264
+        },
+        "ERL_proxy": {
+          "mean": 90.0756,
+          "std": 21.231
+        },
+        "n_segments": {
+          "mean": 180.0,
+          "std": 131.258
+        }
+      },
+      "sparse5000": {
+        "affinity_acc": {
+          "mean": 0.804,
+          "std": 0.0123
+        },
+        "VOI": {
+          "mean": 4.8788,
+          "std": 0.256
+        },
+        "adapted_rand_error": {
+          "mean": 0.774,
+          "std": 0.0158
+        },
+        "ERL_proxy": {
+          "mean": 68.6823,
+          "std": 11.9738
+        },
+        "n_segments": {
+          "mean": 100.4444,
+          "std": 21.5979
         }
       }
     },
     "random": {
       "1": {
         "affinity_acc": {
-          "mean": 0.7927,
-          "std": 0.0139
+          "mean": 0.7207,
+          "std": 0.0834
         },
         "VOI": {
-          "mean": 3.4401,
-          "std": 0.4105
+          "mean": 3.9025,
+          "std": 0.7017
         },
         "adapted_rand_error": {
-          "mean": 0.5447,
-          "std": 0.0997
+          "mean": 0.6305,
+          "std": 0.179
         },
         "ERL_proxy": {
-          "mean": 109.544,
-          "std": 5.8308
+          "mean": 104.3042,
+          "std": 16.0169
         },
         "n_segments": {
-          "mean": 1650.8889,
-          "std": 311.2544
+          "mean": 1095.6667,
+          "std": 837.8231
         }
       },
       "16": {
         "affinity_acc": {
-          "mean": 0.7744,
-          "std": 0.0032
+          "mean": 0.7825,
+          "std": 0.0074
         },
         "VOI": {
-          "mean": 3.2607,
-          "std": 0.2964
+          "mean": 2.7782,
+          "std": 0.1841
         },
         "adapted_rand_error": {
-          "mean": 0.4289,
-          "std": 0.076
+          "mean": 0.314,
+          "std": 0.0432
         },
         "ERL_proxy": {
-          "mean": 109.0207,
-          "std": 3.8999
+          "mean": 109.2422,
+          "std": 2.1005
         },
         "n_segments": {
-          "mean": 1954.4445,
-          "std": 60.8047
+          "mean": 2054.7778,
+          "std": 49.0203
+        }
+      },
+      "sparse500": {
+        "affinity_acc": {
+          "mean": 0.8057,
+          "std": 0.0164
+        },
+        "VOI": {
+          "mean": 5.0495,
+          "std": 0.8193
+        },
+        "adapted_rand_error": {
+          "mean": 0.7777,
+          "std": 0.0665
+        },
+        "ERL_proxy": {
+          "mean": 69.3082,
+          "std": 27.6936
+        },
+        "n_segments": {
+          "mean": 184.1111,
+          "std": 144.1518
+        }
+      },
+      "sparse5000": {
+        "affinity_acc": {
+          "mean": 0.7846,
+          "std": 0.0169
+        },
+        "VOI": {
+          "mean": 3.7851,
+          "std": 0.3523
+        },
+        "adapted_rand_error": {
+          "mean": 0.6488,
+          "std": 0.0682
+        },
+        "ERL_proxy": {
+          "mean": 117.4512,
+          "std": 4.3888
+        },
+        "n_segments": {
+          "mean": 1102.7778,
+          "std": 110.2026
         }
       }
     },
     "raw": {
       "1": {
         "affinity_acc": {
-          "mean": 0.8332,
-          "std": 0.0019
+          "mean": 0.8411,
+          "std": 0.0058
         },
         "VOI": {
-          "mean": 3.159,
-          "std": 0.2381
+          "mean": 3.1105,
+          "std": 0.0655
         },
         "adapted_rand_error": {
-          "mean": 0.4952,
-          "std": 0.0627
+          "mean": 0.488,
+          "std": 0.0364
         },
         "ERL_proxy": {
-          "mean": 116.2056,
-          "std": 0.3715
+          "mean": 113.2542,
+          "std": 1.0176
         },
         "n_segments": {
-          "mean": 1415.3333,
-          "std": 50.6776
+          "mean": 1512.7778,
+          "std": 250.5174
         }
       },
       "16": {
         "affinity_acc": {
-          "mean": 0.8394,
-          "std": 0.0102
+          "mean": 0.8383,
+          "std": 0.0107
         },
         "VOI": {
-          "mean": 2.4296,
-          "std": 0.1397
+          "mean": 2.3548,
+          "std": 0.1186
         },
         "adapted_rand_error": {
-          "mean": 0.3434,
-          "std": 0.0198
+          "mean": 0.2975,
+          "std": 0.0151
         },
         "ERL_proxy": {
-          "mean": 111.6178,
-          "std": 1.401
+          "mean": 115.5704,
+          "std": 4.6221
         },
         "n_segments": {
-          "mean": 1573.4445,
-          "std": 122.1124
+          "mean": 1675.4445,
+          "std": 171.2331
+        }
+      },
+      "sparse500": {
+        "affinity_acc": {
+          "mean": 0.8104,
+          "std": 0.0039
+        },
+        "VOI": {
+          "mean": 5.756,
+          "std": 0.0609
+        },
+        "adapted_rand_error": {
+          "mean": 0.8229,
+          "std": 0.02
+        },
+        "ERL_proxy": {
+          "mean": 42.4297,
+          "std": 1.936
+        },
+        "n_segments": {
+          "mean": 165.1111,
+          "std": 10.84
+        }
+      },
+      "sparse5000": {
+        "affinity_acc": {
+          "mean": 0.829,
+          "std": 0.0045
+        },
+        "VOI": {
+          "mean": 4.9768,
+          "std": 0.068
+        },
+        "adapted_rand_error": {
+          "mean": 0.7815,
+          "std": 0.0074
+        },
+        "ERL_proxy": {
+          "mean": 62.306,
+          "std": 7.8445
+        },
+        "n_segments": {
+          "mean": 262.3333,
+          "std": 133.1841
         }
       }
     }
@@ -230,30 +362,30 @@
   "error_set_analysis": {
     "all_offsets": {
       "raw_error_rate": {
-        "mean": 0.1606,
-        "std": 0.0102
+        "mean": 0.1617,
+        "std": 0.0107
       },
       "jepa_recovers": {
-        "mean": 0.3139,
-        "std": 0.0283
+        "mean": 0.4164,
+        "std": 0.0985
       },
       "random_recovers": {
-        "mean": 0.3338,
-        "std": 0.0325
+        "mean": 0.2773,
+        "std": 0.0536
       }
     },
     "long_range_merge_edges": {
       "raw_error_rate": {
-        "mean": 0.1731,
-        "std": 0.0081
+        "mean": 0.1771,
+        "std": 0.0135
       },
       "jepa_recovers": {
-        "mean": 0.2939,
-        "std": 0.0207
+        "mean": 0.4093,
+        "std": 0.1128
       },
       "random_recovers": {
-        "mean": 0.3106,
-        "std": 0.0292
+        "mean": 0.2506,
+        "std": 0.0479
       }
     }
   }
