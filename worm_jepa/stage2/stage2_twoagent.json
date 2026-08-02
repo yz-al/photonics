@@ -1,0 +1,11 @@
+{
+  "n_nodes": 446,
+  "edge_density": 0.0495,
+  "region1_nodes": 400,
+  "region2_nodes": 46,
+  "query_budget": 1500,
+  "rounds": 5,
+  "two_agent_committee_test_AUC": 0.5154,
+  "single_agent_test_AUC": 0.5146,
+  "committee_total_labels": 2300
+}
