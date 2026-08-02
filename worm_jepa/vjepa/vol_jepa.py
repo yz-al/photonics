@@ -44,6 +44,17 @@ BATCH = int(os.environ.get("WORM_VOL_BATCH", "8"))
 # VICReg weight is too weak to prevent collapse on its own (which is what happened
 # at dim-256: std fell to ~0.01). Data2vec/BYOL-style target normalization.
 TGT_STD = os.environ.get("WORM_VOL_TGT_STD", "1") == "1"
+# Dense-feature JEPA (V-JEPA-2.1-style, the two applicable techniques):
+#  (1) DEEP self-supervision -- the feature grid concatenates the last FEAT_LAYERS
+#      encoder blocks' fine-token outputs (not just the final layer), so local
+#      information reaches the features used for dense per-voxel prediction.
+#  (2) DENSE predictive loss -- supervise the VISIBLE context tokens too (match
+#      their standardized target reps), not only the masked block, so every token
+#      gets a spatially-grounded target instead of only globally-good features.
+DENSE = os.environ.get("WORM_VOL_DENSE", "1") == "1"
+FEAT_LAYERS = int(os.environ.get("WORM_VOL_FEAT_LAYERS", "3"))
+FEAT_DIM = DIM * FEAT_LAYERS if DENSE else DIM              # decoder input channels
+DENSE_W = float(os.environ.get("WORM_VOL_DENSE_W", "1.0"))  # dense context-loss weight
 
 
 # ---------------- 3D patchify ----------------
@@ -112,6 +123,17 @@ class VolHierEncoder(nn.Module):
         x = self.norm(x)
         return x[:, :fine_tok.shape[1]], x[:, fine_tok.shape[1]:]
 
+    def feat_layers(self, fine_tok, coarse_tok):
+        """Deep self-supervision: concat the last FEAT_LAYERS blocks' fine-token
+        outputs (each layer-normed) -> (B, NF_in, DIM*FEAT_LAYERS). Dense features."""
+        nf = fine_tok.shape[1]
+        x = torch.cat([fine_tok, coarse_tok], 1)
+        outs = []
+        for b in self.blocks:
+            x = b(x)
+            outs.append(x[:, :nf])
+        return torch.cat([self.norm(o) for o in outs[-FEAT_LAYERS:]], -1)
+
 
 class VolPredictor(nn.Module):
     def __init__(self, d=DIM, depth=3):
@@ -160,13 +182,16 @@ def train_vol_jepa(tr_raw, steps, rng=None):
             ctx, ctx_ids = torch.cat([fo, co], 1), torch.cat([fctx, cctx], 1)
         with torch.no_grad():
             tf, _ = tgt(tgt.tok_fine(pf), tgt.tok_coarse(pc))
-            target = torch.gather(tf, 1, ftgt[:, :, None].expand(-1, -1, DIM))
             if TGT_STD:                                   # collapse fix: unit-variance targets
-                target = (target - target.mean((0, 1), keepdim=True)) / (target.std((0, 1), keepdim=True) + 1e-4)
+                tf = (tf - tf.mean((0, 1), keepdim=True)) / (tf.std((0, 1), keepdim=True) + 1e-4)
+            target = torch.gather(tf, 1, ftgt[:, :, None].expand(-1, -1, DIM))
+            tgt_ctx = torch.gather(tf, 1, fctx[:, :, None].expand(-1, -1, DIM))  # dense: context targets
         var_l, cov_l, on_std = vicreg_terms(fo.reshape(-1, DIM))
         loss = F.smooth_l1_loss(pred(ctx, ctx_ids, ftgt), target) + VAR_COEF * var_l + COV_COEF * cov_l
         if FINE_AUX > 0 and not drop:
             loss = loss + FINE_AUX * F.smooth_l1_loss(pred(fo, fctx, ftgt), target)
+        if DENSE:                                         # dense predictive loss on VISIBLE tokens
+            loss = loss + DENSE_W * F.smooth_l1_loss(fo, tgt_ctx)
         opt.zero_grad(); loss.backward(); opt.step()
         with torch.no_grad():
             for pe, pt in zip(enc.parameters(), tgt.parameters()):
@@ -183,7 +208,12 @@ def train_vol_jepa(tr_raw, steps, rng=None):
 
 @torch.no_grad()
 def feature_grid(encoder, subvol):
-    """subvol:(ZC,CROP,CROP) -> fine features (DIM, GZF, GF, GF)."""
+    """subvol:(ZC,CROP,CROP) -> fine features (FEAT_DIM, GZF, GF, GF). Dense mode
+    concatenates the last FEAT_LAYERS encoder blocks (deep self-supervision)."""
     x = torch.tensor(subvol, device=DEV)[None].float()
-    fo, _ = encoder(encoder.tok_fine(patch_fine(x)), encoder.tok_coarse(patch_coarse(x)))
-    return fo.reshape(GZF, GF, GF, DIM).permute(3, 0, 1, 2)
+    tf, tc = encoder.tok_fine(patch_fine(x)), encoder.tok_coarse(patch_coarse(x))
+    if DENSE:
+        fo = encoder.feat_layers(tf, tc)                  # (1, NF, DIM*FEAT_LAYERS)
+    else:
+        fo, _ = encoder(tf, tc)
+    return fo.reshape(GZF, GF, GF, FEAT_DIM).permute(3, 0, 1, 2)

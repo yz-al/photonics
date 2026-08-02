@@ -57,7 +57,7 @@ class FeatAff3D(nn.Module):
     is how a pretrained backbone is actually used for dense prediction -- features
     supply learned context, the raw skip supplies resolution the 16px patches lack.
     The comparison then asks: does JEPA context add value ON TOP of raw pixels?"""
-    def __init__(self, d=DIM):
+    def __init__(self, d=V.FEAT_DIM):                    # dense features -> wider input
         super().__init__()
         self.up = nn.Sequential(
             nn.Conv3d(d, 128, 3, padding=1), nn.GELU(),
