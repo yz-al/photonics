@@ -46,10 +46,16 @@ app = modal.App("worm-jepa")
 @app.function(gpu="A10G", image=image, timeout=7200)
 def run() -> str:
     import io
+    import sys
     import tarfile
     import runpy
 
     os.chdir("/root/worm_jepa")
+    # runpy.run_path does not add the script's dir to sys.path (unlike
+    # `python x.py`), so the intra-package `from data import ...` imports would
+    # fail. Put the package dir on the path explicitly.
+    if "/root/worm_jepa" not in sys.path:
+        sys.path.insert(0, "/root/worm_jepa")
     os.environ["WORM_JEPA_DEVICE"] = "cuda"
     os.environ["WORM_JEPA_OUT"] = "/root/worm_jepa/artifacts"
 

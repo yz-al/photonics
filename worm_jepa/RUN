@@ -1,2 +1,2 @@
-run 1 — 7d6c514
-trigger the Modal GPU benchmark (flat vs hier JEPA vs forecaster) + train/extract
+run 2 — 021620
+fix: add package dir to sys.path in modal_app so runpy imports resolve
