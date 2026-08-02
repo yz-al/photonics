@@ -65,12 +65,11 @@ def run() -> str:
     os.makedirs(art, exist_ok=True)
 
     stages = [
-        # CREMI hierarchical EM-JEPA: perception scored on connectome-relevant tasks
-        # (neuron boundaries + synaptic clefts), not mitochondria.
+        # CREMI hierarchical EM-JEPA with VICReg anti-collapse regularisation.
+        # (AlphaZero self-play is already confirmed a converged negative over 20k
+        # GPU episodes -- not re-run here.)
         ("/root/worm_jepa/vjepa/hier_em_jepa.py",
          "/root/worm_jepa/vjepa/hier_em_jepa.json", "hier_em_jepa.json"),
-        ("/root/worm_jepa/stage2/stage2_alphazero.py",
-         "/root/worm_jepa/stage2/stage2_alphazero.json", "stage2_alphazero_gpu.json"),
     ]
     failures = []
     for script, out_json, art_name in stages:

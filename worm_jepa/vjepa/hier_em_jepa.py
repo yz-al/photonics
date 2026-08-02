@@ -48,7 +48,46 @@ STEPS = int(os.environ.get("WORM_EM_STEPS", "4000"))
 BATCH = int(os.environ.get("WORM_EM_BATCH", "64"))
 SAMPLES = os.environ.get("WORM_CREMI_SAMPLES", "A").split(",")
 
+# Anti-collapse (LeCun's three families for JEPA SSL):
+#  1. contrastive        -- explicit negatives (WORM_EM_CONTRAST > 0 turns on an
+#                           InfoNCE term over the batch; off by default).
+#  2. distillation       -- EMA target + stop-grad + predictor asymmetry (ALWAYS
+#                           on; it is the base I-JEPA recipe here).
+#  3. information-max     -- VICReg variance + covariance regularisation on the
+#                           online embeddings (WORM_EM_VAR / WORM_EM_COV). This is
+#                           the family LeCun's team champions and the principled
+#                           fix for the near-zero-loss (partial-collapse) regime.
+# The modern lineage is VICReg -> SIGReg (LeJEPA) -> VISReg; VICReg is implemented
+# here as the well-established, robust default.
+VAR_COEF = float(os.environ.get("WORM_EM_VAR", "1.0"))     # variance hinge weight
+COV_COEF = float(os.environ.get("WORM_EM_COV", "0.04"))    # covariance decorrelation weight
+CONTRAST = float(os.environ.get("WORM_EM_CONTRAST", "0.0"))  # optional InfoNCE weight
+
 CREMI_URL = "https://cremi.org/static/data/sample_{}_20160501.hdf"
+
+
+def vicreg_terms(z):
+    """VICReg variance + covariance on embeddings z:(M,D). Variance term keeps each
+    dimension's std >= 1 (prevents dimensional collapse); covariance term
+    decorrelates dimensions (prevents informational collapse). Returns
+    (var_loss, cov_loss, mean_std) -- mean_std is the collapse monitor."""
+    z = z - z.mean(0)
+    std = torch.sqrt(z.var(0) + 1e-4)
+    var_loss = torch.mean(F.relu(1.0 - std))
+    M, D = z.shape
+    cov = (z.T @ z) / max(1, M - 1)
+    cov_loss = (cov.pow(2).sum() - cov.diagonal().pow(2).sum()) / D
+    return var_loss, cov_loss, float(std.mean().detach())
+
+
+def infonce(pred, target, temp=0.1):
+    """Optional contrastive family: InfoNCE pulling each prediction to its own
+    target and pushing off the other targets in the batch (L2-normalised)."""
+    p = F.normalize(pred.mean(1), dim=-1)                  # (B,D) pooled prediction
+    t = F.normalize(target.mean(1), dim=-1)
+    logits = p @ t.T / temp
+    labels = torch.arange(p.shape[0], device=p.device)
+    return F.cross_entropy(logits, labels)
 
 
 # ---------------- data ----------------
@@ -193,7 +232,7 @@ def main():
     pred = Predictor().to(DEV)
     opt = torch.optim.AdamW(list(enc.parameters()) + list(pred.parameters()), lr=1e-3, weight_decay=0.04)
 
-    losses = []
+    losses = []; std_hist = []
     for step in range(STEPS):
         crops, _ = sample_crops(tr_raw, BATCH, rng)
         crops = torch.tensor(crops, device=DEV)
@@ -211,15 +250,22 @@ def main():
             tf, _ = tgt(tgt.tok_fine(pf), tgt.tok_coarse(pc))
             target = torch.gather(tf, 1, ftgt_id[:, :, None].expand(-1, -1, DIM))
         p = pred(ctx, ctx_ids, ftgt_id)
-        loss = F.smooth_l1_loss(p, target)
+        inv = F.smooth_l1_loss(p, target)                        # invariance (prediction)
+        var_loss, cov_loss, on_std = vicreg_terms(fo.reshape(-1, DIM))   # info-max reg
+        loss = inv + VAR_COEF * var_loss + COV_COEF * cov_loss
+        if CONTRAST > 0:
+            loss = loss + CONTRAST * infonce(p, target)
         opt.zero_grad(); loss.backward(); opt.step()
         with torch.no_grad():
             m = 0.996
             for pe, pt in zip(enc.parameters(), tgt.parameters()):
                 pt.mul_(m).add_(pe, alpha=1 - m)
-        losses.append(float(loss))
+            tgt_std = float(torch.sqrt(target.reshape(-1, DIM).var(0) + 1e-4).mean())
+        losses.append(float(inv)); std_hist.append((on_std, tgt_std))
         if (step + 1) % max(1, STEPS // 10) == 0:
-            print(f"[cremi] step {step+1}/{STEPS} loss={np.mean(losses[-STEPS//10:]):.4f}", flush=True)
+            print(f"[cremi] step {step+1}/{STEPS} inv={np.mean(losses[-STEPS//10:]):.4f} "
+                  f"online_std={on_std:.3f} target_std={tgt_std:.3f} "
+                  f"var={float(var_loss):.3f} cov={float(cov_loss):.3f}", flush=True)
 
     # ---------------- probes: boundary + synapse, patch-level ----------------
     @torch.no_grad()
@@ -271,9 +317,17 @@ def main():
         print(f"[probe:{name}] {json.dumps(out)}", flush=True)
         return out
 
+    on_s = [s[0] for s in std_hist]; tg_s = [s[1] for s in std_hist]
     res = {"device": DEV, "samples": SAMPLES, "crop": CROP, "fine_grid": GF, "coarse_grid": GC,
            "dim": DIM, "depth": DEPTH, "steps": STEPS, "batch": BATCH,
-           "final_ssl_loss": round(float(np.mean(losses[-20:])), 4),
+           "anticollapse": {"var_coef": VAR_COEF, "cov_coef": COV_COEF, "contrast_coef": CONTRAST},
+           "final_ssl_invariance_loss": round(float(np.mean(losses[-20:])), 4),
+           # collapse monitor: healthy embeddings keep std well above 0 (VICReg
+           # target ~1). Near-zero std == collapse; the earlier run had no
+           # variance term, so its ~0 loss was suspect. These make it verifiable.
+           "embedding_std_online_final": round(float(np.mean(on_s[-20:])), 4),
+           "embedding_std_target_final": round(float(np.mean(tg_s[-20:])), 4),
+           "embedding_std_online_start": round(float(np.mean(on_s[:20])), 4),
            "boundary_probe_AUC_by_labelcount": run_probe(tr_b, te_b, 0.05, "boundary"),
            "synapse_probe_AUC_by_labelcount": run_probe(tr_s, te_s, 0.001, "synapse")}
     print(json.dumps(res, indent=2))
