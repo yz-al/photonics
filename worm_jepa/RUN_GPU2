@@ -1,1 +1,1 @@
-3D re-run w/ collapse fix c3b7439: target-standardization anti-collapse, volumetric hierarchical JEPA -> 3D affinities -> mutex watershed, jepa vs random vs raw, CREMI A/B/C
+lean super run 987f9c9: 3 seeds x JEPA 5000 steps, label budgets 1/16, error-set recovery mean+/-std, collapse fix, CREMI A/B/C
