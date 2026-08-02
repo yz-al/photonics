@@ -51,30 +51,30 @@
     "cov": 0.01,
     "fine_aux": 3.0,
     "coarse_drop": 0.5,
-    "embedding_std_start": 0.0247,
-    "embedding_std_final": 0.0132
+    "embedding_std_start": 0.029,
+    "embedding_std_final": 0.275
   },
   "sources": {
     "jepa": {
-      "affinity_acc": 0.8206,
-      "VOI": 2.1134,
-      "adapted_rand_error": 0.3042,
-      "ERL_proxy": 119.0,
-      "n_segments": 544.7
+      "affinity_acc": 0.8137,
+      "VOI": 2.4867,
+      "adapted_rand_error": 0.3671,
+      "ERL_proxy": 120.0,
+      "n_segments": 453.7
     },
     "random": {
-      "affinity_acc": 0.7312,
-      "VOI": 3.0612,
-      "adapted_rand_error": 0.382,
-      "ERL_proxy": 96.3,
-      "n_segments": 594.3
+      "affinity_acc": 0.7882,
+      "VOI": 2.3308,
+      "adapted_rand_error": 0.2751,
+      "ERL_proxy": 115.1,
+      "n_segments": 596.3
     },
     "raw": {
-      "affinity_acc": 0.8368,
-      "VOI": 1.9792,
-      "adapted_rand_error": 0.2316,
-      "ERL_proxy": 111.0,
-      "n_segments": 664.0
+      "affinity_acc": 0.8459,
+      "VOI": 2.0024,
+      "adapted_rand_error": 0.2499,
+      "ERL_proxy": 110.7,
+      "n_segments": 708.3
     }
   }
 }
