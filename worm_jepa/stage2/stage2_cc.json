@@ -1,0 +1,9 @@
+{
+  "n_core_neurons": 40,
+  "n_worms": 20,
+  "n_connectome_edges": 276,
+  "none": 0.5632,
+  "dense": 0.6041,
+  "connectome": 0.5845,
+  "shuffled": 0.5838
+}
