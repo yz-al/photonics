@@ -219,16 +219,25 @@ K_POINTS automatic
     open(os.path.join(wd, "scf.in"), "w").write(scf)
     open(os.path.join(wd, "ph.in"), "w").write(ph)
 
+    # Modal containers run as root; OpenMPI refuses that without the flag. Also
+    # allow oversubscription in case the slot count is below -np.
+    MPI = ["mpirun", "--allow-run-as-root", "--oversubscribe", "-np", str(N_CORES)]
+
     def run(cmd, infile, outfile):
         with open(os.path.join(wd, outfile), "w") as fo:
             p = subprocess.run(cmd, stdin=open(os.path.join(wd, infile)),
                                stdout=fo, stderr=subprocess.STDOUT, cwd=wd)
         return p.returncode
 
-    rc_scf = run(["mpirun", "-np", str(N_CORES), "pw.x"], "scf.in", "scf.out")
-    rc_ph = run(["mpirun", "-np", str(N_CORES), "ph.x"], "ph.in", "ph.out")
+    rc_scf = run(MPI + ["pw.x"], "scf.in", "scf.out")
+    rc_ph = run(MPI + ["ph.x"], "ph.in", "ph.out")
     scf_out = open(os.path.join(wd, "scf.out")).read()
     ph_out = open(os.path.join(wd, "ph.out")).read()
+    err_tail = ""
+    if rc_scf != 0 or rc_ph != 0:  # surface the QE error for diagnosis
+        err_tail = ("SCF tail:\n" + "\n".join(scf_out.splitlines()[-15:])
+                    + "\nPH tail:\n" + "\n".join(ph_out.splitlines()[-15:]))
+        print("[phase2/dfpt] QE FAILED:\n" + err_tail)
 
     etot = parse_total_energy(scf_out)
     eps = parse_epsilon_inf(ph_out)
@@ -240,6 +249,7 @@ K_POINTS automatic
     return {"material": material, "rc_scf": rc_scf, "rc_ph": rc_ph,
             "etot_Ry": etot.to_dict(), "eps_inf": eps.to_dict(),
             "Z_born": zb.to_dict(), "omega_LO_meV": wlo.to_dict(),
+            "error_tail": err_tail,
             "reference": "GaAs: ω_LO≈36 meV (~292 cm⁻¹), ε∞≈10.9 (expt.)"}
 
 

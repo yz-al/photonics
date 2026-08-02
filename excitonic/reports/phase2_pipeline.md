@@ -106,7 +106,30 @@ python excitonic/scripts/phase2_gen_inputs.py          # decks + model floor (an
 #   → modal run excitonic/modal_phase2.py::smoke
 ```
 
-## To turn the scaffold into real labels (Phase 2 execution)
+## Real first-principles execution (wired)
+
+The staging + run machinery is now live, not just deck-generation:
+
+- **Pseudopotentials** (`pseudos.py`): fetches PSlibrary PAW/PBE UPFs from the QE
+  mirror (free, no login; reachable from the Modal container) with recommended
+  cutoffs. No DFT runs without a real potential.
+- **Real DFPT** (`modal_phase2.py::run_dft_dfpt`, `qe_outputs.py`): runs `pw.x`
+  scf + `ph.x` (`epsil` + `trans`) at Γ for the **GaAs validation anchor** on
+  Modal CPU/MPI and parses genuine first-principles numbers — ε∞, Born charges,
+  and ω_LO — as tier-`dfpt` labels (or `not_run` if a step fails). GaAs reference:
+  ω_LO ≈ 36 meV (~292 cm⁻¹), ε∞ ≈ 10.9. Result: `data/manifests/phase2_dfpt_gaas.json`.
+  Run it: Actions → Phase 2 workflow → `entrypoint = dfpt`.
+- **BerkeleyGW build** (`build/berkeleygw_arch.mk`): its source is
+  distribution-gated (registration on berkeleygw.org; GitLab needs auth), so the
+  GW-BSE branch compiles only when a reachable `BGW_TARBALL_URL` is supplied.
+  Until then the QE/EPW Γ branch is fully functional and the GW-BSE branch is a
+  documented opt-in add-on — stated plainly, not hidden.
+
+These DFPT outputs (real ε∞, ω_LO) also upgrade the Γ estimate from a
+literature-parameter Fröhlich model to a **DFPT-grounded** one — still model-tier
+for Γ itself (the full linewidth needs EPW), but with first-principles inputs.
+
+## To turn the remaining scaffold into full Γ/U labels (Phase 2 execution)
 
 1. Stage **relaxed C2DB structures** for the seed set (download the C2DB ASE db)
    and a **pseudopotential library** (SSSP/ONCV) into `label_material`'s workdir.
