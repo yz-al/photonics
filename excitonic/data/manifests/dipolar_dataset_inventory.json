@@ -1,0 +1,105 @@
+{
+  "generated": "2026-08-02T22:40:25Z",
+  "purpose": "Dipolar / interlayer-exciton dataset inventory (Phase 2 seed). Quantifies coverage of the fields a dipolar U_dip is built from, across BiDB (bilayers) and HetDB (heterostructures). All counts are live queries.",
+  "u_channel": "dipolar/interlayer (per reports/u_definition_decision.md)",
+  "u_dip_formula": "U_dip = e^2 d^2 / (eps0 * eps_eff * A)  \u2014 set by the interlayer charge-transfer separation d and the mode area A; independent of a_B and mu (decouples U from E_b and Gamma).",
+  "databases": {
+    "BiDB": {
+      "reachable": true,
+      "endpoint": "https://bidb.fysik.dtu.dk",
+      "description": "van der Waals Bilayer Database (BiDB) \u2014 homobilayers (two copies of the same monolayer, all stackings).",
+      "total_bilayers": 12138,
+      "key_coverage": {
+        "interlayer_distance": 12138,
+        "ebind": 12138,
+        "has_inversion_symmetry": 12138,
+        "gap_pbe": 6886,
+        "number_of_layers": 12138,
+        "slide_stability": 12138,
+        "thickness": 12138,
+        "area": 12138,
+        "monolayer_uid": 12138,
+        "c2db_uid": 12138,
+        "magnetic": 12138
+      },
+      "key_descriptions": {
+        "interlayer_distance": "Interlayer distance d [\u00c5] \u2014 the geometric lever for U_dip",
+        "ebind": "Interlayer binding energy [meV/\u00c52] \u2014 stacking cohesion",
+        "has_inversion_symmetry": "Inversion symmetry \u2014 broken => out-of-plane dipole allowed",
+        "gap_pbe": "PBE band gap [eV]",
+        "number_of_layers": "Number of layers (2 for a bilayer)",
+        "slide_stability": "Slide (stacking) stability",
+        "thickness": "Slab thickness [\u00c5]",
+        "area": "Unit-cell area [\u00c52] (=> areal density n=1/A for U_dip)",
+        "monolayer_uid": "Parent monolayer id",
+        "c2db_uid": "Parent monolayer C2DB uid (join key)",
+        "magnetic": "Magnetic"
+      },
+      "derived_counts": {
+        "broken_inversion_symmetry (dipolar-capable)": 6109,
+        "preserved_inversion_symmetry (dipole-forbidden)": 6029,
+        "d AND ebind (geometry+cohesion)": 12138,
+        "d AND broken_inversion (dipolar geometry present)": 6109,
+        "gap_pbe>0.1 AND broken_inversion (semiconducting + dipolar)": 2548,
+        "slide_stability=Stable": 3141
+      },
+      "dipolar_note": "BiDB is HOMObilayers: both layers are the same material, so there is no intrinsic type-II band offset. A permanent out-of-plane dipole is only symmetry-allowed when the stacking BREAKS inversion symmetry (has_inversion_symmetry=False). That subset is the dipolar-capable pool; U_dip there comes from stacking-induced charge transfer across interlayer_distance d, NOT a band offset."
+    },
+    "HetDB": {
+      "reachable": true,
+      "endpoint": "https://hetdb.fysik.dtu.dk",
+      "description": "vdW 2D Heterostructure Database (HetDB) \u2014 bilayers of TWO different C2DB monolayers, with band edges wrt vacuum for each side.",
+      "total_heterostructures": 336,
+      "key_coverage": {
+        "interlayer_distance": 336,
+        "twist_angle": 336,
+        "maxstrain": 336,
+        "uid_a": 336,
+        "uid_b": 336,
+        "pbe_gap_soc": 336,
+        "scs_gap_soc": 336,
+        "pbe_cbm_soc": 303,
+        "pbe_vbm_soc": 303,
+        "scs_cbm_soc": 310,
+        "scs_vbm_soc": 310,
+        "pbe_evac": 336,
+        "area": 336
+      },
+      "key_descriptions": {
+        "interlayer_distance": "Interlayer distance d [\u00c5] \u2014 geometric lever for U_dip",
+        "twist_angle": "Twist angle [deg]",
+        "maxstrain": "Max lattice strain to commensurate cell [%]",
+        "uid_a": "C2DB uid of layer 1 (join key)",
+        "uid_b": "C2DB uid of layer 2 (join key)",
+        "pbe_gap_soc": "Heterostructure PBE gap w/ SOC [eV]",
+        "scs_gap_soc": "Heterostructure LAPS gap w/ SOC [eV]",
+        "pbe_cbm_soc": "CBM wrt vacuum, PBE+SOC [eV] (band-alignment ingredient)",
+        "pbe_vbm_soc": "VBM wrt vacuum, PBE+SOC [eV] (band-alignment ingredient)",
+        "scs_cbm_soc": "CBM wrt vacuum, LAPS+SOC [eV]",
+        "scs_vbm_soc": "VBM wrt vacuum, LAPS+SOC [eV]",
+        "pbe_evac": "Vacuum level, PBE [eV]",
+        "area": "Unit-cell area [\u00c52]"
+      },
+      "stored_alignment_type_label_probe": {
+        "type_of_alignment": 0,
+        "alignment": 0,
+        "band_alignment": 0,
+        "type": 0
+      },
+      "stored_alignment_type_label_present": false,
+      "derived_alignment_type_counts": {
+        "I": 78,
+        "II": 209,
+        "III": 49,
+        "unclassifiable": 0
+      },
+      "derivation": {
+        "method": "Anderson's rule on isolated-monolayer PBE band edges (C2DB vbm/cbm wrt vacuum), joined by uid_a/uid_b. Estimate, not a stored label.",
+        "rows_pulled": 336,
+        "unique_constituent_monolayers": 38,
+        "monolayers_with_c2db_edges": 38
+      },
+      "dipolar_note": "HetDB is HETERObilayers, so a genuine type-II staggered offset can exist. type-II => electron and hole sit on different layers => spatially-indirect exciton => permanent dipole d ~ interlayer_distance. HetDB carries the band-alignment INGREDIENTS (CBM/VBM wrt vacuum) but NO explicit alignment-type label; type-II is derived here by Anderson's rule."
+    }
+  }
+}
