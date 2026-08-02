@@ -190,15 +190,42 @@ def seg_metrics(pred, gt):
     return float(vs + vm), float(are)
 
 
-def erl_proxy(pred, gt, max_seg=50):
+def erl_proxy(pred, gt, max_seg=50, merge_cover=0.15):
+    """Expected Run Length: length-weighted mean of the CORRECT run you can trace
+    along each GT skeleton before the first error -- the connectomics metric, because
+    errors compound (one merge fuses two cells for the rest of the trace). ERL = sum
+    L^2 / sum L over runs of a single predicted label along each skeleton.
+
+    Two error types END/POISON a run:
+      - SPLIT: the predicted label changes along the skeleton -> the run ends (handled
+        by counting per-predicted-label runs; a split makes runs shorter).
+      - MERGE: a predicted label that substantially covers >=2 GT neurons is a merger;
+        tracing it leads into the wrong cell, so such runs contribute 0 to the numerator
+        (the length is still traceable, so it counts in the denominator). merge_cover =
+        min fraction of another neuron's volume the segment must cover to count as merged.
+    Merge-blind ERL (numerator counting merged runs) is optimistic exactly on the
+    compounding errors that matter most, so we penalize merges explicitly."""
     tot, sq = 0.0, 0.0
     ids = [i for i in np.unique(gt) if (gt == i).sum() >= 60][:max_seg]
+    gt_size = {g: int((gt == g).sum()) for g in ids}
+    # precompute which predicted labels are mergers (span >=2 GT neurons substantially)
+    merged = set()
+    for pv in np.unique(pred):
+        if pv == 0:
+            continue
+        gv = gt[pred == pv]
+        spanned = [g for g in np.unique(gv)
+                   if g in gt_size and (gv == g).sum() >= merge_cover * gt_size[g]]
+        if len(spanned) >= 2:
+            merged.add(int(pv))
     for gid in ids:
         sk = skeletonize(gt == gid); pl = pred[sk]
         if pl.size < 3:
             continue
         for pv in np.unique(pl):
-            L = int((pl == pv).sum()); tot += L; sq += L * L
+            L = int((pl == pv).sum()); tot += L
+            if int(pv) not in merged:                     # merged runs: traceable but wrong -> 0
+                sq += L * L
     return float(sq / max(1.0, tot))
 
 
