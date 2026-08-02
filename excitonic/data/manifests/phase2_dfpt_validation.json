@@ -1,0 +1,134 @@
+{
+  "results": {
+    "GaAs": {
+      "material": "GaAs",
+      "polar_reference": true,
+      "rc_scf": 0,
+      "rc_ph": 0,
+      "wall_clock": {
+        "scf_s": 134.3,
+        "ph_s": 534.9,
+        "total_s": 669.2,
+        "ranks": 8
+      },
+      "etot_Ry": {
+        "name": "etot",
+        "value": -453.96807678,
+        "unit": "Ry",
+        "tier": "dfpt",
+        "source": "QE pw.x scf",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "eps_inf": {
+        "name": "eps_inf",
+        "value": 27.3819,
+        "unit": "1",
+        "tier": "dfpt",
+        "source": "QE ph.x (epsil=.true.)",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "trace/3 of \u03b5\u221e; diagonal=['27.382', '27.382', '27.382']",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "Z_born": {
+        "name": "Z_born",
+        "value": 0.9134,
+        "unit": "e",
+        "tier": "dfpt",
+        "source": "QE ph.x",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "mean |Z*| component over the block",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "omega_max_meV": {
+        "name": "omega_LO",
+        "value": 33.534,
+        "unit": "meV",
+        "tier": "dfpt",
+        "source": "QE ph.x (top \u0393 mode)",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "\u03c9_LO\u2248270.5 cm^-1; LO-TO exactness needs dynmat.x",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "error_tail": "",
+      "reference": "polar: \u03c9_LO\u224836 meV (~292 cm\u207b\u00b9), \u03b5\u221e\u224810.9, Z*\u2248\u00b12.2"
+    },
+    "Si": {
+      "material": "Si",
+      "polar_reference": false,
+      "rc_scf": 0,
+      "rc_ph": 0,
+      "wall_clock": {
+        "scf_s": 15.7,
+        "ph_s": 100.0,
+        "total_s": 115.8,
+        "ranks": 8
+      },
+      "etot_Ry": {
+        "name": "etot",
+        "value": -93.45295517,
+        "unit": "Ry",
+        "tier": "dfpt",
+        "source": "QE pw.x scf",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "eps_inf": {
+        "name": "eps_inf",
+        "value": 14.0155,
+        "unit": "1",
+        "tier": "dfpt",
+        "source": "QE ph.x (epsil=.true.)",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "trace/3 of \u03b5\u221e; diagonal=['14.015', '14.015', '14.015']",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "Z_born": {
+        "name": "Z_born",
+        "value": 0.0353,
+        "unit": "e",
+        "tier": "dfpt",
+        "source": "QE ph.x",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "mean |Z*| component over the block",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "omega_max_meV": {
+        "name": "omega_LO",
+        "value": 63.822,
+        "unit": "meV",
+        "tier": "dfpt",
+        "source": "QE ph.x (top \u0393 mode)",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "\u03c9_LO\u2248514.8 cm^-1; LO-TO exactness needs dynmat.x",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "error_tail": "",
+      "reference": "NON-polar: Z*\u22480, no LO-TO splitting, Fr\u00f6hlich=0, \u03b5\u221e\u224811.7"
+    }
+  },
+  "polarity_test": {
+    "Z_Si": 0.0353,
+    "Z_GaAs": 0.9134,
+    "pass": false,
+    "criterion": "Z*(Si)<0.3 (non-polar) and Z*(GaAs)>1.0 (polar)"
+  }
+}
