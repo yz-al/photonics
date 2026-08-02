@@ -1,0 +1,50 @@
+[
+  {
+    "n_worms": 10,
+    "n_pairs_train": 4072,
+    "ridge_S1": 0.0869,
+    "ridge_S3": 0.7917,
+    "mlp_S3": 0.6747,
+    "struct_corr_S1": 0.0989
+  },
+  {
+    "n_worms": 20,
+    "n_pairs_train": 7635,
+    "ridge_S1": 0.1059,
+    "ridge_S3": 0.7916,
+    "mlp_S3": 0.7742,
+    "struct_corr_S1": 0.122
+  },
+  {
+    "n_worms": 40,
+    "n_pairs_train": 15270,
+    "ridge_S1": 0.1095,
+    "ridge_S3": 0.8067,
+    "mlp_S3": 0.7984,
+    "struct_corr_S1": 0.2349
+  },
+  {
+    "n_worms": 80,
+    "n_pairs_train": 30540,
+    "ridge_S1": 0.1194,
+    "ridge_S3": 0.798,
+    "mlp_S3": 0.803,
+    "struct_corr_S1": 0.2523
+  },
+  {
+    "n_worms": 160,
+    "n_pairs_train": 61080,
+    "ridge_S1": 0.1192,
+    "ridge_S3": 0.8044,
+    "mlp_S3": 0.8159,
+    "struct_corr_S1": 0.255
+  },
+  {
+    "n_worms": 320,
+    "n_pairs_train": 122160,
+    "ridge_S1": 0.1196,
+    "ridge_S3": 0.8049,
+    "mlp_S3": 0.8237,
+    "struct_corr_S1": 0.2975
+  }
+]
