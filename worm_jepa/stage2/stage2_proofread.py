@@ -106,7 +106,7 @@ def main():
             p = torch.sigmoid(logits)
             act = (torch.bernoulli(p) if train else (p > 0.5).float()).detach()
             newc = np.where(act.numpy().astype(bool), 1 - cand, cand)
-            reward = (newc == te_y).mean() - (cand == te_y).mean()
+            reward = f1(newc, te_y) - f1(cand, te_y)        # optimize F1 directly (sparse graph)
             if train:
                 logp = (act * torch.log(p + 1e-8) + (1 - act) * torch.log(1 - p + 1e-8)).sum()
                 loss = -reward * logp
