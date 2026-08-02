@@ -1,1 +1,1 @@
-3D run bbf8780: volumetric hierarchical JEPA (crop160 zc8 dim256 depth6, all anti-collapse) -> 3D affinities -> mutex watershed -> 3D VOI/Rand/ERL, jepa vs random vs raw, CREMI A/B/C
+3D re-run w/ collapse fix c3b7439: target-standardization anti-collapse, volumetric hierarchical JEPA -> 3D affinities -> mutex watershed, jepa vs random vs raw, CREMI A/B/C
