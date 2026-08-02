@@ -90,10 +90,16 @@ class MambaLongRange3D(nn.Module):
         o = blk(s) + blk(s.flip(1)).flip(1)
         return o.reshape(B, Z, Y, X, d).permute(0, 4, 1, 2, 3)
 
+    def _scan_z(self, g, blk):                                    # section axis (anisotropic)
+        B, d, Z, Y, X = g.shape
+        s = g.permute(0, 3, 4, 2, 1).reshape(B * Y * X, Z, d)     # sequence along Z
+        o = blk(s) + blk(s.flip(1)).flip(1)                       # bidirectional
+        return o.reshape(B, Y, X, Z, d).permute(0, 4, 3, 1, 2)
+
     def forward(self, raw):                                        # (B,1,Z,H,W)
         g = self.stem(raw)                                        # (B,d,gz,gy,gx)
-        for blk in self.blocks:
-            g = g + self._scan_y(g, blk) + self._scan_x(g, blk)   # global in-plane context
+        for blk in self.blocks:                                   # full 3D, both directions per axis
+            g = g + self._scan_y(g, blk) + self._scan_x(g, blk) + self._scan_z(g, blk)
         aff = self.head(g)                                        # (B,n_aff,gz,gy,gx)
         aff = F.interpolate(aff, size=raw.shape[2:], mode="trilinear", align_corners=False)
         return aff[0]                                             # (n_aff,Z,H,W)
