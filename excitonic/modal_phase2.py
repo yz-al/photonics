@@ -160,75 +160,41 @@ def label_material(spec: dict) -> dict:
     return {"name": spec.get("name"), "Gamma_300K": gamma.to_dict(), "U": U.to_dict()}
 
 
-@app.function(image=qe_bgw_image, cpu=N_CORES, timeout=5400)
-def run_dft_dfpt(material: str = "GaAs") -> dict:
-    """Run a REAL scf + DFPT (ph.x) calculation and parse ε∞, Z*, ω_LO.
+# Two zincblende/diamond validation anchors that DIRECTLY test the phonon side:
+# GaAs is polar (Born charge Z*~±2.2, LO-TO splitting, Fröhlich>0); Si is NON-polar
+# (Z*~0, no LO-TO, Fröhlich must be ZERO). If Si returns a large Z*, the pipeline
+# is not computing what we think.
+DFT_NP = 8            # MPI ranks
+DFT_NPOOL = 8         # k-point pools == ranks -> no G-vector split -> avoids the
+                      # cdiaghg cholesky failure on tiny cells.
+MATERIALS = {
+    "GaAs": {"prefix": "gaas", "celldm": 10.6829, "polar": True,
+             "species": [("Ga", 69.723, "Ga"), ("As", 74.9216, "As")],
+             "positions": [("Ga", 0.0, 0.0, 0.0), ("As", 0.25, 0.25, 0.25)],
+             "ref": "polar: ω_LO≈36 meV (~292 cm⁻¹), ε∞≈10.9, Z*≈±2.2"},
+    "Si": {"prefix": "si", "celldm": 10.26, "polar": False,
+           "species": [("Si", 28.0855, "Si")],
+           "positions": [("Si", 0.0, 0.0, 0.0), ("Si", 0.25, 0.25, 0.25)],
+           "ref": "NON-polar: Z*≈0, no LO-TO splitting, Fröhlich=0, ε∞≈11.7"},
+}
 
-    Fetches PSlibrary pseudopotentials, runs pw.x then ph.x (epsil+trans) at Γ,
-    and parses genuine first-principles numbers (tier 'dfpt'). Currently wired for
-    the polar validation anchor GaAs (known ω_LO≈36 meV, ε∞≈10.9). No fabrication:
-    if a step fails, the parsed labels come back 'not_run'.
+
+@app.function(image=qe_bgw_image, cpu=N_CORES, timeout=7200)
+def run_dft_dfpt(materials=("GaAs", "Si")) -> dict:
+    """Run REAL scf + DFPT (ph.x, epsil+trans) for each material; parse ε∞, Z*, ω.
+
+    Genuine first-principles numbers (tier 'dfpt') or 'not_run' on failure — never
+    fabricated. GaAs (polar) + Si (non-polar) together test that the pipeline gets
+    Born charges right: Z*(Si)≈0, Z*(GaAs)≈2.2.
     """
     import subprocess
     import sys
+    import time
     sys.path.insert(0, "/root/excitonic/src")
     from exciton_fm.pseudos import stage_pseudos, pseudo_filename, recommended_cutoffs
     from exciton_fm.qe_outputs import (parse_epsilon_inf, parse_born_charges,
                                        parse_phonon_omega_LO, parse_total_energy)
 
-    wd = "/root/run"
-    os.makedirs(os.path.join(wd, "pseudo"), exist_ok=True)
-    os.makedirs(os.path.join(wd, "out"), exist_ok=True)
-
-    # --- GaAs (zincblende) validation anchor ---
-    syms = ["Ga", "As"]
-    stage_pseudos(syms, os.path.join(wd, "pseudo"))
-    ecutwfc, ecutrho = recommended_cutoffs(syms)
-    scf = f"""&control
-  calculation='scf'
-  prefix='gaas'
-  outdir='./out'
-  pseudo_dir='./pseudo'
-  tprnfor=.true.
-  tstress=.true.
-/
-&system
-  ibrav=2
-  celldm(1)=10.6829
-  nat=2
-  ntyp=2
-  ecutwfc={ecutwfc}
-  ecutrho={ecutrho}
-/
-&electrons
-  conv_thr=1.0d-12
-  mixing_beta=0.7
-/
-ATOMIC_SPECIES
- Ga 69.723 {pseudo_filename('Ga')}
- As 74.9216 {pseudo_filename('As')}
-ATOMIC_POSITIONS crystal
- Ga 0.00 0.00 0.00
- As 0.25 0.25 0.25
-K_POINTS automatic
- 6 6 6 0 0 0
-"""
-    ph = """GaAs: dielectric + Born charges + phonons at Gamma
-&inputph
-  prefix='gaas'
-  outdir='./out'
-  fildyn='gaas.dyn'
-  epsil=.true.
-  trans=.true.
-  asr=.true.
-  tr2_ph=1.0d-15
-/
-0.0 0.0 0.0
-"""
-    open(os.path.join(wd, "scf.in"), "w").write(scf)
-    open(os.path.join(wd, "ph.in"), "w").write(ph)
-
-    # OpenMPI via the fake-ssh shim: multi-rank on localhost, no real ssh/daemon.
     env = os.environ.copy()
     env["OMP_NUM_THREADS"] = "1"
     env["OMPI_ALLOW_RUN_AS_ROOT"] = "1"
@@ -236,59 +202,120 @@ K_POINTS automatic
     env["OMPI_MCA_plm_rsh_agent"] = "/usr/local/bin/fake_ssh"   # OpenMPI 4
     env["PRTE_MCA_plm_ssh_agent"] = "/usr/local/bin/fake_ssh"   # OpenMPI 5 (PRRTE)
     env["OMPI_MCA_rmaps_base_oversubscribe"] = "1"
-    MPI = ["mpirun", "--allow-run-as-root", "-np", str(N_CORES)]
+    MPI = ["mpirun", "--allow-run-as-root", "-np", str(DFT_NP)]
+    POOL = ["-nk", str(DFT_NPOOL)]
 
-    def run(cmd, infile, outfile):
-        with open(os.path.join(wd, outfile), "w") as fo:
-            p = subprocess.run(cmd, stdin=open(os.path.join(wd, infile)),
-                               stdout=fo, stderr=subprocess.STDOUT, cwd=wd, env=env)
-        return p.returncode
+    def one(name: str) -> dict:
+        spec = MATERIALS[name]
+        wd = f"/root/run_{name}"
+        os.makedirs(os.path.join(wd, "pseudo"), exist_ok=True)
+        os.makedirs(os.path.join(wd, "out"), exist_ok=True)
+        syms = [s[0] for s in spec["species"]]
+        stage_pseudos(syms, os.path.join(wd, "pseudo"))
+        ecutwfc, ecutrho = recommended_cutoffs(syms)
+        pfx = spec["prefix"]
+        splines = "\n".join(f" {s} {m} {pseudo_filename(el)}"
+                            for s, m, el in spec["species"])
+        plines = "\n".join(f" {s} {x} {y} {z}" for s, x, y, z in spec["positions"])
+        scf = f"""&control
+  calculation='scf'
+  prefix='{pfx}'
+  outdir='./out'
+  pseudo_dir='./pseudo'
+/
+&system
+  ibrav=2
+  celldm(1)={spec['celldm']}
+  nat={len(spec['positions'])}
+  ntyp={len(spec['species'])}
+  ecutwfc={ecutwfc}
+  ecutrho={ecutrho}
+/
+&electrons
+  conv_thr=1.0d-10
+  mixing_beta=0.7
+  diagonalization='cg'
+/
+ATOMIC_SPECIES
+{splines}
+ATOMIC_POSITIONS crystal
+{plines}
+K_POINTS automatic
+ 8 8 8 0 0 0
+"""
+        ph = f"""{name}: dielectric + Born charges + phonons at Gamma
+&inputph
+  prefix='{pfx}'
+  outdir='./out'
+  fildyn='{pfx}.dyn'
+  epsil=.true.
+  trans=.true.
+  asr=.true.
+  tr2_ph=1.0d-15
+/
+0.0 0.0 0.0
+"""
+        open(os.path.join(wd, "scf.in"), "w").write(scf)
+        open(os.path.join(wd, "ph.in"), "w").write(ph)
 
-    import time
-    t0 = time.time()
-    rc_scf = run(MPI + ["pw.x"], "scf.in", "scf.out")
-    t1 = time.time()
-    rc_ph = run(MPI + ["ph.x"], "ph.in", "ph.out")
-    t2 = time.time()
-    wall = {"scf_s": round(t1 - t0, 1), "ph_s": round(t2 - t1, 1),
-            "total_s": round(t2 - t0, 1), "cores": N_CORES}
-    print(f"[phase2/dfpt] wall-clock: scf={wall['scf_s']}s ph={wall['ph_s']}s "
-          f"total={wall['total_s']}s on {N_CORES} cores  "
-          f"(-> {wall['total_s']*N_CORES/3600:.3f} core-hours, first real cost datapoint)")
-    scf_out = open(os.path.join(wd, "scf.out")).read()
-    ph_out = open(os.path.join(wd, "ph.out")).read()
-    err_tail = ""
-    if rc_scf != 0 or rc_ph != 0:  # surface the QE error for diagnosis
-        err_tail = ("SCF tail:\n" + "\n".join(scf_out.splitlines()[-15:])
-                    + "\nPH tail:\n" + "\n".join(ph_out.splitlines()[-15:]))
-        print("[phase2/dfpt] QE FAILED:\n" + err_tail)
+        def run(cmd, infile, outfile):
+            with open(os.path.join(wd, outfile), "w") as fo:
+                p = subprocess.run(cmd, stdin=open(os.path.join(wd, infile)),
+                                   stdout=fo, stderr=subprocess.STDOUT, cwd=wd, env=env)
+            return p.returncode
 
-    etot = parse_total_energy(scf_out)
-    eps = parse_epsilon_inf(ph_out)
-    zb = parse_born_charges(ph_out)
-    wlo = parse_phonon_omega_LO(ph_out)
-    print(f"[phase2/dfpt] GaAs rc_scf={rc_scf} rc_ph={rc_ph}")
-    print(f"[phase2/dfpt] etot={etot.value} eps_inf={eps.value} "
-          f"Z*={zb.value} omega_LO={wlo.value} meV (tier dfpt)")
-    return {"material": material, "rc_scf": rc_scf, "rc_ph": rc_ph,
-            "wall_clock": wall,
-            "etot_Ry": etot.to_dict(), "eps_inf": eps.to_dict(),
-            "Z_born": zb.to_dict(), "omega_LO_meV": wlo.to_dict(),
-            "error_tail": err_tail,
-            "reference": "GaAs: ω_LO≈36 meV (~292 cm⁻¹), ε∞≈10.9 (expt.)"}
+        t0 = time.time()
+        rc_scf = run(MPI + ["pw.x"] + POOL, "scf.in", "scf.out")
+        t1 = time.time()
+        rc_ph = run(MPI + ["ph.x"] + POOL, "ph.in", "ph.out")
+        t2 = time.time()
+        wall = {"scf_s": round(t1 - t0, 1), "ph_s": round(t2 - t1, 1),
+                "total_s": round(t2 - t0, 1), "ranks": DFT_NP}
+        scf_out = open(os.path.join(wd, "scf.out")).read()
+        ph_out = open(os.path.join(wd, "ph.out")).read()
+        err_tail = ""
+        if rc_scf != 0 or rc_ph != 0:
+            err_tail = ("SCF tail:\n" + "\n".join(scf_out.splitlines()[-12:])
+                        + "\nPH tail:\n" + "\n".join(ph_out.splitlines()[-12:]))
+            print(f"[phase2/dfpt] {name} QE FAILED:\n" + err_tail)
+        etot = parse_total_energy(scf_out)
+        eps = parse_epsilon_inf(ph_out)
+        zb = parse_born_charges(ph_out)
+        wlo = parse_phonon_omega_LO(ph_out)
+        print(f"[phase2/dfpt] {name}: rc_scf={rc_scf} rc_ph={rc_ph} "
+              f"eps_inf={eps.value} Z*={zb.value} omega={wlo.value} meV "
+              f"wall={wall['total_s']}s")
+        return {"material": name, "polar_reference": spec["polar"],
+                "rc_scf": rc_scf, "rc_ph": rc_ph, "wall_clock": wall,
+                "etot_Ry": etot.to_dict(), "eps_inf": eps.to_dict(),
+                "Z_born": zb.to_dict(), "omega_max_meV": wlo.to_dict(),
+                "error_tail": err_tail, "reference": spec["ref"]}
+
+    results = {name: one(name) for name in materials}
+    # Polarity test verdict: Z*(non-polar) should be ~0, Z*(polar) clearly nonzero.
+    zsi = results.get("Si", {}).get("Z_born", {}).get("value")
+    zga = results.get("GaAs", {}).get("Z_born", {}).get("value")
+    verdict = None
+    if zsi is not None and zga is not None:
+        verdict = {"Z_Si": zsi, "Z_GaAs": zga,
+                   "pass": bool(zsi < 0.3 and zga > 1.0),
+                   "criterion": "Z*(Si)<0.3 (non-polar) and Z*(GaAs)>1.0 (polar)"}
+    return {"results": results, "polarity_test": verdict}
 
 
 @app.local_entrypoint()
-def dfpt(material: str = "GaAs"):
-    """Run the real DFPT validation calc on Modal; write the result (tier dfpt)."""
-    res = run_dft_dfpt.remote(material)
-    out = os.path.join(HERE, "data", "manifests", "phase2_dfpt_gaas.json")
+def dfpt():
+    """Run the GaAs+Si DFPT validation on Modal; write results (tier dfpt)."""
+    res = run_dft_dfpt.remote(("GaAs", "Si"))
+    out = os.path.join(HERE, "data", "manifests", "phase2_dfpt_validation.json")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w") as fh:
         json.dump(res, fh, indent=2)
     print(f"[phase2/dfpt] wrote {out}")
-    print(f"[phase2/dfpt] eps_inf={res['eps_inf']['value']} "
-          f"omega_LO={res['omega_LO_meV']['value']} meV (real DFPT)")
+    for name, r in res["results"].items():
+        print(f"[phase2/dfpt]   {name}: eps_inf={r['eps_inf']['value']} "
+              f"Z*={r['Z_born']['value']} omega={r['omega_max_meV']['value']} meV")
+    print(f"[phase2/dfpt] polarity test: {res.get('polarity_test')}")
 
 
 @app.local_entrypoint()

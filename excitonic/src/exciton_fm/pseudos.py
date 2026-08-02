@@ -25,6 +25,10 @@ PSEUDO_TABLE: dict[str, dict] = {
     "N":  {"file": "N.pbe-n-kjpaw_psl.1.0.0.UPF",   "ecutwfc": 80, "ecutrho": 640},
     "Mo": {"file": "Mo.pbe-spn-kjpaw_psl.1.0.0.UPF", "ecutwfc": 70, "ecutrho": 560},
     "S":  {"file": "S.pbe-nl-kjpaw_psl.1.0.0.UPF",  "ecutwfc": 60, "ecutrho": 480},
+    "Si": {"file": "Si.pbe-n-kjpaw_psl.1.0.0.UPF",  "ecutwfc": 50, "ecutrho": 400},
+    "Se": {"file": "Se.pbe-n-kjpaw_psl.1.0.0.UPF",  "ecutwfc": 60, "ecutrho": 480},
+    "W":  {"file": "W.pbe-spn-kjpaw_psl.1.0.0.UPF", "ecutwfc": 70, "ecutrho": 560},
+    "Te": {"file": "Te.pbe-n-kjpaw_psl.1.0.0.UPF",  "ecutwfc": 60, "ecutrho": 480},
 }
 
 
