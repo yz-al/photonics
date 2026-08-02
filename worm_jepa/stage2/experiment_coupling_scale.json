@@ -1,0 +1,50 @@
+[
+  {
+    "n_worms": 20,
+    "n_pairs_train": 7635,
+    "coupling_struct": 0.313,
+    "coupling_pred": 0.7662,
+    "nocoup_struct": 0.2206,
+    "nocoup_pred": 0.806
+  },
+  {
+    "n_worms": 40,
+    "n_pairs_train": 15270,
+    "coupling_struct": 0.3308,
+    "coupling_pred": 0.789,
+    "nocoup_struct": 0.2412,
+    "nocoup_pred": 0.8191
+  },
+  {
+    "n_worms": 80,
+    "n_pairs_train": 30540,
+    "coupling_struct": 0.336,
+    "coupling_pred": 0.7761,
+    "nocoup_struct": 0.2656,
+    "nocoup_pred": 0.8139
+  },
+  {
+    "n_worms": 160,
+    "n_pairs_train": 61080,
+    "coupling_struct": 0.3474,
+    "coupling_pred": 0.7866,
+    "nocoup_struct": 0.2778,
+    "nocoup_pred": 0.8188
+  },
+  {
+    "n_worms": 320,
+    "n_pairs_train": 122160,
+    "coupling_struct": 0.3571,
+    "coupling_pred": 0.7854,
+    "nocoup_struct": 0.2805,
+    "nocoup_pred": 0.8194
+  },
+  {
+    "n_worms": 480,
+    "n_pairs_train": 183240,
+    "coupling_struct": 0.3584,
+    "coupling_pred": 0.7845,
+    "nocoup_struct": 0.2822,
+    "nocoup_pred": 0.8193
+  }
+]
