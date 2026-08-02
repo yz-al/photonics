@@ -40,18 +40,23 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # and the GW-BSE branch is a documented, opt-in add-on.
 BGW_TARBALL_URL = os.environ.get("BGW_TARBALL_URL", "").strip()
 
-# Use the SERIAL (nompi) build of QE. MPI process launch inside this locked-down
-# container fails for both OpenMPI (no root daemon / no ssh) and would need extra
-# plumbing for MPICH; a non-MPI QE has no MPI_Init at all and runs the small
-# validation cells reliably. Seed-set-scale jobs use a separately-provisioned
-# MPI image (documented in the report).
+# conda-forge `qe` is built ONLY against OpenMPI (there is no nompi/mpich variant).
+# OpenMPI's launcher wants ssh/rsh even for a single-node run and fails in this
+# container. Standard fix: a "fake ssh" shim — mpirun invokes `<agent> <host>
+# orted…`; the shim drops the hostname and execs the rest LOCALLY, so orted runs
+# on localhost with no real ssh/daemon. Point OMPI/PRTE at it via env in the run.
+_FAKE_SSH = (
+    "printf '#!/bin/sh\\nshift\\nexec \"$@\"\\n' > /usr/local/bin/fake_ssh "
+    "&& chmod +x /usr/local/bin/fake_ssh"
+)
 qe_bgw_image = (
     modal.Image.micromamba(python_version="3.11")
     .micromamba_install(
-        "qe=*=nompi*", "fftw", "hdf5", "numpy", "ase",
+        "qe", "openmpi", "fftw", "hdf5", "numpy", "ase",
         channels=["conda-forge"],
     )
     .pip_install("requests==2.33.1")
+    .run_commands(_FAKE_SSH)
 )
 if BGW_TARBALL_URL:  # pragma: no cover - opt-in heavy build, needs a source URL
     qe_bgw_image = qe_bgw_image.run_commands(
@@ -223,9 +228,15 @@ K_POINTS automatic
     open(os.path.join(wd, "scf.in"), "w").write(scf)
     open(os.path.join(wd, "ph.in"), "w").write(ph)
 
-    # Serial QE (nompi build): run the binaries directly, no launcher.
+    # OpenMPI via the fake-ssh shim: multi-rank on localhost, no real ssh/daemon.
     env = os.environ.copy()
-    env["OMP_NUM_THREADS"] = str(N_CORES)  # OpenMP fills the cores
+    env["OMP_NUM_THREADS"] = "1"
+    env["OMPI_ALLOW_RUN_AS_ROOT"] = "1"
+    env["OMPI_ALLOW_RUN_AS_ROOT_CONFIRM"] = "1"
+    env["OMPI_MCA_plm_rsh_agent"] = "/usr/local/bin/fake_ssh"   # OpenMPI 4
+    env["PRTE_MCA_plm_ssh_agent"] = "/usr/local/bin/fake_ssh"   # OpenMPI 5 (PRRTE)
+    env["OMPI_MCA_rmaps_base_oversubscribe"] = "1"
+    MPI = ["mpirun", "--allow-run-as-root", "-np", str(N_CORES)]
 
     def run(cmd, infile, outfile):
         with open(os.path.join(wd, outfile), "w") as fo:
@@ -235,9 +246,9 @@ K_POINTS automatic
 
     import time
     t0 = time.time()
-    rc_scf = run(["pw.x"], "scf.in", "scf.out")
+    rc_scf = run(MPI + ["pw.x"], "scf.in", "scf.out")
     t1 = time.time()
-    rc_ph = run(["ph.x"], "ph.in", "ph.out")
+    rc_ph = run(MPI + ["ph.x"], "ph.in", "ph.out")
     t2 = time.time()
     wall = {"scf_s": round(t1 - t0, 1), "ph_s": round(t2 - t1, 1),
             "total_s": round(t2 - t0, 1), "cores": N_CORES}
