@@ -1,2 +1,2 @@
-run 2 — 021620
-fix: add package dir to sys.path in modal_app so runpy imports resolve
+run 3 — 023208
+fix: forecaster effective_connectivity in train mode + cudnn disabled (cuDNN RNN backward)

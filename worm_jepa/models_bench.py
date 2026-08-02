@@ -110,20 +110,26 @@ class Forecaster(nn.Module):
         h, _ = self.gru(x[:, :-1, :])
         return self.head(h)                                # (B, T-1, N)
 
-    @torch.no_grad()
     def effective_connectivity(self, x: torch.Tensor) -> torch.Tensor:
         """
         Mean |d pred_i / d input_j| at the last step -> (N, N) effective coupling.
         Compared against the true neuron-neuron Gram (W @ W.T) in the benchmark.
+
+        Backprops through the GRU. cuDNN only supports RNN backward in *training*
+        mode, so we run this block in train mode (the GRU has no dropout, so this
+        doesn't change the forward) with cuDNN disabled for safety, then restore.
         """
-        self.eval()
+        was_training = self.training
+        self.train()
         B, T, N = x.shape
         x0 = x[:1, :-1, :].clone().requires_grad_(True)    # single sample for jacobian
         J = torch.zeros(N, N, device=x.device)
-        with torch.enable_grad():
+        with torch.enable_grad(), torch.backends.cudnn.flags(enabled=False):
             h, _ = self.gru(x0)
             pred = self.head(h)[:, -1, :]                  # (1, N)
             for i in range(N):
                 g = torch.autograd.grad(pred[0, i], x0, retain_graph=(i < N - 1))[0]
                 J[i] = g[0, -1, :].abs()                    # sensitivity to last input step
-        return J
+        if not was_training:
+            self.eval()
+        return J.detach()
