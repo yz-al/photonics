@@ -23,15 +23,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 
 # Real-scale defaults for the GPU; overridable from the workflow env.
 _PASS = {
-    "WORM_EM_CROP": os.environ.get("WORM_EM_CROP", "224"),
-    "WORM_EM_DIM": os.environ.get("WORM_EM_DIM", "256"),
-    "WORM_EM_DEPTH": os.environ.get("WORM_EM_DEPTH", "6"),
-    "WORM_EM_BATCH": os.environ.get("WORM_EM_BATCH", "64"),
     "WORM_CREMI_SAMPLES": os.environ.get("WORM_CREMI_SAMPLES", "A,B,C"),
-    # segmentation experiment (gentle-VICReg encoder -> watershed/flood-fill -> VOI/Rand/ERL)
+    # 3D volumetric hierarchical JEPA backbone
+    "WORM_VOL_CROP": os.environ.get("WORM_VOL_CROP", "160"),
+    "WORM_VOL_ZC": os.environ.get("WORM_VOL_ZC", "8"),
+    "WORM_VOL_DIM": os.environ.get("WORM_VOL_DIM", "256"),
+    "WORM_VOL_DEPTH": os.environ.get("WORM_VOL_DEPTH", "6"),
+    "WORM_VOL_BATCH": os.environ.get("WORM_VOL_BATCH", "8"),
+    # 3D affinities + mutex watershed segmentation
     "WORM_SEG_JEPA_STEPS": os.environ.get("WORM_SEG_JEPA_STEPS", "3000"),
-    "WORM_SEG_DEC_STEPS": os.environ.get("WORM_SEG_DEC_STEPS", "800"),
-    "WORM_SEG_LABEL_SLICES": os.environ.get("WORM_SEG_LABEL_SLICES", "12"),
+    "WORM_SEG_DEC_STEPS": os.environ.get("WORM_SEG_DEC_STEPS", "600"),
+    "WORM_S3_NEVAL": os.environ.get("WORM_S3_NEVAL", "3"),
 }
 
 image = (
@@ -68,12 +70,11 @@ def run() -> str:
     os.makedirs(art, exist_ok=True)
 
     stages = [
-        # Segmentation experiment: gentle-VICReg EM-JEPA encoder -> pixel boundary
-        # decoder -> watershed/flood-fill -> VOI / adapted-Rand / ERL, comparing
-        # jepa vs random-encoder vs raw-pixel features. The connectome-reconstruction
-        # metric that actually matters, and the honest perception-vs-topology test.
-        ("/root/worm_jepa/vjepa/segment.py",
-         "/root/worm_jepa/vjepa/segment.json", "segment.json"),
+        # 3D: volumetric hierarchical EM-JEPA -> 3D affinities -> mutex watershed
+        # -> 3D VOI / adapted-Rand / ERL, comparing jepa vs random vs raw. The two
+        # highest-leverage moves toward CREMI SOTA (3D + learned agglomeration).
+        ("/root/worm_jepa/vjepa/segment3d.py",
+         "/root/worm_jepa/vjepa/segment3d.json", "segment3d.json"),
     ]
     if "/root/worm_jepa/vjepa" not in sys.path:      # segment.py imports hier_em_jepa
         sys.path.insert(0, "/root/worm_jepa/vjepa")
