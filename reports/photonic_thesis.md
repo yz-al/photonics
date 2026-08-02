@@ -1558,6 +1558,43 @@ result survives. Photonic edge inference does not beat digital at matched accura
 real capacity demand — the diffractive net loses to a trivial MLP, the spiking net is a coin-flip
 on an artifact benchmark, and both close consistently with the programme's electrical-cost verdict.**
 
+**Illumination gate + no-mask controls — the diffractive pathway also closes on *physics*, independently
+of the energy result.** (`test2/trackb_illumination.py`, `data/trackb_illumination.json`; 1 seed,
+trimmed epochs, so the trained D²NN is 94.9% here vs 95.5% at full training — but every effect below
+is order-of-magnitude, not marginal.) Two questions, both answered against the D²NN:
+
+*Does the trained phase mask do any real work?* (MNIST, no-mask controls)
+
+| Variant | Accuracy |
+|---|---|
+| No mask (free-space propagation + linear readout) | 93.85% |
+| **Random *frozen* mask** + linear readout | **96.10%** |
+| Trained D²NN (learnable mask) | 94.91% |
+
+The trained mask beats bare free-space blur by **+1.1 pt** and is **−1.2 pt *worse* than a random
+frozen diffuser.** So the classifier is the linear readout on blurred intensity; the trained
+diffractive optics contributes essentially nothing — "37% on CIFAR" (and 95% on MNIST) is blur + a
+linear head, exactly the control the reviewer asked for.
+
+*Do the numbers survive realistic illumination?* (illumination gate on the trained D²NN; coherent
+baseline 94.9%)
+
+| Perturbation (realistic camera condition) | Accuracy |
+|---|---|
+| **Incoherent illumination** (intensity averaged over speckle realisations) | **11% — chance** |
+| **Pose:** 1-px translation, or 5° rotation | **~10% — chance** |
+| Wavelength ±10% (chromatic; a passive mask is λ-specific) | 72–78% |
+| Defocus / object distance ±20% | 55–63% |
+
+**Any incoherent light, or any one-pixel shift, drops the D²NN to chance (10 classes → ~10%).** Real
+scenes are incoherent and never perfectly registered, so the **95.5% / 37.3% are upper bounds under
+ideal coherent, monochromatic, perfectly-posed illumination — conditions that do not obtain in a real
+camera.** Under realistic illumination the diffractive net is at chance.
+
+**So the diffractive pathway is closed twice, independently:** on **energy** (its I/O cost alone
+exceeds a 13k-MAC digital net — Section above) and on **physics** (the mask does no real work, and
+accuracy collapses to chance under real illumination). Neither closure depends on the other.
+
 **The one remaining lever, quantified (Follow-up 7).** All six escapes share a single
 root: light must become electricity at every layer because the activation is applied
 electrically. The only thing that removes that per-layer tax is a low-power *optical*
