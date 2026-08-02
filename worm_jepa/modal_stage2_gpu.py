@@ -47,7 +47,7 @@ image = (
 app = modal.App("worm-stage2-gpu")
 
 
-@app.function(gpu="A10G", image=image, timeout=10800)
+@app.function(gpu="A10G", image=image, timeout=18000)
 def run() -> str:
     import io
     import sys

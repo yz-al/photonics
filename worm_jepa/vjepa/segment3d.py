@@ -170,9 +170,6 @@ def main():
     print(f"[s3d] device={DEV} crop={CROP} zc={ZC} eval_crop={ec} n_eval={NEVAL} "
           f"jepa_steps={JEPA_STEPS} dec_steps={DEC_STEPS} affs={NAFF}", flush=True)
 
-    enc = V.train_vol_jepa(tr_raw, JEPA_STEPS, rng)
-    rnd = V.VolHierEncoder().to(DEV).eval()
-
     def run_dec(source, dec, encoder, sub):
         raw_t = torch.tensor(sub, device=DEV)[None, None].float()
         if source == "raw":
@@ -202,21 +199,16 @@ def main():
     def predict(source, dec, encoder, sub):
         return torch.sigmoid(run_dec(source, dec, encoder, sub)).cpu().numpy()
 
-    res = {"device": DEV, "crop": CROP, "zc": ZC, "eval_crop": ec, "n_eval": NEVAL,
-           "offsets": {"short": SHORT, "long": LONG}, "backbone": "vol_jepa (3D hierarchical)",
-           "anticollapse": {"families": ["distillation(EMA+predictor)", "info-max(VICReg var+cov)",
-                                         "fine-pathway(FINE_AUX+coarse_drop)"],
-                            "var": H.VAR_COEF, "cov": H.COV_COEF, "fine_aux": H.FINE_AUX,
-                            "coarse_drop": H.COARSE_DROP,
-                            "embedding_std_start": getattr(enc, "std_start", None),
-                            "embedding_std_final": getattr(enc, "std_final", None)},
-           "label_efficiency": {}, "error_set_analysis": {}}
-    encmap = {"jepa": enc, "random": rnd, "raw": None}
     POOL = [int(x) for x in os.environ.get("WORM_S3_LABEL_POOL", "1,4,16").split(",")]
-    # fixed labeled-subvolume pool (deterministic); label budget P uses the first P
+    SEEDS = [int(x) for x in os.environ.get("WORM_S3_SEEDS", "0,1,2").split(",")]
+    ns = len(SHORT)
+    # FIXED data across seeds -> isolates model-init/training variance (the thing we
+    # need error bars on). label budget P uses the first P of the fixed pool.
     full_pool = [sample_sub(tr_raw, tr_seg, CROP, 1000 + i) for i in range(max(POOL))]
     te_subs = [sample_sub(te_raw, te_seg, ec, 5000 + j) for j in range(NEVAL)]
     te_gt = [gt_affinity(seg, OFFS) for _, seg in te_subs]
+    print(f"[s3d] seeds={SEEDS} label_pool={POOL} jepa_steps={JEPA_STEPS} "
+          f"dec_steps={DEC_STEPS} n_eval={NEVAL}", flush=True)
 
     def evaluate(source, dec, encoder):
         vois, ares, erls, accs, nseg, preds = [], [], [], [], [], []
@@ -226,45 +218,60 @@ def main():
             lab = mutex_watershed(aff, OFFS, len(SHORT))
             voi, are = seg_metrics(lab, seg); vois.append(voi); ares.append(are)
             erls.append(erl_proxy(lab, seg)); nseg.append(len(np.unique(lab)))
-        return ({"affinity_acc": round(float(np.mean(accs)), 4), "VOI": round(float(np.mean(vois)), 4),
-                 "adapted_rand_error": round(float(np.mean(ares)), 4),
-                 "ERL_proxy": round(float(np.mean(erls)), 1), "n_segments": round(float(np.mean(nseg)), 1)},
-                preds)
+        return ({"affinity_acc": float(np.mean(accs)), "VOI": float(np.mean(vois)),
+                 "adapted_rand_error": float(np.mean(ares)),
+                 "ERL_proxy": float(np.mean(erls)), "n_segments": float(np.mean(nseg))}, preds)
 
-    full_preds = {}                                              # preds at the largest label budget
-    for source in ["jepa", "random", "raw"]:
-        res["label_efficiency"][source] = {}
-        for P in POOL:
-            dec = train_dec(source, encmap[source], full_pool[:P])
-            m, preds = evaluate(source, dec, encmap[source])
-            res["label_efficiency"][source][P] = m
-            if P == max(POOL):
-                full_preds[source] = preds
-            print(f"[s3d] {source} labels={P}: {m}", flush=True)
-
-    # ---- error-set analysis: of the edges RAW gets wrong, who recovers them? ----
-    def recovery(mask_fn):
+    def recovery(full_preds, mask_fn):
         raw_errs, jepa_ok, rand_ok, tot = 0, 0, 0, 0
         for j, (_, (gt_a, val)) in enumerate(zip(te_subs, te_gt)):
             m = (val > 0) & mask_fn(j)
-            rw = (full_preds["raw"][j] > 0.5) != (gt_a > 0.5)    # raw wrong
-            e = m & rw
+            e = m & ((full_preds["raw"][j] > 0.5) != (gt_a > 0.5))          # raw wrong
             raw_errs += int(e.sum()); tot += int(m.sum())
-            jc = (full_preds["jepa"][j] > 0.5) == (gt_a > 0.5)
-            rc = (full_preds["random"][j] > 0.5) == (gt_a > 0.5)
-            jepa_ok += int((e & jc).sum()); rand_ok += int((e & rc).sum())
-        return {"raw_error_rate": round(raw_errs / max(1, tot), 4),
-                "jepa_recovers": round(jepa_ok / max(1, raw_errs), 4),
-                "random_recovers": round(rand_ok / max(1, raw_errs), 4)}
-    ns = len(SHORT)
-    res["error_set_analysis"] = {
-        "all_offsets": recovery(lambda j: np.ones_like(te_gt[j][1], bool)),
-        "long_range_merge_edges": recovery(
-            lambda j: np.concatenate([np.zeros((ns,) + te_gt[j][1].shape[1:], bool),
-                                      np.ones((len(OFFS) - ns,) + te_gt[j][1].shape[1:], bool)])),
-    }
-    print(f"[s3d] error_set: {res['error_set_analysis']}", flush=True)
+            jepa_ok += int((e & ((full_preds["jepa"][j] > 0.5) == (gt_a > 0.5))).sum())
+            rand_ok += int((e & ((full_preds["random"][j] > 0.5) == (gt_a > 0.5))).sum())
+        return {"raw_error_rate": raw_errs / max(1, tot),
+                "jepa_recovers": jepa_ok / max(1, raw_errs),
+                "random_recovers": rand_ok / max(1, raw_errs)}
 
+    # ---- multi-seed loop (mean +- std) ----
+    le_acc = {s: {P: [] for P in POOL} for s in ["jepa", "random", "raw"]}
+    es_acc = {"all_offsets": [], "long_range_merge_edges": []}
+    std_finals = []
+    for seed in SEEDS:
+        torch.manual_seed(seed)
+        enc = V.train_vol_jepa(tr_raw, JEPA_STEPS, np.random.default_rng(seed))
+        rnd = V.VolHierEncoder().to(DEV).eval()
+        std_finals.append(getattr(enc, "std_final", None))
+        encmap = {"jepa": enc, "random": rnd, "raw": None}
+        full_preds = {}
+        for source in ["jepa", "random", "raw"]:
+            for P in POOL:
+                dec = train_dec(source, encmap[source], full_pool[:P])
+                m, preds = evaluate(source, dec, encmap[source])
+                le_acc[source][P].append(m)
+                if P == max(POOL):
+                    full_preds[source] = preds
+        es_acc["all_offsets"].append(recovery(full_preds, lambda j: np.ones_like(te_gt[j][1], bool)))
+        es_acc["long_range_merge_edges"].append(recovery(
+            full_preds, lambda j: np.concatenate([np.zeros((ns,) + te_gt[j][1].shape[1:], bool),
+                                                  np.ones((len(OFFS) - ns,) + te_gt[j][1].shape[1:], bool)])))
+        print(f"[s3d] seed {seed} std={std_finals[-1]} "
+              f"error_set(all)={es_acc['all_offsets'][-1]}", flush=True)
+
+    def agg(dicts):
+        return {k: {"mean": round(float(np.mean([d[k] for d in dicts])), 4),
+                    "std": round(float(np.std([d[k] for d in dicts])), 4)} for k in dicts[0]}
+
+    res = {"device": DEV, "crop": CROP, "zc": ZC, "n_eval": NEVAL, "seeds": SEEDS,
+           "jepa_steps": JEPA_STEPS, "label_pool": POOL,
+           "offsets": {"short": SHORT, "long": LONG}, "backbone": "vol_jepa (3D hierarchical)",
+           "anticollapse": {"var": H.VAR_COEF, "cov": H.COV_COEF, "fine_aux": H.FINE_AUX,
+                            "coarse_drop": H.COARSE_DROP, "target_std": V.TGT_STD,
+                            "embedding_std_final_per_seed": std_finals},
+           "label_efficiency": {s: {P: agg(le_acc[s][P]) for P in POOL}
+                                for s in ["jepa", "random", "raw"]},
+           "error_set_analysis": {k: agg(es_acc[k]) for k in es_acc}}
     print(json.dumps(res, indent=2))
     with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
         json.dump(res, f, indent=2)
