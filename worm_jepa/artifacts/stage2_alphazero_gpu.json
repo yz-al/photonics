@@ -1,0 +1,100 @@
+{
+  "device": "cuda",
+  "episodes": 20000,
+  "n_nodes": 420,
+  "alphazero_selfplay": {
+    "test_AUC": 0.4204,
+    "test_F1": 0.0
+  },
+  "static_linkpred_baseline": {
+    "test_AUC": 0.5918,
+    "test_F1": 0.1312
+  },
+  "diagnosis": {
+    "corr_logit_degree": -0.6963,
+    "degree_feature_AUC": 0.5875,
+    "note": "construction dynamic inverts degree: negative policy-degree corr despite positive degree AUC; converged fixed point, longer training does not help"
+  },
+  "learning_curve": [
+    {
+      "ep": 1000,
+      "auc": 0.379
+    },
+    {
+      "ep": 2000,
+      "auc": 0.3725
+    },
+    {
+      "ep": 3000,
+      "auc": 0.4083
+    },
+    {
+      "ep": 4000,
+      "auc": 0.4472
+    },
+    {
+      "ep": 5000,
+      "auc": 0.4271
+    },
+    {
+      "ep": 6000,
+      "auc": 0.3752
+    },
+    {
+      "ep": 7000,
+      "auc": 0.4013
+    },
+    {
+      "ep": 8000,
+      "auc": 0.367
+    },
+    {
+      "ep": 9000,
+      "auc": 0.3671
+    },
+    {
+      "ep": 10000,
+      "auc": 0.3647
+    },
+    {
+      "ep": 11000,
+      "auc": 0.3675
+    },
+    {
+      "ep": 12000,
+      "auc": 0.364
+    },
+    {
+      "ep": 13000,
+      "auc": 0.3711
+    },
+    {
+      "ep": 14000,
+      "auc": 0.3579
+    },
+    {
+      "ep": 15000,
+      "auc": 0.3736
+    },
+    {
+      "ep": 16000,
+      "auc": 0.3515
+    },
+    {
+      "ep": 17000,
+      "auc": 0.3764
+    },
+    {
+      "ep": 18000,
+      "auc": 0.3549
+    },
+    {
+      "ep": 19000,
+      "auc": 0.3577
+    },
+    {
+      "ep": 20000,
+      "auc": 0.3476
+    }
+  ]
+}

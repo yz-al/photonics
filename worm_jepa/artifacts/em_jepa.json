@@ -1,0 +1,39 @@
+{
+  "device": "cuda",
+  "crop": 224,
+  "patches": 196,
+  "dim": 384,
+  "depth": 8,
+  "steps": 4000,
+  "batch": 64,
+  "final_ssl_loss": 0.0,
+  "mito_probe_AUC_by_labelcount": {
+    "em_jepa_features": {
+      "20": 0.8862,
+      "50": 0.8868,
+      "100": 0.8868,
+      "300": 0.8867,
+      "1000": 0.8868
+    },
+    "random_encoder": {
+      "20": 0.8331,
+      "50": 0.8754,
+      "100": 0.8855,
+      "300": 0.8749,
+      "1000": 0.8808
+    },
+    "raw_pixels": {
+      "20": 0.8668,
+      "50": 0.8757,
+      "100": 0.8843,
+      "300": 0.8691,
+      "1000": 0.882
+    }
+  },
+  "context_prediction_probe_AUC": {
+    "em_jepa_features": 0.7055,
+    "random_encoder": 0.7064,
+    "raw_context_pixels": 0.7081
+  },
+  "pos_rate": 0.0681
+}
