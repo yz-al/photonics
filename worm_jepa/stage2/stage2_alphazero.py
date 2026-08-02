@@ -1,16 +1,15 @@
 """
-AlphaZero-style SINGLE-agent self-play connectome builder on the worm.
+AlphaZero-style SINGLE-agent self-play connectome builder on the worm (GPU).
 
-One policy-value network (no committee, no diversity -- the same agent, like
-AlphaZero). It plays self-play BUILDING episodes: sequentially commit edges into a
-graph; committed edges reshape the topology the agent sees next (the construction
-dynamic). Reward = edge correctness vs the ground-truth Cook connectome -- which
-plays the role Go's rules play (the free win/loss signal, available at TRAIN time
-from a known connectome). Trained by actor-critic over episodes with a difficulty
-curriculum, then deployed to build a held-out region.
+One policy-value network (no committee). Self-play building episodes: sequentially
+commit edges; committed edges reshape the topology the agent sees next (the
+construction dynamic). Reward = edge correctness vs ground-truth Cook (the "rules").
+Actor-critic with entropy + reward normalization, difficulty curriculum, and MANY
+episodes -- RL needs long training, so this is built for the GPU.
 
-Compared against a static one-shot link predictor (same features, no self-play).
-Question: does self-play sequential construction beat the static predictor?
+Env: WORM_AZ_EPISODES (default 400 smoke; use ~30000+ on GPU), WORM_AZ_DEVICE.
+Logs test AUC every eval_every episodes so we can watch it learn. Compares to a
+static one-shot link predictor at the end.
 """
 import os
 import json
@@ -18,31 +17,34 @@ import json
 import numpy as np
 import torch
 import torch.nn as nn
+from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.metrics import roc_auc_score, f1_score
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 rng = np.random.default_rng(0)
+DEV = os.environ.get("WORM_AZ_DEVICE", "cuda" if torch.cuda.is_available() else "cpu")
 
 
-def topo(G):
-    deg = G.sum(1).astype(float)
+def topo_t(G):                                    # G: (N,N) torch on DEV
+    deg = G.sum(1)
     CN = G @ G
-    il = np.zeros_like(deg); m = deg > 1; il[m] = 1.0 / np.log(deg[m])
+    il = torch.where(deg > 1, 1.0 / torch.log(deg.clamp(min=2)), torch.zeros_like(deg))
     AA = G @ (il[:, None] * G)
-    RA = G @ ((1.0 / np.maximum(deg, 1))[:, None] * G)
+    RA = G @ ((1.0 / deg.clamp(min=1))[:, None] * G)
     return CN, AA, RA, deg
 
 
-def feats(G, pairs):
-    CN, AA, RA, deg = topo(G)
-    i, j = pairs[:, 0], pairs[:, 1]
-    X = np.stack([CN[i, j], AA[i, j], RA[i, j], deg[i] * deg[j]], 1).astype(np.float32)
-    return np.log1p(X)                                  # compress heavy tails
+def feats_t(G, pi, pj):
+    CN, AA, RA, deg = topo_t(G)
+    X = torch.stack([CN[pi, pj], AA[pi, pj], RA[pi, pj], deg[pi] * deg[pj]], 1)
+    return torch.log1p(X)
 
 
 class PolicyValue(nn.Module):
-    def __init__(self, d=4, h=64):
+    def __init__(self, d=4, h=128):
         super().__init__()
-        self.body = nn.Sequential(nn.Linear(d, h), nn.ReLU(), nn.Linear(h, h), nn.ReLU())
+        self.body = nn.Sequential(nn.Linear(d, h), nn.ReLU(), nn.Linear(h, h), nn.ReLU(),
+                                  nn.Linear(h, h), nn.ReLU())
         self.pi = nn.Linear(h, 1); self.v = nn.Linear(h, 1)
 
     def forward(self, x):
@@ -57,88 +59,90 @@ def main():
     keep = np.where(Aall.sum(1) >= 6)[0]
     A = Aall[np.ix_(keep, keep)]; N = len(keep)
     iu, ju = np.triu_indices(N, 1)
-    allp = np.stack([iu, ju], 1); ytrue = A[iu, ju].astype(np.float32)
-    perm = rng.permutation(len(allp))
-    te = perm[:int(0.25 * len(perm))]; trp = perm[int(0.25 * len(perm)):]
-    trainmask = np.zeros(len(allp), bool); trainmask[trp] = True
+    P = torch.tensor(np.stack([iu, ju], 1), device=DEV)
+    y = torch.tensor(A[iu, ju].astype(np.float32), device=DEV)
+    n = len(y); perm = rng.permutation(n)
+    te = torch.tensor(perm[:int(0.25 * n)], device=DEV)
+    trp = perm[int(0.25 * n):]
+    Atrue = torch.tensor(A, device=DEV, dtype=torch.float32)
+    pos_tr = trp[A[iu, ju][trp] == 1]
 
     def seed_graph(nseed):
-        G = np.zeros((N, N))
-        pe = trp[ytrue[trp] == 1]
-        pick = rng.choice(pe, min(nseed, len(pe)), replace=False)
-        for k in pick:
-            a, b = allp[k]; G[a, b] = G[b, a] = 1
+        G = torch.zeros(N, N, device=DEV)
+        pick = rng.choice(pos_tr, min(nseed, len(pos_tr)), replace=False)
+        pk = torch.tensor(pick, device=DEV)
+        a, b = P[pk, 0], P[pk, 1]; G[a, b] = 1; G[b, a] = 1
         return G, set(pick.tolist())
 
-    net = PolicyValue()
-    opt = torch.optim.Adam(net.parameters(), lr=3e-3)
+    net = PolicyValue().to(DEV)
+    opt = torch.optim.Adam(net.parameters(), lr=1e-3)
+    trp_t = torch.tensor(trp, device=DEV)
 
-    def episode(nseed, train=True, pairs_universe=trp):
+    def episode(nseed):
         G, used = seed_graph(nseed)
-        undec = [int(k) for k in pairs_universe if k not in used]
-        R, logs, correct = 6, [], 0
+        undec = torch.tensor([k for k in trp if k not in used], device=DEV)
+        R = 6; logits_all, act_all, rew_all, val_all = [], [], [], []
         for rd in range(R):
             if len(undec) < 20:
                 break
-            pj = np.array(undec)
-            X = torch.tensor(feats(G, allp[pj]))
+            pi, pj = P[undec, 0], P[undec, 1]
+            X = feats_t(G, pi, pj)
             logit, val = net(X)
             p = torch.sigmoid(logit)
-            B = max(1, len(pj) // (2 * (R - rd)))
-            inc = torch.topk(p, B).indices                      # commit as EDGES
-            exc = torch.topk(-p, B).indices                     # commit as NON-edges
-            picks = torch.cat([inc, exc])
-            act = torch.cat([torch.ones(B), torch.zeros(B)])
-            y = torch.tensor(ytrue[pj[picks.numpy()]])
-            rew = (act == y).float() * 2 - 1                     # +1 correct, -1 wrong
-            correct += int((act == y).sum())
-            if train:
-                logs.append((logit[picks], act, rew, val[picks]))
-            for k in inc.numpy():                                # construction dynamic
-                a, b = allp[pj[k]]; G[a, b] = G[b, a] = 1
-            done = set(pj[picks.numpy()].tolist()); undec = [k for k in undec if k not in done]
-        if train and logs:
-            lo = torch.cat([l[0] for l in logs]); ac = torch.cat([l[1] for l in logs])
-            rw = torch.cat([l[2] for l in logs]); vv = torch.cat([l[3] for l in logs])
-            adv = (rw - vv).detach()
-            bce = nn.functional.binary_cross_entropy_with_logits(lo, ac, reduction="none")
-            loss = (bce * adv).mean() + 0.5 * ((vv - rw) ** 2).mean()
-            opt.zero_grad(); loss.backward(); opt.step()
-        return G
+            B = max(1, len(undec) // (2 * (R - rd)))
+            inc = torch.topk(p, B).indices; exc = torch.topk(-p, B).indices
+            picks = torch.cat([inc, exc]); act = torch.cat([torch.ones(B, device=DEV), torch.zeros(B, device=DEV)])
+            yy = y[undec[picks]]
+            rew = (act == yy).float() * 2 - 1
+            logits_all.append(logit[picks]); act_all.append(act); rew_all.append(rew); val_all.append(val[picks])
+            ia, ib = P[undec[inc], 0], P[undec[inc], 1]; G[ia, ib] = 1; G[ib, ia] = 1
+            mask = torch.ones(len(undec), dtype=torch.bool, device=DEV); mask[picks] = False
+            undec = undec[mask]
+        lo = torch.cat(logits_all); ac = torch.cat(act_all); rw = torch.cat(rew_all); vv = torch.cat(val_all)
+        rwn = (rw - rw.mean()) / (rw.std() + 1e-6)
+        adv = (rwn - vv).detach()
+        bce = nn.functional.binary_cross_entropy_with_logits(lo, ac, reduction="none")
+        ent = -(torch.sigmoid(lo) * nn.functional.logsigmoid(lo) +
+                (1 - torch.sigmoid(lo)) * nn.functional.logsigmoid(-lo)).mean()
+        loss = (bce * adv).mean() + 0.5 * ((vv - rwn) ** 2).mean() - 0.01 * ent
+        opt.zero_grad(); loss.backward(); opt.step()
 
-    # ---- self-play training with a curriculum (seed shrinks -> harder) ----
-    for ep in range(400):
-        nseed = int(np.interp(ep, [0, 400], [400, 60]))
-        episode(nseed, train=True)
+    @torch.no_grad()
+    def eval_auc(nseed=200):
+        G, _ = seed_graph(nseed)
+        logit, _ = net(feats_t(G, P[te, 0], P[te, 1]))
+        return float(roc_auc_score(y[te].cpu().numpy(), torch.sigmoid(logit).cpu().numpy()))
 
-    # ---- evaluate on held-out test pairs: greedy build, AUC + F1 ----
-    def eval_build(nseed):
-        G, used = seed_graph(nseed)
-        with torch.no_grad():
-            logit, _ = net(torch.tensor(feats(G, allp[te])))
-            score = torch.sigmoid(logit).numpy()
-        from sklearn.metrics import roc_auc_score, f1_score
-        auc = roc_auc_score(ytrue[te], score)
-        thr = np.quantile(score, 1 - ytrue[te].mean())          # density-matched threshold
-        f1 = f1_score(ytrue[te], (score > thr).astype(int))
-        return round(float(auc), 4), round(float(f1), 4)
+    EP = int(os.environ.get("WORM_AZ_EPISODES", "400"))
+    hist = []
+    for ep in range(EP):
+        episode(int(np.interp(ep, [0, EP], [400, 60])))
+        if (ep + 1) % max(1, EP // 20) == 0:
+            hist.append({"ep": ep + 1, "auc": round(eval_auc(), 4)})
+            print(f"[az] ep {ep+1}/{EP}  test_auc={hist[-1]['auc']:.4f}", flush=True)
 
-    az_auc, az_f1 = eval_build(200)
+    with torch.no_grad():
+        G, _ = seed_graph(200)
+        sc = torch.sigmoid(net(feats_t(G, P[te, 0], P[te, 1]))[0]).cpu().numpy()
+    yt = y[te].cpu().numpy(); az_auc = float(roc_auc_score(yt, sc))
+    thr = np.quantile(sc, 1 - yt.mean()); az_f1 = float(f1_score(yt, (sc > thr).astype(int)))
 
-    # ---- static one-shot baseline: GBM link predictor, same features/seed ----
-    from sklearn.ensemble import GradientBoostingClassifier
-    from sklearn.metrics import roc_auc_score, f1_score
+    # static baseline
     Gs, used = seed_graph(200)
-    seedpairs = np.array([k for k in trp if k not in used])
-    clf = GradientBoostingClassifier(n_estimators=80).fit(feats(Gs, allp[seedpairs]), ytrue[seedpairs])
-    sc = clf.predict_proba(feats(Gs, allp[te]))[:, 1]
-    base_auc = round(float(roc_auc_score(ytrue[te], sc)), 4)
-    thr = np.quantile(sc, 1 - ytrue[te].mean())
-    base_f1 = round(float(f1_score(ytrue[te], (sc > thr).astype(int))), 4)
+    sp = np.array([k for k in trp if k not in used])
+    Gn = Gs.cpu().numpy()
+    def fnp(G, pk):
+        Gt_ = torch.tensor(G, device=DEV, dtype=torch.float32)
+        return feats_t(Gt_, P[pk, 0], P[pk, 1]).cpu().numpy()
+    clf = GradientBoostingClassifier(n_estimators=80).fit(fnp(Gn, torch.tensor(sp, device=DEV)), A[iu, ju][sp])
+    bs = clf.predict_proba(fnp(Gn, te))[:, 1]
+    base_auc = float(roc_auc_score(yt, bs)); thr2 = np.quantile(bs, 1 - yt.mean())
+    base_f1 = float(f1_score(yt, (bs > thr2).astype(int)))
 
-    res = {"n_nodes": N, "edge_density": round(float(ytrue.mean()), 4),
-           "alphazero_selfplay": {"test_AUC": az_auc, "test_F1": az_f1},
-           "static_linkpred_baseline": {"test_AUC": base_auc, "test_F1": base_f1}}
+    res = {"device": DEV, "episodes": EP, "n_nodes": N,
+           "alphazero_selfplay": {"test_AUC": round(az_auc, 4), "test_F1": round(az_f1, 4)},
+           "static_linkpred_baseline": {"test_AUC": round(base_auc, 4), "test_F1": round(base_f1, 4)},
+           "learning_curve": hist}
     print(json.dumps(res, indent=2))
     with open(os.path.join(HERE, "stage2_alphazero.json"), "w") as f:
         json.dump(res, f, indent=2)
