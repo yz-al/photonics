@@ -1,0 +1,54 @@
+{
+  "material": "GaAs",
+  "rc_scf": 1,
+  "rc_ph": 1,
+  "etot_Ry": {
+    "name": "etot",
+    "value": null,
+    "unit": "Ry",
+    "tier": "not_run",
+    "source": "",
+    "uncertainty": null,
+    "converged": null,
+    "notes": "pw.x scf did not finish",
+    "computed": false,
+    "is_model_estimate": false
+  },
+  "eps_inf": {
+    "name": "eps_inf",
+    "value": null,
+    "unit": "1",
+    "tier": "not_run",
+    "source": "",
+    "uncertainty": null,
+    "converged": null,
+    "notes": "ph.x run did not finish (no JOB DONE)",
+    "computed": false,
+    "is_model_estimate": false
+  },
+  "Z_born": {
+    "name": "Z_born",
+    "value": null,
+    "unit": "e",
+    "tier": "not_run",
+    "source": "",
+    "uncertainty": null,
+    "converged": null,
+    "notes": "ph.x run did not finish",
+    "computed": false,
+    "is_model_estimate": false
+  },
+  "omega_LO_meV": {
+    "name": "omega_LO",
+    "value": null,
+    "unit": "meV",
+    "tier": "not_run",
+    "source": "",
+    "uncertainty": null,
+    "converged": null,
+    "notes": "ph.x run did not finish",
+    "computed": false,
+    "is_model_estimate": false
+  },
+  "reference": "GaAs: \u03c9_LO\u224836 meV (~292 cm\u207b\u00b9), \u03b5\u221e\u224810.9 (expt.)"
+}
