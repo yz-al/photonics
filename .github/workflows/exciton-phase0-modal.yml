@@ -1,0 +1,83 @@
+name: Excitonic Phase 0 (C2DB inventory) on Modal
+
+# Runs the Phase 0 C2DB label inventory on Modal (via the GitHub runner, which
+# has the network egress `modal run` needs) and commits the coverage manifest
+# back to this branch.
+#
+# Credentials: prefers repo Actions secrets MODAL_TOKEN_ID / MODAL_TOKEN_SECRET,
+# and falls back to the committed excitonic/modal_tokens.secret (same pattern the
+# Test-2 workflow uses). Trigger manually from the Actions tab or on a push that
+# touches the excitonic code.
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches:
+      - claude/excitonic-property-model-88byhk
+    paths:
+      - 'excitonic/src/**'
+      - 'excitonic/modal_app.py'
+      - '.github/workflows/exciton-phase0-modal.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: exciton-phase0-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  run-modal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal client
+        run: pip install "modal==1.5.3"
+
+      - name: Run Phase 0 inventory on Modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: |
+          # Prefer repo Actions secrets; fall back to committed credentials.
+          if [ -z "$MODAL_TOKEN_ID" ] && [ -f excitonic/modal_tokens.secret ]; then
+            set -a; . ./excitonic/modal_tokens.secret; set +a
+          fi
+          if [ -z "$MODAL_TOKEN_ID" ] || [ -z "$MODAL_TOKEN_SECRET" ]; then
+            echo "::error::No Modal credentials (neither secrets nor excitonic/modal_tokens.secret)."
+            exit 1
+          fi
+          modal run excitonic/modal_app.py
+
+      - name: Upload manifest artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase0-coverage
+          path: excitonic/data/manifests/phase0_coverage.json
+          if-no-files-found: warn
+
+      - name: Commit manifest back to branch
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          mkdir -p /tmp/res && cp excitonic/data/manifests/phase0_coverage.json /tmp/res/ 2>/dev/null || true
+          git fetch origin ${{ github.ref_name }}
+          git checkout -B ${{ github.ref_name }} origin/${{ github.ref_name }}
+          mkdir -p excitonic/data/manifests
+          cp /tmp/res/phase0_coverage.json excitonic/data/manifests/ 2>/dev/null || true
+          git add excitonic/data/manifests/phase0_coverage.json
+          if git diff --cached --quiet; then
+            echo "no manifest change to commit"
+          else
+            git commit -m "Phase 0: refresh C2DB coverage manifest from Modal run [skip ci]"
+            git push origin HEAD:${{ github.ref_name }}
+          fi

@@ -1,0 +1,10 @@
+# Phase 0 (data inventory) — deliberately minimal.
+requests==2.33.1
+
+# Added in later phases (kept here as a forward manifest, commented):
+# Phase 1 (surrogate + baseline):
+#   numpy, pandas, scikit-learn, torch, ase, pymatgen, jarvis-tools, matminer
+#   alignn            # baseline structure->property regressor (coGN/ALIGNN)
+#   mace-torch, nequip # equivariant GNN options
+# Phase 2 (label generation, run on Modal CPU/MPI, not in this client env):
+#   quantum-espresso, epw, berkeleygw / yambo  (containerized on Modal)

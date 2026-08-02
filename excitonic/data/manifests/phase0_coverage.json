@@ -1,0 +1,171 @@
+{
+  "source": "C2DB via ASE-db web front-end (c2db.fysik.dtu.dk)",
+  "total_materials": 17001,
+  "targets": [
+    {
+      "target": "E_b",
+      "name": "Exciton binding energy",
+      "unit": "eV",
+      "want": "large (>~0.2 eV for room-temperature stability)",
+      "c2db_keys": [
+        "E_B"
+      ],
+      "per_key_coverage": {
+        "E_B": 370
+      },
+      "covered_materials": 370,
+      "coverage_frac": 0.0218,
+      "label_quality": "gw_bse",
+      "is_gap": false,
+      "note": "Directly labeled in C2DB by the BSE 'E_B' column. Our anchor set."
+    },
+    {
+      "target": "Gamma_300K",
+      "name": "RT homogeneous exciton linewidth (Fr\u00f6hlich/LO-phonon dephasing)",
+      "unit": "meV",
+      "want": "small (~10 meV)",
+      "c2db_keys": [],
+      "per_key_coverage": {},
+      "covered_materials": 0,
+      "coverage_frac": 0.0,
+      "label_quality": "none",
+      "is_gap": true,
+      "note": "Requires exciton-phonon coupling (DFPT + EPW) at 300 K. C2DB carries lattice polarizability (alpha*_lat) as a partial Fr\u00f6hlich *ingredient* but not the temperature-dependent linewidth itself."
+    },
+    {
+      "target": "U_xx",
+      "name": "Exciton\u2013exciton interaction (per-particle nonlinearity)",
+      "unit": "eV (or meV\u00b7\u00b5m^2 areal)",
+      "want": "large; separate saturation- vs dipolar/Rydberg-sourced",
+      "c2db_keys": [],
+      "per_key_coverage": {},
+      "covered_materials": 0,
+      "coverage_frac": 0.0,
+      "label_quality": "none",
+      "is_gap": true,
+      "note": "Requires biexciton binding / exciton saturation from BSE or many-body (or a dipolar/interlayer treatment). Not tabulated anywhere at scale. Saturation-U scales ~ as area / a_B^2, so emass_* + E_B give only a crude proxy."
+    },
+    {
+      "target": "f_osc",
+      "name": "Oscillator strength / transition dipole",
+      "unit": "dimensionless / \u00c5 (interband polarizability)",
+      "want": "large enough to strong-couple and read out (|X| tradeoff)",
+      "c2db_keys": [
+        "alphax_el",
+        "alphay_el",
+        "alphaz_el",
+        "plasmafrequency_x",
+        "plasmafrequency_y"
+      ],
+      "per_key_coverage": {
+        "alphax_el": 5352,
+        "alphay_el": 5352,
+        "alphaz_el": 5352,
+        "plasmafrequency_x": 3931,
+        "plasmafrequency_y": 3931
+      },
+      "covered_materials": 5352,
+      "coverage_frac": 0.3148,
+      "label_quality": "dft_proxy",
+      "is_gap": false,
+      "note": "C2DB gives interband (electronic) polarizability and plasma frequency at PBE/RPA level -> a DFT-quality proxy for oscillator strength, NOT a GW-BSE transition dipole. Flag as proxy."
+    }
+  ],
+  "auxiliary_features": {
+    "gap_gw": {
+      "coverage": 339,
+      "coverage_frac": 0.0199,
+      "desc": "Band gap G0W0 [eV] (GW quality)"
+    },
+    "gap_dir_gw": {
+      "coverage": 339,
+      "coverage_frac": 0.0199,
+      "desc": "Direct band gap G0W0 [eV] (GW quality)"
+    },
+    "gap": {
+      "coverage": 8795,
+      "coverage_frac": 0.5173,
+      "desc": "Band gap PBE [eV] (DFT)"
+    },
+    "gap_hse": {
+      "coverage": 3363,
+      "coverage_frac": 0.1978,
+      "desc": "Band gap HSE06 [eV] (hybrid)"
+    },
+    "emass_cbm": {
+      "coverage": 3664,
+      "coverage_frac": 0.2155,
+      "desc": "CBM DOS effective mass PBE (-> exciton reduced mass, Bohr radius)"
+    },
+    "emass_vbm": {
+      "coverage": 3664,
+      "coverage_frac": 0.2155,
+      "desc": "VBM DOS effective mass PBE"
+    },
+    "alphax_lat": {
+      "coverage": 2001,
+      "coverage_frac": 0.1177,
+      "desc": "Static polarizability (phonons) x [\u00c5] (DFPT; Fr\u00f6hlich ingredient)"
+    },
+    "alphay_lat": {
+      "coverage": 2001,
+      "coverage_frac": 0.1177,
+      "desc": "Static polarizability (phonons) y [\u00c5]"
+    },
+    "alphaz_lat": {
+      "coverage": 2001,
+      "coverage_frac": 0.1177,
+      "desc": "Static polarizability (phonons) z [\u00c5]"
+    },
+    "dipz": {
+      "coverage": 8795,
+      "coverage_frac": 0.5173,
+      "desc": "Out-of-plane dipole [e \u00c5/cell]"
+    },
+    "thickness": {
+      "coverage": 17001,
+      "coverage_frac": 1.0,
+      "desc": "Layer thickness [\u00c5]"
+    },
+    "ehull": {
+      "coverage": 17001,
+      "coverage_frac": 1.0,
+      "desc": "Energy above hull [eV/atom] (thermodynamic stability filter)"
+    },
+    "dyn_stab": {
+      "coverage": 17001,
+      "coverage_frac": 1.0,
+      "desc": "Dynamically stable (phonon check)"
+    }
+  },
+  "training_core_intersections": {
+    "E_B": 370,
+    "E_B AND gap_gw": 283,
+    "E_B AND emass_cbm": 369,
+    "E_B AND alphax_el": 369,
+    "E_B AND alphax_lat": 262,
+    "E_B > 0.2 eV (RT-stable)": 364,
+    "E_B AND alphax_el AND emass_cbm": 368
+  },
+  "targets_with_labels": [
+    "E_b",
+    "f_osc"
+  ],
+  "targets_that_are_the_gap": [
+    "Gamma_300K",
+    "U_xx"
+  ],
+  "gap_summary": {
+    "n_targets": 4,
+    "n_labeled": 2,
+    "n_gap": 2,
+    "gap_targets": [
+      "Gamma_300K",
+      "U_xx"
+    ],
+    "labels_to_generate": {
+      "Gamma_300K": 17001,
+      "U_xx": 17001
+    }
+  }
+}
