@@ -12,9 +12,17 @@ on:
   workflow_dispatch:
     inputs:
       epochs:
-        description: 'Training epochs'
+        description: 'Flat-JEPA training epochs (train.py + extract.py)'
         required: false
         default: '40'
+      bench_epochs:
+        description: 'Benchmark epochs per model (flat/hier JEPA + forecaster)'
+        required: false
+        default: '30'
+      real:
+        description: 'Also benchmark on the real dataset (1 = yes)'
+        required: false
+        default: '1'
       max_worms:
         description: 'Cap number of worms (empty = all)'
         required: false
@@ -51,6 +59,8 @@ jobs:
           MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
           MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
           WORM_JEPA_EPOCHS: ${{ inputs.epochs }}
+          WORM_JEPA_BENCH_EPOCHS: ${{ inputs.bench_epochs }}
+          WORM_JEPA_REAL: ${{ inputs.real }}
           WORM_JEPA_MAX_WORMS: ${{ inputs.max_worms }}
           WORM_JEPA_SYNTHETIC: ${{ inputs.synthetic }}
         run: |

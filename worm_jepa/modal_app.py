@@ -24,9 +24,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 _PASSTHROUGH = {
     k: os.environ.get(k, "")
     for k in (
-        "WORM_JEPA_EPOCHS", "WORM_JEPA_MAX_WORMS", "WORM_JEPA_DMODEL",
-        "WORM_JEPA_DEPTH", "WORM_JEPA_WINDOW", "WORM_JEPA_PATCH",
-        "WORM_JEPA_BATCH", "WORM_JEPA_SYNTHETIC",
+        "WORM_JEPA_EPOCHS", "WORM_JEPA_BENCH_EPOCHS", "WORM_JEPA_MAX_WORMS",
+        "WORM_JEPA_DMODEL", "WORM_JEPA_DEPTH", "WORM_JEPA_WINDOW", "WORM_JEPA_PATCH",
+        "WORM_JEPA_BATCH", "WORM_JEPA_SYNTHETIC", "WORM_JEPA_REAL",
     )
 }
 
@@ -57,6 +57,10 @@ def run() -> str:
     print("[modal] torch", torch.__version__, "cuda", torch.cuda.is_available(),
           torch.cuda.get_device_name(0) if torch.cuda.is_available() else "-")
 
+    # Head-to-head: flat JEPA vs hierarchical JEPA vs forecasting NN
+    # (synthetic ground-truth metrics + real-dataset foundation-model metrics).
+    runpy.run_path("/root/worm_jepa/benchmark.py", run_name="__main__")
+    # Also train + open up the flat JEPA on the real data (checkpoint + SAE).
     runpy.run_path("/root/worm_jepa/train.py", run_name="__main__")
     runpy.run_path("/root/worm_jepa/extract.py", run_name="__main__")
 

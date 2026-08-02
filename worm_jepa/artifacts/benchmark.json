@@ -1,0 +1,31 @@
+{
+  "device": "cpu",
+  "runs": [
+    {
+      "data": "synthetic",
+      "n_windows": 240,
+      "n_neurons": 48,
+      "n_latents": 6,
+      "epochs": 8,
+      "results": {
+        "flat_jepa": {
+          "latent_r2": 0.17194311245396654,
+          "slow_r2": 0.613674221092018,
+          "fast_r2": -0.26978799618408505
+        },
+        "hier_jepa": {
+          "latent_r2": 0.24202798632688585,
+          "slow_r2": 0.6578260784041884,
+          "fast_r2": -0.17377010575041685
+        },
+        "forecaster": {
+          "latent_r2": 0.15023442736209014,
+          "slow_r2": 0.7972022346861009,
+          "fast_r2": -0.49673337996192063,
+          "forecast_mse": 0.09468302769320351,
+          "connectome_corr": 0.4415477987018816
+        }
+      }
+    }
+  ]
+}

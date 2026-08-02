@@ -140,13 +140,23 @@ def make_synthetic_worms(
             W[i, latent] = rng.normal(0.0, 1.0)
     names = [f"SYN{i:03d}" for i in range(N)]
 
+    # Split latents into distinct timescales so a temporal hierarchy is testable:
+    # the first half are SLOW (behavioural-state-like), the second half FAST
+    # (transient-like). Extraction can then be scored per-band.
+    n_slow = n_latents // 2
+    slow_idx = list(range(n_slow))
+    fast_idx = list(range(n_slow, n_latents))
+
     worms: list[Worm] = []
     latents_all = []
     for w in range(n_worms):
         t = np.arange(T, dtype=np.float32)
         latents = np.zeros((T, n_latents), dtype=np.float32)
         for latent in range(n_latents):
-            freq = 0.01 * (latent + 1) * (1.0 + 0.1 * rng.standard_normal())
+            if latent < n_slow:                       # slow band
+                freq = rng.uniform(0.004, 0.02)
+            else:                                     # fast band
+                freq = rng.uniform(0.08, 0.16)
             phase = rng.uniform(0, 2 * math.pi)
             latents[:, latent] = np.sin(2 * math.pi * freq * t + phase)
         drive = latents @ W.T                                    # (T, N)
@@ -160,7 +170,11 @@ def make_synthetic_worms(
                           activity=act.astype(np.float32),
                           present=np.ones(N, dtype=bool)))
         latents_all.append(latents)
-    gt = {"W": W, "latents": np.stack(latents_all), "n_latents": n_latents}
+    gt = {
+        "W": W, "latents": np.stack(latents_all), "n_latents": n_latents,
+        "slow_idx": np.asarray(slow_idx), "fast_idx": np.asarray(fast_idx),
+        "neuron_coupling": (W @ W.T).astype(np.float32),   # true neuron-neuron Gram
+    }
     return worms, names, gt
 
 

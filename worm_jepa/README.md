@@ -14,6 +14,8 @@ truth** — something impossible in mouse or human.
 |------|------|
 | `data.py` | Loads `qsimeon/celegans_neural_data` (HuggingFace) into per-worm `(time, neurons)` matrices over a canonical neuron axis; windows + I-JEPA block masks. Also a synthetic "toy-connectome" generator with known latents for offline validation. |
 | `model.py` | Time-series JEPA: patch-embed → context encoder + EMA target encoder + predictor; latent-space prediction (no trace reconstruction). |
+| `models_bench.py` | Two variants for the benchmark: a 2-level **hierarchical** JEPA (adds a coarse/slow level) and a **forecasting NN** (GRU next-step predictor with an effective-connectivity Jacobian). |
+| `benchmark.py` | Head-to-head: flat JEPA vs hierarchical JEPA vs forecaster. Honest held-out ridge probe for latent recovery (overall / slow / fast band), forecast MSE, and `connectome_corr` (forecaster effective coupling vs the true `W @ W.T`) → `artifacts/benchmark.json`. |
 | `train.py` | Device-agnostic training loop (CPU smoke or CUDA). Writes `artifacts/checkpoint.pt`, `history.json`, `meta.json`. |
 | `extract.py` | The "see what we extract" step: SAE on the frozen embeddings, linear probes (known latents for synthetic / labeled-neuron activity for real), feature-ablation ranking → `artifacts/extraction.json`. |
 | `modal_app.py` | Modal GPU launcher (mirrors `test2/modal_app.py`). |
