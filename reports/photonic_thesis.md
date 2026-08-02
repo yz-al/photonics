@@ -1510,14 +1510,25 @@ the illumination gate, which bears only on the D²NN's *accuracy* upper bound.)
 
 Right-sizing therefore **withdraws the D²NN outright** and **collapses the spiking "win" to a 52%
 coin-flip** — and the coin-flip does not survive scrutiny:
-- **The coin-flip is not an independent near-miss — it is the conserved cost set to zero by
-  assumption.** Traced: the ~1,760 count is *neuron firings* (f·N·T = 0.43·512·8), and generation
-  is charged at **8 pJ per firing**; the "~10–33 fJ/SOP" is that 8 pJ divided across each spike's
-  fan-out (SOPs = 1.84M ≫ firings), i.e. it drops below the 20–40 fJ arithmetic floor *only because
-  optical broadcast is priced free*. Free broadcast is **exactly** what the dense mesh and the
-  microring crossbar both died on. Restore the broadcast/splitter loss and the per-SOP energy rises
-  back toward the digital floor and the flip resolves — which makes the spiking row **consistent
-  with the other five architectures, one conserved electrical cost, not an anomaly.**
+- **The coin-flip is the same conserved cost — but the resolution is the loss wall and the
+  standing bias, not the broadcast delivery energy (correcting an earlier draft).** Traced: the
+  ~1,760 count is *neuron firings* (f·N·T = 0.43·512·8), generation charged at **8 pJ per firing**,
+  fanning out to ~256 per layer / ~1,045 aggregate synapses. An earlier draft said "restore the
+  broadcast loss and the flip resolves" — **the computation says that is wrong:** the ideal 1:F
+  split is loss*less*, one 8 pJ pulse carries ~6×10⁷ photons (50 needed per target), so broadcast
+  *delivery* costs only **~0.3 nJ** even with split-tree insertion — negligible against the 19 nJ
+  gen-dominated total. What actually closes the coin-flip is three things, all already in the
+  programme: **(i) the broadcast loss wall** — the aggregate 1:1045 fan-out is **30.2 dB**, at the
+  33 dB link budget, so a full-network optical broadcast is *infeasible* and must be tiled, which
+  reintroduces the per-tile conversion floor the mesh and crossbar died on (per-layer 1:256 = 24 dB
+  just fits); **(ii) the laser-bias duty cycle** — the 4.1 nJ bias assumes 100%-duty back-to-back
+  inferences; the SNN *loses below **13% duty***, and edge inference is sporadic, so the standing
+  bias (the term Follow-up 5/6 already found dominant) flips it; **(iii) the floor** — even at the
+  generous point the SNN is **0.16 pJ/MAC-eq ≈ 5× the 20–40 fJ arithmetic floor**, and only ever
+  beat the *whole-chip* NPU, exactly like the PCM crossbar's 13%. So the spiking row is **consistent
+  with the other five — one conserved electrical cost (broadcast loss wall + standing bias), not an
+  anomaly**; the "win" exists only at 100% duty, favourable devices, below the loss wall, and it
+  never beats the arithmetic floor.
 - **The Loihi comparison is confounded, not a clean win.** Against a digital neuromorphic chip
   (Loihi-class 12.7–23.6 pJ/SOP; ODIN 28 nm / Loihi, Davies IEEE Micro 2018) the model reports the
   optical SNN "winning" 100% — but only because the net re-reads its dense input every timestep
