@@ -1,0 +1,87 @@
+name: Excitonic Phase 2 (GW-BSE + EPW) on Modal
+
+# Phase 2 stands up the first-principles label-generation container on Modal:
+# Quantum ESPRESSO (pw.x/ph.x/epw.x) + BerkeleyGW, as many-core CPU/MPI jobs
+# (NOT GPU). This workflow runs the SMOKE TEST — it builds the container and
+# verifies the binaries are present. It does NOT run production GW-BSE/EPW
+# (those are long many-core jobs launched deliberately via `modal run ...::generate`).
+#
+# Credentials: repo secrets MODAL_TOKEN_ID / MODAL_TOKEN_SECRET, falling back to
+# the committed excitonic/modal_tokens.secret.
+
+on:
+  workflow_dispatch:
+    inputs:
+      entrypoint:
+        description: 'smoke (verify container) or generate (structure-gated labels)'
+        required: false
+        default: 'smoke'
+  push:
+    branches:
+      - claude/excitonic-property-model-88byhk
+    paths:
+      - '.github/workflows/exciton-phase2-modal.yml'
+      - 'excitonic/modal_phase2.py'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: exciton-phase2-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  phase2-modal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal client
+        run: pip install "modal==1.5.3"
+
+      - name: Run Phase 2 (${{ github.event.inputs.entrypoint || 'smoke' }}) on Modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          ENTRY: ${{ github.event.inputs.entrypoint || 'smoke' }}
+        run: |
+          if [ -z "$MODAL_TOKEN_ID" ] && [ -f excitonic/modal_tokens.secret ]; then
+            set -a; . ./excitonic/modal_tokens.secret; set +a
+          fi
+          if [ -z "$MODAL_TOKEN_ID" ] || [ -z "$MODAL_TOKEN_SECRET" ]; then
+            echo "::error::No Modal credentials."
+            exit 1
+          fi
+          modal run "excitonic/modal_phase2.py::${ENTRY}"
+
+      - name: Upload smoke/label manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2-manifest
+          path: excitonic/data/manifests/phase2_*.json
+          if-no-files-found: warn
+
+      - name: Commit manifest back to branch
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          mkdir -p /tmp/res && cp excitonic/data/manifests/phase2_smoke.json /tmp/res/ 2>/dev/null || true
+          git fetch origin ${{ github.ref_name }}
+          git checkout -B ${{ github.ref_name }} origin/${{ github.ref_name }}
+          mkdir -p excitonic/data/manifests
+          cp /tmp/res/phase2_smoke.json excitonic/data/manifests/ 2>/dev/null || true
+          git add excitonic/data/manifests/phase2_smoke.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "no manifest change to commit"
+          else
+            git commit -m "Phase 2: container smoke-test manifest from Modal [skip ci]"
+            git push origin HEAD:${{ github.ref_name }}
+          fi

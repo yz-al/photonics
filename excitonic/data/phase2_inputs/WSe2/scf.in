@@ -1,0 +1,49 @@
+&CONTROL
+   calculation      = 'scf'
+   verbosity        = 'high'
+   tstress          = .true.
+   tprnfor          = .true.
+   outdir           = './out'
+   prefix           = 'WSe2'
+   pseudo_dir       = './pseudo'
+/
+&SYSTEM
+   ibrav            = 0
+   ecutwfc          = 60.0
+   ecutrho          = 480.0
+   occupations      = 'smearing'
+   degauss          = 0.01
+   smearing         = 'cold'
+   assume_isolated  = '2D'
+   ntyp             = 2
+   nat              = 3
+/
+&ELECTRONS
+   conv_thr         = 1e-10
+   mixing_beta      = 0.7
+/
+&IONS
+/
+&CELL
+/
+&FCP
+/
+&RISM
+/
+ATOMIC_SPECIES
+W 183.84 W.upf
+Se 78.971 Se.upf
+
+K_POINTS automatic
+12 12 1  0 0 0
+
+CELL_PARAMETERS angstrom
+3.28000000000000 0.00000000000000 0.00000000000000
+-1.64000000000000 2.84056332441296 0.00000000000000
+0.00000000000000 -0.00000000000000 18.36000000000000
+
+ATOMIC_POSITIONS angstrom
+W 0.0000000000 0.0000000000 9.1800000000  
+Se 1.6400000000 0.9468544415 10.8600000000  
+Se 1.6400000000 0.9468544415 7.5000000000  
+

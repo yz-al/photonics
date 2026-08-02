@@ -1,0 +1,7 @@
+# epsilon.inp — dielectric matrix (2D truncation)
+epsilon_cutoff 10.0
+number_bands 200
+cell_slab_truncation
+begin qpoints
+  0.0 0.0 0.001 1.0 1
+end

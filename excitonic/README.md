@@ -81,10 +81,18 @@ Every predicted property carries an uncertainty and an explicit label-quality
 tier (`none`/`dft_proxy`/`gw_bse`/`epw`/`measured`). No GW-BSE or EPW result is
 reported unless it actually ran; Γ/U/FOM are withheld until Phase 2 generates them.
 
+## Phase 2 — scaffold complete (see `reports/phase2_pipeline.md`)
+The GW-BSE (BerkeleyGW) + DFPT/EPW (Quantum ESPRESSO) label-generation pipeline,
+as many-core **Modal CPU/MPI** jobs launched via GHA. Runnable now: seed selection,
+2D structures, QE + BerkeleyGW deck generation, and analytic **model-tier** Γ/U
+estimates that reproduce the TMD anchors (Γ≈12–18 meV, a_B≈1 nm). **No production
+GW-BSE/EPW labels yet** — Γ/U stay `not_run` (or `*_model`) until a real run
+completes; the code refuses to emit a first-principles number that wasn't computed.
+
 ## Roadmap
 - **P0 ✅** unified C2DB inventory; exact label-gap quantified.
 - **P1 ✅** multi-task baseline on `E_b` + `f_osc`; validated vs TMD anchors.
 - **P1b** structure-graph GNN (ALIGNN / MACE fine-tune) on Modal GPU — needs structures.
-- **P2** stand up GW-BSE + DFPT/EPW on Modal CPU; generate Γ and U on a ~100–500 seed set.
+- **P2 ✅ (scaffold)** GW-BSE + DFPT/EPW pipeline on Modal CPU; seed set + decks + model floor. Execution: stage structures+pseudos, run, parse Γ (`epw`) / U (`gw_bse`).
 - **P3** active learning: surrogate → propose high-U/Γ → GW-BSE → retrain.
 - **P4** screen for RT-blockade candidates; rank with uncertainty; honest reachability verdict.

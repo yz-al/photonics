@@ -1,0 +1,14 @@
+Phonons on a 6x6x1 grid for WSe2
+&inputph
+  prefix    = 'WSe2'
+  outdir    = './out'
+  fildyn    = 'WSe2.dyn'
+  fildvscf  = 'dvscf'
+  ldisp     = .true.
+  epsil     = .true.        ! dielectric tensor + Born charges (Fröhlich!)
+  trans     = .true.
+  nq1 = 6
+  nq2 = 6
+  nq3 = 1
+  tr2_ph    = 1.0d-16
+/
