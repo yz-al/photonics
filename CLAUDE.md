@@ -21,3 +21,12 @@ A two-stage strategy for turning a trained model into a mechanistic model:
 The name "double black box" refers to chaining two opaque systems: the model under
 study (opened via mechinterp) and the automated discovery engine that builds the
 mechanistic account from the extracted signal.
+
+### Priors, structure, and the trap (see worm_jepa/stage2/METHODOLOGY.md)
+Feature-discovery + priors methodology, with the key operating rule: a strong prior
+improves prediction WHILE masking structural error, so good held-out accuracy under
+regularization is weak evidence for structure. Read structure off tight-vs-vague
+prior divergence and negative-control (shuffled-structure) gaps on tasks designed so
+a wrong prior fails loudly — never off held-out prediction alone. Our real-worm
+results are a worked example: connectome ≈ shuffled on next-step prediction (the
+trap) but connectome ≫ shuffled on held-out-neuron imputation (data speaking).
