@@ -99,9 +99,11 @@ def main():
         return round(float(roc_auc_score(ytrue[test], scores)), 4)
 
     # ---------- TWO-AGENT committee (different regions) ----------
-    seed1 = np.where(p_reg1 & pool)[0]; seed2 = np.where(p_reg2 & pool)[0]
+    r1 = np.where(p_reg1 & pool)[0]; r2 = np.where(p_reg2 & pool)[0]
+    seed1 = rng.choice(r1, min(400, len(r1)), replace=False)   # SMALL local seeds
+    seed2 = rng.choice(r2, min(400, len(r2)), replace=False)
     lab1 = set(seed1.tolist()); lab2 = set(seed2.tolist())
-    poolidx = np.where(pool & ~p_reg1 & ~p_reg2)[0].tolist()   # boundary/unknown to discover
+    poolidx = [int(k) for k in np.where(pool)[0] if k not in lab1 and k not in lab2]
     for _ in range(ROUNDS):
         l1 = np.array(sorted(lab1)); l2 = np.array(sorted(lab2))
         G1 = build_believed(N, allp[l1], ytrue[l1]); G2 = build_believed(N, allp[l2], ytrue[l2])
@@ -124,7 +126,7 @@ def main():
 
     # ---------- SINGLE agent, same seeds + same budget (uncertainty sampling) ----------
     lab = set(seed1.tolist()) | set(seed2.tolist())
-    poolidx = np.where(pool & ~p_reg1 & ~p_reg2)[0].tolist()
+    poolidx = [int(k) for k in np.where(pool)[0] if k not in lab]
     for _ in range(ROUNDS):
         l = np.array(sorted(lab)); G = build_believed(N, allp[l], ytrue[l])
         pj = np.array(poolidx)
