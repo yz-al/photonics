@@ -89,19 +89,34 @@ def main():
         "reference_literature_eff_vs_struct": 0.49,
     }
 
-    # ---- prediction: delta on worms where all common neurons are present ----
-    full = [w for w in worms if w.present[ci].all()]
-    pred = {"n_full_worms": len(full)}
-    if len(full) >= 8:
+    # ---- prediction: pick a CORE neuron set present in enough worms so many
+    # worms have all of them (requiring all 99 leaves too few worms) ----
+    order = np.argsort(-present_count[ci])              # most-present common neurons first
+    core_ci, core_names = None, None
+    for K in (40, 30, 20, 15, 10):
+        cand = [ci[j] for j in order[:K]]
+        nfull = sum(1 for w in worms if w.present[cand].all())
+        if nfull >= 12:
+            core_ci = cand
+            core_names = [canon[j] for j in cand]
+            break
+    pred = {}
+    if core_ci is not None:
+        ci = core_ci; common = core_names; N = len(ci)
+        M = np.nan_to_num(pd.DataFrame(
+            np.concatenate([np.where(w.present[ci].astype(bool), w.activity[:, ci], np.nan)
+                            for w in worms], axis=0).astype(np.float64), columns=common).corr().values)
+        np.fill_diagonal(M, 0.0)
+        full = [w for w in worms if w.present[ci].all()]
+        pred["n_core_neurons"] = N; pred["n_full_worms"] = len(full)
+    if core_ci is not None and len(full) >= 8:
         Xs, Ds, wid = [], [], []
         for k, w in enumerate(full):
             a = w.activity[:, ci].astype(np.float64)
             for t in range(2, a.shape[0] - 1):
                 Xs.append(np.concatenate([a[t], a[t - 1]])); Ds.append(a[t + 1] - a[t]); wid.append(k)
         Xa, Da, wid = np.asarray(Xs), np.asarray(Ds), np.asarray(wid)
-        N = len(common)
         te = wid >= (len(full) - max(1, len(full) // 4))
-        M = np.nan_to_num(corr)
         def feats(Z):
             xt, xt1 = Z[:, :N], Z[:, N:2 * N]
             return np.concatenate([xt, xt @ M, (xt - xt1) @ M], axis=1)

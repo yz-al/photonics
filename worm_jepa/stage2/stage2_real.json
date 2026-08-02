@@ -1,0 +1,18 @@
+{
+  "structure": {
+    "n_common_neurons": 99,
+    "n_worms": 500,
+    "struct_corr_correlation": 0.1136,
+    "struct_corr_covariance": 0.1116,
+    "struct_corr_partial": 0.0697,
+    "connectome": "Cook2019Herm (chemical+gap, symmetric)",
+    "reference_synthetic_covariance": 0.684,
+    "reference_literature_eff_vs_struct": 0.49
+  },
+  "prediction": {
+    "n_core_neurons": 40,
+    "n_full_worms": 20,
+    "pred_r2_heldout": 0.5255,
+    "reference_CC_LVM_real": "0.3-0.5"
+  }
+}
