@@ -1,0 +1,92 @@
+name: Stage-2 perception + self-play on Modal GPU
+
+# Runs vjepa/em_jepa.py (EM-JEPA self-supervised on real EPFL EM) and
+# stage2/stage2_alphazero.py (self-play connectome builder, high episodes) on a
+# Modal A10G, and commits their result JSONs back to this branch. Requires
+# MODAL_TOKEN_ID / MODAL_TOKEN_SECRET (falls back to test2/modal_tokens.secret).
+#
+# Fire a GPU run by bumping the sentinel worm_jepa/RUN_GPU2 and pushing.
+
+on:
+  push:
+    branches: [claude/brain-foundation-models-xyxiga]
+    paths: ['worm_jepa/RUN_GPU2']
+  workflow_dispatch:
+    inputs:
+      em_steps:
+        description: 'EM-JEPA SSL training steps'
+        required: false
+        default: '4000'
+      em_crop:
+        description: 'EM crop size'
+        required: false
+        default: '224'
+      az_episodes:
+        description: 'AlphaZero self-play episodes'
+        required: false
+        default: '20000'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: worm-stage2-gpu-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  run-modal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal client
+        run: pip install "modal==1.5.3"
+
+      - name: Run stage-2 GPU jobs on Modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          WORM_EM_STEPS: ${{ inputs.em_steps || '4000' }}
+          WORM_EM_CROP: ${{ inputs.em_crop || '224' }}
+          WORM_AZ_EPISODES: ${{ inputs.az_episodes || '20000' }}
+        run: |
+          if [ -z "$MODAL_TOKEN_ID" ] && [ -f test2/modal_tokens.secret ]; then
+            set -a; . ./test2/modal_tokens.secret; set +a
+          fi
+          if [ -z "$MODAL_TOKEN_ID" ] || [ -z "$MODAL_TOKEN_SECRET" ]; then
+            echo "::error::No Modal credentials (neither secrets nor test2/modal_tokens.secret)."
+            exit 1
+          fi
+          modal run worm_jepa/modal_stage2_gpu.py
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: worm-stage2-gpu-artifacts
+          path: worm_jepa/artifacts/*
+          if-no-files-found: warn
+
+      - name: Commit artifacts back to branch
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          mkdir -p /tmp/wj2 && cp -r worm_jepa/artifacts/* /tmp/wj2/ 2>/dev/null || true
+          git fetch origin ${{ github.ref_name }}
+          git checkout -B ${{ github.ref_name }} origin/${{ github.ref_name }}
+          mkdir -p worm_jepa/artifacts
+          cp -r /tmp/wj2/* worm_jepa/artifacts/ 2>/dev/null || true
+          git add worm_jepa/artifacts
+          if git diff --cached --quiet; then
+            echo "no artifact change to commit"
+          else
+            git commit -m "stage-2 GPU: EM-JEPA + AlphaZero artifacts [skip ci]"
+            git push origin HEAD:${{ github.ref_name }}
+          fi
