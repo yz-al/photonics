@@ -25,7 +25,10 @@ Env: WORM_EM_DEVICE, WORM_EM_CROP, WORM_SEG_JEPA_STEPS, WORM_SEG_DEC_STEPS,
 WORM_SEG_LABEL_SLICES, WORM_CREMI_SAMPLES.
 """
 import os
+import sys
 import json
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # for `import hier_em_jepa` under runpy
 
 import numpy as np
 import torch

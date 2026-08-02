@@ -59,8 +59,12 @@ SAMPLES = os.environ.get("WORM_CREMI_SAMPLES", "A").split(",")
 #                           fix for the near-zero-loss (partial-collapse) regime.
 # The modern lineage is VICReg -> SIGReg (LeJEPA) -> VISReg; VICReg is implemented
 # here as the well-established, robust default.
-VAR_COEF = float(os.environ.get("WORM_EM_VAR", "1.0"))     # variance hinge weight
-COV_COEF = float(os.environ.get("WORM_EM_COV", "0.04"))    # covariance decorrelation weight
+# Gentle defaults: a strong variance term (coef 1.0) at full training OVER-
+# regularised -- it fixed the collapse metric (std 0.14->0.98) but degraded the
+# representation (JEPA fell below the random encoder on the probes). The floor
+# should be gentle: prevent collapse without dominating the prediction signal.
+VAR_COEF = float(os.environ.get("WORM_EM_VAR", "0.2"))     # variance hinge weight
+COV_COEF = float(os.environ.get("WORM_EM_COV", "0.01"))    # covariance decorrelation weight
 CONTRAST = float(os.environ.get("WORM_EM_CONTRAST", "0.0"))  # optional InfoNCE weight
 
 CREMI_URL = "https://cremi.org/static/data/sample_{}_20160501.hdf"

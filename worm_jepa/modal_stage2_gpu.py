@@ -26,15 +26,18 @@ _PASS = {
     "WORM_EM_CROP": os.environ.get("WORM_EM_CROP", "224"),
     "WORM_EM_DIM": os.environ.get("WORM_EM_DIM", "256"),
     "WORM_EM_DEPTH": os.environ.get("WORM_EM_DEPTH", "6"),
-    "WORM_EM_STEPS": os.environ.get("WORM_EM_STEPS", "5000"),
     "WORM_EM_BATCH": os.environ.get("WORM_EM_BATCH", "64"),
     "WORM_CREMI_SAMPLES": os.environ.get("WORM_CREMI_SAMPLES", "A,B,C"),
-    "WORM_AZ_EPISODES": os.environ.get("WORM_AZ_EPISODES", "20000"),
+    # segmentation experiment (gentle-VICReg encoder -> watershed/flood-fill -> VOI/Rand/ERL)
+    "WORM_SEG_JEPA_STEPS": os.environ.get("WORM_SEG_JEPA_STEPS", "3000"),
+    "WORM_SEG_DEC_STEPS": os.environ.get("WORM_SEG_DEC_STEPS", "800"),
+    "WORM_SEG_LABEL_SLICES": os.environ.get("WORM_SEG_LABEL_SLICES", "12"),
 }
 
 image = (
     modal.Image.debian_slim(python_version="3.11")
-    .pip_install("torch==2.5.1", "numpy<2.3", "scikit-learn", "tifffile", "h5py")
+    .pip_install("torch==2.5.1", "numpy<2.3", "scikit-learn", "scikit-image",
+                 "scipy", "tifffile", "h5py")
     .env(_PASS)
     .add_local_dir(HERE, remote_path="/root/worm_jepa", copy=True)
 )
@@ -65,12 +68,15 @@ def run() -> str:
     os.makedirs(art, exist_ok=True)
 
     stages = [
-        # CREMI hierarchical EM-JEPA with VICReg anti-collapse regularisation.
-        # (AlphaZero self-play is already confirmed a converged negative over 20k
-        # GPU episodes -- not re-run here.)
-        ("/root/worm_jepa/vjepa/hier_em_jepa.py",
-         "/root/worm_jepa/vjepa/hier_em_jepa.json", "hier_em_jepa.json"),
+        # Segmentation experiment: gentle-VICReg EM-JEPA encoder -> pixel boundary
+        # decoder -> watershed/flood-fill -> VOI / adapted-Rand / ERL, comparing
+        # jepa vs random-encoder vs raw-pixel features. The connectome-reconstruction
+        # metric that actually matters, and the honest perception-vs-topology test.
+        ("/root/worm_jepa/vjepa/segment.py",
+         "/root/worm_jepa/vjepa/segment.json", "segment.json"),
     ]
+    if "/root/worm_jepa/vjepa" not in sys.path:      # segment.py imports hier_em_jepa
+        sys.path.insert(0, "/root/worm_jepa/vjepa")
     failures = []
     for script, out_json, art_name in stages:
         try:
