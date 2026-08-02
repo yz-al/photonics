@@ -1,0 +1,59 @@
+{
+  "qe_ok": true,
+  "epw_branch_ok": true,
+  "bgw_branch_ok": false,
+  "core_eph_chain_ok": true,
+  "binaries": {
+    "pw.x": {
+      "binary": "pw.x",
+      "found": true,
+      "path": "/opt/conda/bin/pw.x"
+    },
+    "ph.x": {
+      "binary": "ph.x",
+      "found": true,
+      "path": "/opt/conda/bin/ph.x"
+    },
+    "epw.x": {
+      "binary": "epw.x",
+      "found": true,
+      "path": "/opt/conda/bin/epw.x"
+    },
+    "pw2bgw.x": {
+      "binary": "pw2bgw.x",
+      "found": true,
+      "path": "/opt/conda/bin/pw2bgw.x"
+    },
+    "epsilon.cplx.x": {
+      "binary": "epsilon.cplx.x",
+      "found": false,
+      "path": ""
+    },
+    "sigma.cplx.x": {
+      "binary": "sigma.cplx.x",
+      "found": false,
+      "path": ""
+    },
+    "kernel.cplx.x": {
+      "binary": "kernel.cplx.x",
+      "found": false,
+      "path": ""
+    },
+    "absorption.cplx.x": {
+      "binary": "absorption.cplx.x",
+      "found": false,
+      "path": ""
+    },
+    "mpirun": {
+      "binary": "mpirun",
+      "found": true,
+      "path": "/opt/conda/bin/mpirun",
+      "banner": [
+        "mpirun (Open MPI) 4.1.6",
+        "",
+        "Report bugs to http://www.open-mpi.org/community/help/"
+      ]
+    }
+  },
+  "note": "binary-presence check only; no science computed. BerkeleyGW is not on conda-forge \u2014 the GW-BSE branch needs the optional source build (BUILD_BERKELEYGW=True); the QE/EPW \u0393 branch is complete."
+}
