@@ -1,1 +1,1 @@
-CREMI hierarchical EM-JEPA run f3c120f: boundary + synapse probes, 3 samples, dim256 depth6 5000 steps
+CREMI hierarchical EM-JEPA + VICReg anti-collapse 6219781: boundary+synapse, collapse monitor (embedding std)
