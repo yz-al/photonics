@@ -1,0 +1,102 @@
+{
+  "problem": {
+    "N": 48,
+    "n_train": 22995,
+    "n_test": 7665,
+    "target": "delta x[t+1]-x[t] from x[t]; struct vs |W@W.T|"
+  },
+  "baselines": {
+    "zero": {
+      "ok": true,
+      "pred_r2": -0.000481065881932044,
+      "struct_corr": 0.0,
+      "seconds": 0.03
+    },
+    "linear_ridge": {
+      "ok": true,
+      "pred_r2": 0.1058480152367981,
+      "struct_corr": 0.23564594843484232,
+      "seconds": 0.03
+    },
+    "sindy": {
+      "ok": true,
+      "pred_r2": 0.17419489652036727,
+      "struct_corr": 0.24195590565571856,
+      "seconds": 9.78
+    },
+    "random_evo": {
+      "ok": true,
+      "pred_r2": 0.15796299373136471,
+      "struct_corr": 0.19759559114301656,
+      "seconds": 6.82
+    }
+  },
+  "claude_candidates": {
+    "gen1_latent_cross": {
+      "ok": true,
+      "pred_r2": 0.1250354723509823,
+      "struct_corr": 0.12212179312875429,
+      "seconds": 0.1
+    },
+    "gen2_dense_plus_cross": {
+      "ok": true,
+      "pred_r2": 0.19050786668921846,
+      "struct_corr": 0.2385834719842097,
+      "seconds": 0.96
+    },
+    "gen3_reduced_rank": {
+      "ok": true,
+      "pred_r2": 0.15838843874061295,
+      "struct_corr": 0.19621115660814534,
+      "seconds": 0.15
+    },
+    "gen4_tuned": {
+      "ok": true,
+      "pred_r2": 0.19738232202992853,
+      "struct_corr": 0.23863733470408047,
+      "seconds": 1.1
+    }
+  },
+  "ranking_by_pred_r2": [
+    {
+      "model": "claude:gen4_tuned",
+      "pred_r2": 0.1974,
+      "struct_corr": 0.2386
+    },
+    {
+      "model": "claude:gen2_dense_plus_cross",
+      "pred_r2": 0.1905,
+      "struct_corr": 0.2386
+    },
+    {
+      "model": "baseline:sindy",
+      "pred_r2": 0.1742,
+      "struct_corr": 0.242
+    },
+    {
+      "model": "claude:gen3_reduced_rank",
+      "pred_r2": 0.1584,
+      "struct_corr": 0.1962
+    },
+    {
+      "model": "baseline:random_evo",
+      "pred_r2": 0.158,
+      "struct_corr": 0.1976
+    },
+    {
+      "model": "claude:gen1_latent_cross",
+      "pred_r2": 0.125,
+      "struct_corr": 0.1221
+    },
+    {
+      "model": "baseline:linear_ridge",
+      "pred_r2": 0.1058,
+      "struct_corr": 0.2356
+    },
+    {
+      "model": "baseline:zero",
+      "pred_r2": -0.0005,
+      "struct_corr": 0.0
+    }
+  ]
+}
