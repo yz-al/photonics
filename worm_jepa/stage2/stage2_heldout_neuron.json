@@ -1,0 +1,14 @@
+{
+  "n_core_neurons": 40,
+  "n_worms": 20,
+  "n_target_neurons": 37,
+  "mean_degree": 7.41,
+  "connectome_meanR2": 0.4674,
+  "connectome_medianR2": 0.412,
+  "shuffled_meanR2": 0.2998,
+  "shuffled_medianR2": 0.3137,
+  "dense_meanR2": 0.5551,
+  "dense_medianR2": 0.5599,
+  "connectome_minus_shuffled_mean": 0.1676,
+  "connectome_wins_fraction": 0.838
+}
