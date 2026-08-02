@@ -67,14 +67,18 @@ def train_jepa(tr_raw, steps):
         fine_ctx = torch.gather(enc.tok_fine(pf), 1, fctx[:, :, None].expand(-1, -1, DIM))
         coarse_ctx = torch.gather(enc.tok_coarse(pc), 1, (cctx - NF)[:, :, None].expand(-1, -1, DIM))
         fo, co = enc(fine_ctx, coarse_ctx)
-        ctx = torch.cat([fo, co], 1); ctx_ids = torch.cat([fctx, cctx], 1)
+        drop = H.COARSE_DROP > 0 and rng.random() < H.COARSE_DROP
+        if drop:
+            ctx, ctx_ids = fo, fctx                         # fine-only main path this step
+        else:
+            ctx, ctx_ids = torch.cat([fo, co], 1), torch.cat([fctx, cctx], 1)
         with torch.no_grad():
             tf, _ = tgt(tgt.tok_fine(pf), tgt.tok_coarse(pc))
             target = torch.gather(tf, 1, ftgt[:, :, None].expand(-1, -1, DIM))
         p = pred(ctx, ctx_ids, ftgt)
         var_l, cov_l, _ = H.vicreg_terms(fo.reshape(-1, DIM))
         loss = F.smooth_l1_loss(p, target) + H.VAR_COEF * var_l + H.COV_COEF * cov_l
-        if H.FINE_AUX > 0:                                 # force the fine pathway to predict
+        if H.FINE_AUX > 0 and not drop:                    # force the fine pathway to predict
             loss = loss + H.FINE_AUX * F.smooth_l1_loss(pred(fo, fctx, ftgt), target)
         opt.zero_grad(); loss.backward(); opt.step()
         with torch.no_grad():

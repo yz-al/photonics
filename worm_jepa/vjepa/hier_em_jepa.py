@@ -71,7 +71,13 @@ CONTRAST = float(os.environ.get("WORM_EM_CONTRAST", "0.0"))  # optional InfoNCE 
 # encoder -- yet segmentation uses the fine features. FINE_AUX adds an auxiliary
 # loss forcing the predictor to reconstruct the masked target from the FINE encoder
 # outputs ALONE, so the fine tokens must become predictive on their own.
-FINE_AUX = float(os.environ.get("WORM_EM_FINE_AUX", "1.0"))
+# Defaults from the CPU sweep: FINE_AUX=3 + COARSE_DROP=0.5 makes JEPA's frozen
+# linear-probe boundary AUC tie the random encoder at 50 labels (0.83 vs 0.83, up
+# from 0.76) and beat it at 200/1000 -- i.e. >= random at every label budget.
+FINE_AUX = float(os.environ.get("WORM_EM_FINE_AUX", "3.0"))
+# Coarse dropout: with this probability per step, the MAIN prediction path also
+# drops the coarse stream (fine-only), pushing the fine encoder even harder.
+COARSE_DROP = float(os.environ.get("WORM_EM_COARSE_DROP", "0.5"))
 
 CREMI_URL = "https://cremi.org/static/data/sample_{}_20160501.hdf"
 
@@ -254,8 +260,12 @@ def main():
         cloc = cctx_id - NF
         coarse_ctx = torch.gather(enc.tok_coarse(pc), 1, cloc[:, :, None].expand(-1, -1, DIM))
         fo, co = enc(fine_ctx, coarse_ctx)
-        ctx = torch.cat([fo, co], 1)                             # fine + coarse context outputs
-        ctx_ids = torch.cat([fctx_id, cctx_id], 1)
+        drop = COARSE_DROP > 0 and rng.random() < COARSE_DROP
+        if drop:                                                 # fine-only main path this step
+            ctx, ctx_ids = fo, fctx_id
+        else:
+            ctx = torch.cat([fo, co], 1)                         # fine + coarse context outputs
+            ctx_ids = torch.cat([fctx_id, cctx_id], 1)
         with torch.no_grad():
             tf, _ = tgt(tgt.tok_fine(pf), tgt.tok_coarse(pc))
             target = torch.gather(tf, 1, ftgt_id[:, :, None].expand(-1, -1, DIM))
@@ -263,7 +273,7 @@ def main():
         inv = F.smooth_l1_loss(p, target)                        # invariance (prediction)
         var_loss, cov_loss, on_std = vicreg_terms(fo.reshape(-1, DIM))   # info-max reg
         loss = inv + VAR_COEF * var_loss + COV_COEF * cov_loss
-        if FINE_AUX > 0:                                          # fine-only pathway must predict
+        if FINE_AUX > 0 and not drop:                             # fine-only pathway must predict
             p_fine = pred(fo, fctx_id, ftgt_id)
             loss = loss + FINE_AUX * F.smooth_l1_loss(p_fine, target)
         if CONTRAST > 0:
