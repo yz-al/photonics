@@ -40,14 +40,15 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # and the GW-BSE branch is a documented, opt-in add-on.
 BGW_TARBALL_URL = os.environ.get("BGW_TARBALL_URL", "").strip()
 
-# Use the MPICH build of QE: MPICH's Hydra launcher runs multi-rank jobs inside a
-# minimal container without ssh/rsh or a root daemon (OpenMPI needs those and
-# fails here). Pin the mpich variant so the whole numeric stack links MPICH.
+# Use the SERIAL (nompi) build of QE. MPI process launch inside this locked-down
+# container fails for both OpenMPI (no root daemon / no ssh) and would need extra
+# plumbing for MPICH; a non-MPI QE has no MPI_Init at all and runs the small
+# validation cells reliably. Seed-set-scale jobs use a separately-provisioned
+# MPI image (documented in the report).
 qe_bgw_image = (
     modal.Image.micromamba(python_version="3.11")
     .micromamba_install(
-        "qe=*=*mpich*", "mpich", "fftw", "scalapack", "hdf5", "make", "gfortran",
-        "numpy", "ase",
+        "qe=*=nompi*", "fftw", "hdf5", "numpy", "ase",
         channels=["conda-forge"],
     )
     .pip_install("requests==2.33.1")
@@ -222,10 +223,9 @@ K_POINTS automatic
     open(os.path.join(wd, "scf.in"), "w").write(scf)
     open(os.path.join(wd, "ph.in"), "w").write(ph)
 
-    # MPICH Hydra launcher: multi-rank, no ssh/rsh, no root daemon needed.
+    # Serial QE (nompi build): run the binaries directly, no launcher.
     env = os.environ.copy()
-    env["OMP_NUM_THREADS"] = "1"
-    MPI = ["mpirun", "-np", str(N_CORES)]
+    env["OMP_NUM_THREADS"] = str(N_CORES)  # OpenMP fills the cores
 
     def run(cmd, infile, outfile):
         with open(os.path.join(wd, outfile), "w") as fo:
@@ -233,8 +233,8 @@ K_POINTS automatic
                                stdout=fo, stderr=subprocess.STDOUT, cwd=wd, env=env)
         return p.returncode
 
-    rc_scf = run(MPI + ["pw.x"], "scf.in", "scf.out")
-    rc_ph = run(MPI + ["ph.x"], "ph.in", "ph.out")
+    rc_scf = run(["pw.x"], "scf.in", "scf.out")
+    rc_ph = run(["ph.x"], "ph.in", "ph.out")
     scf_out = open(os.path.join(wd, "scf.out")).read()
     ph_out = open(os.path.join(wd, "ph.out")).read()
     err_tail = ""
