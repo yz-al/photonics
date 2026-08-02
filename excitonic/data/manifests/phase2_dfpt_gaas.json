@@ -1,7 +1,13 @@
 {
   "material": "GaAs",
-  "rc_scf": 1,
+  "rc_scf": 17,
   "rc_ph": 1,
+  "wall_clock": {
+    "scf_s": 7.5,
+    "ph_s": 1.0,
+    "total_s": 8.6,
+    "cores": 16
+  },
   "etot_Ry": {
     "name": "etot",
     "value": null,
@@ -50,6 +56,6 @@
     "computed": false,
     "is_model_estimate": false
   },
-  "error_tail": "SCF tail:\nIt looks like MPI_INIT failed for some reason; your parallel process is\nlikely to abort.  There are many reasons that a parallel process can\nfail during MPI_INIT; some of which are due to configuration or environment\nproblems.  This failure appears to be an internal failure; here's some\nadditional information (which may only be relevant to an Open MPI\ndeveloper):\n\n  ompi_mpi_init: ompi_rte_init failed\n  --> Returned \"Unable to start a daemon on the local node\" (-127) instead of \"Success\" (0)\n--------------------------------------------------------------------------\n*** An error occurred in MPI_Init_thread\n*** on a NULL communicator\n*** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,\n***    and potentially your MPI job)\n[modal:00018] Local abort before MPI_INIT completed completed successfully, but am not able to aggregate error messages, and not able to guarantee that all other processes were killed!\nPH tail:\nIt looks like MPI_INIT failed for some reason; your parallel process is\nlikely to abort.  There are many reasons that a parallel process can\nfail during MPI_INIT; some of which are due to configuration or environment\nproblems.  This failure appears to be an internal failure; here's some\nadditional information (which may only be relevant to an Open MPI\ndeveloper):\n\n  ompi_mpi_init: ompi_rte_init failed\n  --> Returned \"Unable to start a daemon on the local node\" (-127) instead of \"Success\" (0)\n--------------------------------------------------------------------------\n*** An error occurred in MPI_Init_thread\n*** on a NULL communicator\n*** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,\n***    and potentially your MPI job)\n[modal:00035] Local abort before MPI_INIT completed completed successfully, but am not able to aggregate error messages, and not able to guarantee that all other processes were killed!",
+  "error_tail": "SCF tail:\n %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n     Error in routine  cdiaghg (17):\n      problems computing cholesky\n %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n\n     stopping ...\n--------------------------------------------------------------------------\nMPI_ABORT was invoked on rank 6 in communicator MPI_COMM_WORLD\nwith errorcode 17.\n\nNOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.\nYou may or may not see output from other processes, depending on\nexactly when Open MPI kills them.\n--------------------------------------------------------------------------\n[modal:00018] 15 more processes have sent help message help-mpi-api.txt / mpi-abort\nPH tail:\nNOTE: invoking MPI_ABORT causes Open MPI to kill all MPI processes.\nYou may or may not see output from other processes, depending on\nexactly when Open MPI kills them.\n--------------------------------------------------------------------------\n[modal:00310] PMIX ERROR: UNREACHABLE in file server/pmix_server.c at line 2198\n[modal:00310] PMIX ERROR: UNREACHABLE in file server/pmix_server.c at line 2198\n[modal:00310] PMIX ERROR: UNREACHABLE in file server/pmix_server.c at line 2198\n[modal:00310] PMIX ERROR: UNREACHABLE in file server/pmix_server.c at line 2198\n[modal:00310] PMIX ERROR: UNREACHABLE in file server/pmix_server.c at line 2198\n[modal:00310] PMIX ERROR: UNREACHABLE in file server/pmix_server.c at line 2198\n[modal:00310] PMIX ERROR: UNREACHABLE in file server/pmix_server.c at line 2198\n[modal:00310] PMIX ERROR: UNREACHABLE in file server/pmix_server.c at line 2198\n[modal:00310] 14 more processes have sent help message help-btl-vader.txt / cma-permission-denied\n[modal:00310] Set MCA parameter \"orte_base_help_aggregate\" to 0 to see all help / error messages\n[modal:00310] 15 more processes have sent help message help-mpi-api.txt / mpi-abort",
   "reference": "GaAs: \u03c9_LO\u224836 meV (~292 cm\u207b\u00b9), \u03b5\u221e\u224810.9 (expt.)"
 }
