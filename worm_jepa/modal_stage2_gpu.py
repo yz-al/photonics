@@ -24,16 +24,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # Real-scale defaults for the GPU; overridable from the workflow env.
 _PASS = {
     "WORM_EM_CROP": os.environ.get("WORM_EM_CROP", "224"),
-    "WORM_EM_DIM": os.environ.get("WORM_EM_DIM", "384"),
-    "WORM_EM_DEPTH": os.environ.get("WORM_EM_DEPTH", "8"),
-    "WORM_EM_STEPS": os.environ.get("WORM_EM_STEPS", "4000"),
+    "WORM_EM_DIM": os.environ.get("WORM_EM_DIM", "256"),
+    "WORM_EM_DEPTH": os.environ.get("WORM_EM_DEPTH", "6"),
+    "WORM_EM_STEPS": os.environ.get("WORM_EM_STEPS", "5000"),
     "WORM_EM_BATCH": os.environ.get("WORM_EM_BATCH", "64"),
+    "WORM_CREMI_SAMPLES": os.environ.get("WORM_CREMI_SAMPLES", "A,B,C"),
     "WORM_AZ_EPISODES": os.environ.get("WORM_AZ_EPISODES", "20000"),
 }
 
 image = (
     modal.Image.debian_slim(python_version="3.11")
-    .pip_install("torch==2.5.1", "numpy<2.3", "scikit-learn", "tifffile")
+    .pip_install("torch==2.5.1", "numpy<2.3", "scikit-learn", "tifffile", "h5py")
     .env(_PASS)
     .add_local_dir(HERE, remote_path="/root/worm_jepa", copy=True)
 )
@@ -64,7 +65,10 @@ def run() -> str:
     os.makedirs(art, exist_ok=True)
 
     stages = [
-        ("/root/worm_jepa/vjepa/em_jepa.py", "/root/worm_jepa/vjepa/em_jepa.json", "em_jepa.json"),
+        # CREMI hierarchical EM-JEPA: perception scored on connectome-relevant tasks
+        # (neuron boundaries + synaptic clefts), not mitochondria.
+        ("/root/worm_jepa/vjepa/hier_em_jepa.py",
+         "/root/worm_jepa/vjepa/hier_em_jepa.json", "hier_em_jepa.json"),
         ("/root/worm_jepa/stage2/stage2_alphazero.py",
          "/root/worm_jepa/stage2/stage2_alphazero.json", "stage2_alphazero_gpu.json"),
     ]
