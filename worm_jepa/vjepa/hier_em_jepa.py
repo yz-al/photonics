@@ -66,6 +66,12 @@ SAMPLES = os.environ.get("WORM_CREMI_SAMPLES", "A").split(",")
 VAR_COEF = float(os.environ.get("WORM_EM_VAR", "0.2"))     # variance hinge weight
 COV_COEF = float(os.environ.get("WORM_EM_COV", "0.01"))    # covariance decorrelation weight
 CONTRAST = float(os.environ.get("WORM_EM_CONTRAST", "0.0"))  # optional InfoNCE weight
+# Fine-pathway fix: the diagnostics showed the coarse stream shortcuts the pretext
+# task (zeroing fine context barely raised prediction error), starving the FINE
+# encoder -- yet segmentation uses the fine features. FINE_AUX adds an auxiliary
+# loss forcing the predictor to reconstruct the masked target from the FINE encoder
+# outputs ALONE, so the fine tokens must become predictive on their own.
+FINE_AUX = float(os.environ.get("WORM_EM_FINE_AUX", "1.0"))
 
 CREMI_URL = "https://cremi.org/static/data/sample_{}_20160501.hdf"
 
@@ -257,6 +263,9 @@ def main():
         inv = F.smooth_l1_loss(p, target)                        # invariance (prediction)
         var_loss, cov_loss, on_std = vicreg_terms(fo.reshape(-1, DIM))   # info-max reg
         loss = inv + VAR_COEF * var_loss + COV_COEF * cov_loss
+        if FINE_AUX > 0:                                          # fine-only pathway must predict
+            p_fine = pred(fo, fctx_id, ftgt_id)
+            loss = loss + FINE_AUX * F.smooth_l1_loss(p_fine, target)
         if CONTRAST > 0:
             loss = loss + CONTRAST * infonce(p, target)
         opt.zero_grad(); loss.backward(); opt.step()

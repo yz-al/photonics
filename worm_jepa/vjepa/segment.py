@@ -74,6 +74,8 @@ def train_jepa(tr_raw, steps):
         p = pred(ctx, ctx_ids, ftgt)
         var_l, cov_l, _ = H.vicreg_terms(fo.reshape(-1, DIM))
         loss = F.smooth_l1_loss(p, target) + H.VAR_COEF * var_l + H.COV_COEF * cov_l
+        if H.FINE_AUX > 0:                                 # force the fine pathway to predict
+            loss = loss + H.FINE_AUX * F.smooth_l1_loss(pred(fo, fctx, ftgt), target)
         opt.zero_grad(); loss.backward(); opt.step()
         with torch.no_grad():
             for pe, pt in zip(enc.parameters(), tgt.parameters()):
