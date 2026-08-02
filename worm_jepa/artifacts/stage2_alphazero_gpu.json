@@ -11,90 +11,90 @@
     "test_F1": 0.1312
   },
   "diagnosis": {
-    "corr_logit_degree": -0.6963,
+    "corr_logit_degree": -0.8614,
     "degree_feature_AUC": 0.5875,
     "note": "construction dynamic inverts degree: negative policy-degree corr despite positive degree AUC; converged fixed point, longer training does not help"
   },
   "learning_curve": [
     {
       "ep": 1000,
-      "auc": 0.379
+      "auc": 0.3826
     },
     {
       "ep": 2000,
-      "auc": 0.3725
+      "auc": 0.3761
     },
     {
       "ep": 3000,
-      "auc": 0.4083
+      "auc": 0.398
     },
     {
       "ep": 4000,
-      "auc": 0.4472
+      "auc": 0.3926
     },
     {
       "ep": 5000,
-      "auc": 0.4271
+      "auc": 0.3903
     },
     {
       "ep": 6000,
-      "auc": 0.3752
+      "auc": 0.3601
     },
     {
       "ep": 7000,
-      "auc": 0.4013
+      "auc": 0.38
     },
     {
       "ep": 8000,
-      "auc": 0.367
+      "auc": 0.3633
     },
     {
       "ep": 9000,
-      "auc": 0.3671
+      "auc": 0.3714
     },
     {
       "ep": 10000,
-      "auc": 0.3647
+      "auc": 0.3525
     },
     {
       "ep": 11000,
-      "auc": 0.3675
+      "auc": 0.3694
     },
     {
       "ep": 12000,
-      "auc": 0.364
+      "auc": 0.3572
     },
     {
       "ep": 13000,
-      "auc": 0.3711
+      "auc": 0.367
     },
     {
       "ep": 14000,
-      "auc": 0.3579
+      "auc": 0.3676
     },
     {
       "ep": 15000,
-      "auc": 0.3736
+      "auc": 0.3715
     },
     {
       "ep": 16000,
-      "auc": 0.3515
+      "auc": 0.3571
     },
     {
       "ep": 17000,
-      "auc": 0.3764
+      "auc": 0.3722
     },
     {
       "ep": 18000,
-      "auc": 0.3549
+      "auc": 0.3578
     },
     {
       "ep": 19000,
-      "auc": 0.3577
+      "auc": 0.3629
     },
     {
       "ep": 20000,
-      "auc": 0.3476
+      "auc": 0.3511
     }
   ]
 }
