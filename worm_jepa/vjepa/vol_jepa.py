@@ -38,6 +38,12 @@ FDIM, CDIM = FZ * PF * PF, CZ * PC * PC
 DIM = int(os.environ.get("WORM_VOL_DIM", "256"))
 DEPTH = int(os.environ.get("WORM_VOL_DEPTH", "6"))
 BATCH = int(os.environ.get("WORM_VOL_BATCH", "8"))
+# Collapse fix (scale-robust): standardize the prediction TARGETS per dimension
+# each step. A collapsed (near-constant) encoder cannot predict unit-variance
+# targets, so collapse stops being a winning solution -- this holds even when the
+# VICReg weight is too weak to prevent collapse on its own (which is what happened
+# at dim-256: std fell to ~0.01). Data2vec/BYOL-style target normalization.
+TGT_STD = os.environ.get("WORM_VOL_TGT_STD", "1") == "1"
 
 
 # ---------------- 3D patchify ----------------
@@ -155,6 +161,8 @@ def train_vol_jepa(tr_raw, steps, rng=None):
         with torch.no_grad():
             tf, _ = tgt(tgt.tok_fine(pf), tgt.tok_coarse(pc))
             target = torch.gather(tf, 1, ftgt[:, :, None].expand(-1, -1, DIM))
+            if TGT_STD:                                   # collapse fix: unit-variance targets
+                target = (target - target.mean((0, 1), keepdim=True)) / (target.std((0, 1), keepdim=True) + 1e-4)
         var_l, cov_l, on_std = vicreg_terms(fo.reshape(-1, DIM))
         loss = F.smooth_l1_loss(pred(ctx, ctx_ids, ftgt), target) + VAR_COEF * var_l + COV_COEF * cov_l
         if FINE_AUX > 0 and not drop:
