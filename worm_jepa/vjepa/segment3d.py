@@ -88,6 +88,41 @@ class RawAff3D(nn.Module):
         return self.net(img)[0]
 
 
+class _Res3d(nn.Module):
+    def __init__(self, ci, co):
+        super().__init__()
+        self.c1 = nn.Conv3d(ci, co, 3, padding=1); self.c2 = nn.Conv3d(co, co, 3, padding=1)
+        self.n1 = nn.GroupNorm(8, co); self.n2 = nn.GroupNorm(8, co)
+        self.sk = nn.Conv3d(ci, co, 1) if ci != co else nn.Identity()
+
+    def forward(self, x):
+        h = F.gelu(self.n1(self.c1(x))); h = self.n2(self.c2(h))
+        return F.gelu(h + self.sk(x))
+
+
+class SotaUNet3D(nn.Module):
+    """The SOTA-family model: a residual 3D U-Net (PyTorch-Connectomics style)
+    predicting affinities from the raw subvolume. Downsamples xy by 4, z by 2.
+    Used as the 'sota' base -- pretrained on dense labels, then adapted per budget,
+    to test whether supervised-SOTA transfer beats SSL-JEPA / from-scratch."""
+    def __init__(self):
+        super().__init__()
+        self.e1 = _Res3d(1, 32); self.d1 = nn.Conv3d(32, 32, 3, stride=(2, 2, 2), padding=1)
+        self.e2 = _Res3d(32, 64); self.d2 = nn.Conv3d(64, 64, 3, stride=(1, 2, 2), padding=1)
+        self.bott = _Res3d(64, 128)
+        self.u2 = nn.ConvTranspose3d(128, 64, (1, 2, 2), stride=(1, 2, 2)); self.dec2 = _Res3d(128, 64)
+        self.u1 = nn.ConvTranspose3d(64, 32, (2, 2, 2), stride=(2, 2, 2)); self.dec1 = _Res3d(64, 32)
+        self.head = nn.Conv3d(32, NAFF, 1)
+
+    def forward(self, img):
+        s1 = self.e1(img); x = self.d1(s1)
+        s2 = self.e2(x); x = self.d2(s2)
+        x = self.bott(x)
+        x = self.dec2(torch.cat([self.u2(x), s2], 1))
+        x = self.dec1(torch.cat([self.u1(x), s1], 1))
+        return self.head(x)[0]
+
+
 def gt_affinity(seg, offs):
     Z, Hh, W = seg.shape
     aff = np.zeros((len(offs), Z, Hh, W), np.float32); val = np.zeros_like(aff)
@@ -179,16 +214,22 @@ def main():
 
     def run_dec(source, dec, encoder, sub):
         raw_t = torch.tensor(sub, device=DEV)[None, None].float()
-        if source == "raw":
+        if source in ("raw", "sota"):                     # both are image -> affinity nets
             return dec(raw_t)
         return dec(V.feature_grid(encoder, sub.astype(np.float32))[None], raw_t)
 
-    def train_dec(source, encoder, pool, sparse_k=None, seed=0):
+    def make_dec(source):
+        return {"raw": RawAff3D, "sota": SotaUNet3D}.get(source, FeatAff3D)().to(DEV)
+
+    def train_dec(source, encoder, pool, sparse_k=None, seed=0, init_state=None):
         # pool = fixed labeled (subvol, seg) list. DENSE budget = len(pool) fully
         # labeled subvolumes. SPARSE budget (sparse_k) = ONE subvolume but the loss
         # is restricted to a FIXED set of sparse_k annotated voxel-edges -- the
         # genuinely label-scarce regime where SSL is supposed to win most.
-        dec = (RawAff3D() if source == "raw" else FeatAff3D()).to(DEV)
+        # init_state: warm-start from a pretrained model (the SOTA-base transfer test).
+        dec = make_dec(source)
+        if init_state is not None:
+            dec.load_state_dict(init_state)
         opt = torch.optim.Adam(dec.parameters(), lr=2e-3)
         smask = None
         if sparse_k is not None:                          # fixed sparse annotation on pool[0]
@@ -243,19 +284,22 @@ def main():
                  "ERL_proxy": float(np.mean(erls)), "n_segments": float(np.mean(nseg))}, preds)
 
     def recovery(full_preds, mask_fn):
-        raw_errs, jepa_ok, rand_ok, tot = 0, 0, 0, 0
+        raw_errs, jepa_ok, rand_ok, sota_ok, tot = 0, 0, 0, 0, 0
         for j, (_, (gt_a, val)) in enumerate(zip(te_subs, te_gt)):
             m = (val > 0) & mask_fn(j)
             e = m & ((full_preds["raw"][j] > 0.5) != (gt_a > 0.5))          # raw wrong
             raw_errs += int(e.sum()); tot += int(m.sum())
             jepa_ok += int((e & ((full_preds["jepa"][j] > 0.5) == (gt_a > 0.5))).sum())
             rand_ok += int((e & ((full_preds["random"][j] > 0.5) == (gt_a > 0.5))).sum())
+            sota_ok += int((e & ((full_preds["sota"][j] > 0.5) == (gt_a > 0.5))).sum())
         return {"raw_error_rate": raw_errs / max(1, tot),
                 "jepa_recovers": jepa_ok / max(1, raw_errs),
-                "random_recovers": rand_ok / max(1, raw_errs)}
+                "random_recovers": rand_ok / max(1, raw_errs),
+                "sota_recovers": sota_ok / max(1, raw_errs)}
 
     # ---- multi-seed loop (mean +- std) ----
-    le_acc = {s: {key: [] for key, _, _ in BUDGETS} for s in ["jepa", "random", "raw"]}
+    SOURCES = ["jepa", "random", "raw", "sota"]
+    le_acc = {s: {key: [] for key, _, _ in BUDGETS} for s in SOURCES}
     es_acc = {"all_offsets": [], "long_range_merge_edges": []}
     std_finals = []
     for seed in SEEDS:
@@ -263,14 +307,20 @@ def main():
         enc = V.train_vol_jepa(tr_raw, JEPA_STEPS, np.random.default_rng(seed))
         rnd = V.VolHierEncoder().to(DEV).eval()
         std_finals.append(getattr(enc, "std_final", None))
-        encmap = {"jepa": enc, "random": rnd, "raw": None}
+        encmap = {"jepa": enc, "random": rnd, "raw": None, "sota": None}
+        # SOTA base: pretrain the U-Net on the FULL dense training labels, once per
+        # seed. Each budget then WARM-STARTS from it (supervised transfer) -- vs raw
+        # (from scratch) and jepa (SSL). Answers "should we use SOTA on base?".
+        sota_base = train_dec("sota", None, full_pool)
+        sota_init = sota_base.state_dict()
         full_preds = {}
-        for source in ["jepa", "random", "raw"]:
+        for source in SOURCES:
             for key, kind, B in BUDGETS:
+                init = sota_init if source == "sota" else None
                 if kind == "dense":
-                    dec = train_dec(source, encmap[source], full_pool[:B])
+                    dec = train_dec(source, encmap[source], full_pool[:B], init_state=init)
                 else:
-                    dec = train_dec(source, encmap[source], full_pool[:1], sparse_k=B, seed=seed)
+                    dec = train_dec(source, encmap[source], full_pool[:1], sparse_k=B, seed=seed, init_state=init)
                 m, preds = evaluate(source, dec, encmap[source])
                 le_acc[source][key].append(m)
                 if key == DENSE_MAX_KEY:
@@ -293,7 +343,7 @@ def main():
                             "coarse_drop": H.COARSE_DROP, "target_std": V.TGT_STD,
                             "embedding_std_final_per_seed": std_finals},
            "label_efficiency": {s: {key: agg(le_acc[s][key]) for key, _, _ in BUDGETS}
-                                for s in ["jepa", "random", "raw"]},
+                                for s in SOURCES},
            "error_set_analysis": {k: agg(es_acc[k]) for k in es_acc}}
     print(json.dumps(res, indent=2))
     with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
