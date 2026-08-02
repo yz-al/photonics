@@ -233,8 +233,17 @@ K_POINTS automatic
                                stdout=fo, stderr=subprocess.STDOUT, cwd=wd, env=env)
         return p.returncode
 
+    import time
+    t0 = time.time()
     rc_scf = run(["pw.x"], "scf.in", "scf.out")
+    t1 = time.time()
     rc_ph = run(["ph.x"], "ph.in", "ph.out")
+    t2 = time.time()
+    wall = {"scf_s": round(t1 - t0, 1), "ph_s": round(t2 - t1, 1),
+            "total_s": round(t2 - t0, 1), "cores": N_CORES}
+    print(f"[phase2/dfpt] wall-clock: scf={wall['scf_s']}s ph={wall['ph_s']}s "
+          f"total={wall['total_s']}s on {N_CORES} cores  "
+          f"(-> {wall['total_s']*N_CORES/3600:.3f} core-hours, first real cost datapoint)")
     scf_out = open(os.path.join(wd, "scf.out")).read()
     ph_out = open(os.path.join(wd, "ph.out")).read()
     err_tail = ""
@@ -251,6 +260,7 @@ K_POINTS automatic
     print(f"[phase2/dfpt] etot={etot.value} eps_inf={eps.value} "
           f"Z*={zb.value} omega_LO={wlo.value} meV (tier dfpt)")
     return {"material": material, "rc_scf": rc_scf, "rc_ph": rc_ph,
+            "wall_clock": wall,
             "etot_Ry": etot.to_dict(), "eps_inf": eps.to_dict(),
             "Z_born": zb.to_dict(), "omega_LO_meV": wlo.to_dict(),
             "error_tail": err_tail,

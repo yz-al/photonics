@@ -1,5 +1,13 @@
 # Phase 1 — Multi-task baseline surrogate + validation
 
+> **⚠️ Read `phase1_revalidation.md` first.** The headline "R²=0.81 / anchors
+> reproduced" below OVERSTATES the result. Honest re-validation shows: a PBE-gap-only
+> baseline already gives R²=0.33; leave-one-family-out CV drops to R²=0.67; the TMD
+> anchors are in-distribution (interpolation, not validation); and the true OOD test —
+> **GaAs — fails ~70×** (predicted 0.28 eV vs 4 meV true) with a confidently small
+> uncertainty. The surrogate is a within-2D-distribution interpolator, not a validated
+> predictor. The numbers below stand as reported but must be read with that correction.
+
 **Goal (Phase 1):** train a baseline multi-task surrogate on the *existing* C2DB
 labels and validate it against the physics anchors — before any GW-BSE/EPW label
 generation (Phase 2).

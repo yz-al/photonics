@@ -47,10 +47,23 @@ Multi-task baseline surrogate on the 370-material GW-BSE core, 5-fold out-of-fol
 | `E_b` (exciton binding) | **0.172 eV** | **0.81** | GW-BSE |
 | `f_osc` (oscillator strength) | 0.099 (log₁₀ α) | 0.85 | DFT proxy |
 
-All six TMD monolayer anchors (MoS₂/WS₂/… ) reproduced in the ~0.4–0.7 eV regime
-(Selig/Moody). Bootstrap-ensemble uncertainty is under-dispersed but ranks
-errors reliably (Spearman ≈ 0.5) — usable for active-learning acquisition.
-`Γ`, `U`, and the FOM remain **unpredicted** (no labels yet) — Phase 2.
+**Honest re-validation (`reports/phase1_revalidation.md`) corrects the overclaim:**
+PBE-gap-only already gives R²=0.33; **leave-one-family-out R²=0.67** (random folds
+leak); TMD anchors are in-distribution (interpolation, not validation); and the true
+OOD test **GaAs fails ~70×** (0.28 eV predicted vs 4 meV true) with a confidently low
+σ. The surrogate is a within-2D-distribution interpolator; uncertainty ranks
+in-distribution but is ~2× under-dispersed and **blind to OOD** — not yet usable to
+drive active learning. `Γ`, `U`, and the FOM remain unpredicted (no labels) — Phase 2.
+
+## ⚠️ Key decision — how U is defined (`reports/u_definition_decision.md`)
+The saturation-U proxy is algebraically **∝ 1/μ** (effective mass only), so it makes
+the FOM computable without any BSE or surrogate, and is physics-capped (likely why
+measured U/Γ clusters ~0.05). **Rejected as the FOM numerator.** The independent U is
+the **dipolar/interlayer** channel (excited-state dipole d, a BSE observable), which
+decouples U from a_B — shifting the search toward interlayer-exciton stacks (BiDB/
+HetDB). See also `reports/phase2_cost_plan.md`: a full converged GW-BSE+EPW seed set
+of 100–500 is ~\$10⁵–10⁶ and months of wall-clock (infeasible) — measure one material
+first, then scope to single-digit flagships + a cheap DFPT/geometry screen for breadth.
 
 ## Layout
 ```
