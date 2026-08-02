@@ -18,14 +18,17 @@ TIERS = (
     "saturation_model", # analytic phase-space-filling / dipolar estimate for U (NOT BSE)
     "dft_proxy",        # PBE/RPA-level proxy
     "hybrid",           # HSE06
+    "dfpt",             # DFPT: dielectric tensor, Born charges, LO/TO phonons (real)
     "gw",               # G0W0 electronic structure
     "gw_bse",           # GW-BSE (exciton binding, biexciton/saturation U)
     "epw",              # DFPT + EPW electron-phonon (Γ(300 K))
     "measured",         # experiment
 )
 
-# Which tier *counts* as a real first-principles label for each target.
-FIRST_PRINCIPLES = {"gw", "gw_bse", "epw", "measured"}
+# Which tier *counts* as a real first-principles label for the quantity it labels.
+# DFPT phonon/dielectric outputs are genuine first-principles numbers (for those
+# quantities); a Γ derived from them via the Fröhlich *model* stays model-tier.
+FIRST_PRINCIPLES = {"dfpt", "gw", "gw_bse", "epw", "measured"}
 MODEL_ESTIMATE = {"frohlich_model", "saturation_model", "dft_proxy", "hybrid"}
 
 

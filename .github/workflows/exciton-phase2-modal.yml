@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
     inputs:
       entrypoint:
-        description: 'smoke (verify container) or generate (structure-gated labels)'
+        description: 'smoke (verify container) | dfpt (real GaAs DFPT) | generate'
         required: false
         default: 'smoke'
   push:
@@ -73,15 +73,15 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          mkdir -p /tmp/res && cp excitonic/data/manifests/phase2_smoke.json /tmp/res/ 2>/dev/null || true
+          mkdir -p /tmp/res && cp excitonic/data/manifests/phase2_smoke.json excitonic/data/manifests/phase2_dfpt_gaas.json /tmp/res/ 2>/dev/null || true
           git fetch origin ${{ github.ref_name }}
           git checkout -B ${{ github.ref_name }} origin/${{ github.ref_name }}
           mkdir -p excitonic/data/manifests
-          cp /tmp/res/phase2_smoke.json excitonic/data/manifests/ 2>/dev/null || true
-          git add excitonic/data/manifests/phase2_smoke.json 2>/dev/null || true
+          cp /tmp/res/phase2_smoke.json /tmp/res/phase2_dfpt_gaas.json excitonic/data/manifests/ 2>/dev/null || true
+          git add excitonic/data/manifests/phase2_smoke.json excitonic/data/manifests/phase2_dfpt_gaas.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "no manifest change to commit"
           else
-            git commit -m "Phase 2: container smoke-test manifest from Modal [skip ci]"
+            git commit -m "Phase 2: first-principles manifest from Modal [skip ci]"
             git push origin HEAD:${{ github.ref_name }}
           fi

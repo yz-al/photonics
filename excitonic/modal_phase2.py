@@ -33,23 +33,30 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # export. BerkeleyGW is NOT packaged on conda-forge, so the GW-BSE branch needs a
 # source build — added as an optional layer (heavy: MPI+ScaLAPACK+FFTW+HDF5).
 # GW-BSE/EPW are MPI/CPU-bound, hence a CPU image, not GPU.
-BUILD_BERKELEYGW = False  # flip on to compile BerkeleyGW into the image (slow)
+# BerkeleyGW source build (GW-BSE branch). Its source is distribution-gated
+# (registration on berkeleygw.org; GitLab needs auth), so it cannot be fetched
+# unattended. Provide a reachable tarball URL via the BGW_TARBALL_URL env var to
+# compile it into the image; otherwise the QE/EPW Γ branch is fully functional
+# and the GW-BSE branch is a documented, opt-in add-on.
+BGW_TARBALL_URL = os.environ.get("BGW_TARBALL_URL", "").strip()
 
 qe_bgw_image = (
     modal.Image.micromamba(python_version="3.11")
     .micromamba_install(
-        "qe", "openmpi", "fftw", "scalapack", "hdf5", "numpy", "ase",
+        "qe", "openmpi", "fftw", "scalapack", "hdf5", "make", "gfortran",
+        "numpy", "ase",
         channels=["conda-forge"],
     )
     .pip_install("requests==2.33.1")
 )
-if BUILD_BERKELEYGW:  # pragma: no cover - opt-in heavy build
+if BGW_TARBALL_URL:  # pragma: no cover - opt-in heavy build, needs a source URL
     qe_bgw_image = qe_bgw_image.run_commands(
-        "micromamba install -y -n base -c conda-forge make gfortran",
-        # Fetch + build BerkeleyGW against the conda MPI/ScaLAPACK/FFTW/HDF5 stack.
-        # A per-arch arch.mk must be supplied; see reports/phase2_pipeline.md.
-        "curl -L -o /opt/bgw.tar.gz https://berkeleygw.org/download/ || true",
-        "echo 'BerkeleyGW source build placeholder — supply arch.mk and make'",
+        f"curl -L -o /opt/bgw.tar.gz '{BGW_TARBALL_URL}'",
+        "mkdir -p /opt/bgw && tar xzf /opt/bgw.tar.gz -C /opt/bgw --strip-components=1",
+        # Generic arch.mk against the conda MPI/ScaLAPACK/FFTW/HDF5 stack.
+        "cp /root/excitonic/build/berkeleygw_arch.mk /opt/bgw/arch.mk || true",
+        "cd /opt/bgw && make -j 8 all || (echo 'BGW build failed; see log' && false)",
+        "cp /opt/bgw/bin/*.x /opt/conda/bin/ 2>/dev/null || true",
     )
 qe_bgw_image = qe_bgw_image.add_local_dir(HERE, remote_path="/root/excitonic", copy=True)
 
@@ -142,6 +149,111 @@ def label_material(spec: dict) -> dict:
     print(f"[phase2/label] {spec.get('name','?')}: "
           f"Γ tier={gamma.tier} value={gamma.value}; U tier={U.tier} value={U.value}")
     return {"name": spec.get("name"), "Gamma_300K": gamma.to_dict(), "U": U.to_dict()}
+
+
+@app.function(image=qe_bgw_image, cpu=N_CORES, timeout=5400)
+def run_dft_dfpt(material: str = "GaAs") -> dict:
+    """Run a REAL scf + DFPT (ph.x) calculation and parse ε∞, Z*, ω_LO.
+
+    Fetches PSlibrary pseudopotentials, runs pw.x then ph.x (epsil+trans) at Γ,
+    and parses genuine first-principles numbers (tier 'dfpt'). Currently wired for
+    the polar validation anchor GaAs (known ω_LO≈36 meV, ε∞≈10.9). No fabrication:
+    if a step fails, the parsed labels come back 'not_run'.
+    """
+    import subprocess
+    import sys
+    sys.path.insert(0, "/root/excitonic/src")
+    from exciton_fm.pseudos import stage_pseudos, pseudo_filename, recommended_cutoffs
+    from exciton_fm.qe_outputs import (parse_epsilon_inf, parse_born_charges,
+                                       parse_phonon_omega_LO, parse_total_energy)
+
+    wd = "/root/run"
+    os.makedirs(os.path.join(wd, "pseudo"), exist_ok=True)
+    os.makedirs(os.path.join(wd, "out"), exist_ok=True)
+
+    # --- GaAs (zincblende) validation anchor ---
+    syms = ["Ga", "As"]
+    stage_pseudos(syms, os.path.join(wd, "pseudo"))
+    ecutwfc, ecutrho = recommended_cutoffs(syms)
+    scf = f"""&control
+  calculation='scf'
+  prefix='gaas'
+  outdir='./out'
+  pseudo_dir='./pseudo'
+  tprnfor=.true.
+  tstress=.true.
+/
+&system
+  ibrav=2
+  celldm(1)=10.6829
+  nat=2
+  ntyp=2
+  ecutwfc={ecutwfc}
+  ecutrho={ecutrho}
+/
+&electrons
+  conv_thr=1.0d-12
+  mixing_beta=0.7
+/
+ATOMIC_SPECIES
+ Ga 69.723 {pseudo_filename('Ga')}
+ As 74.9216 {pseudo_filename('As')}
+ATOMIC_POSITIONS crystal
+ Ga 0.00 0.00 0.00
+ As 0.25 0.25 0.25
+K_POINTS automatic
+ 6 6 6 0 0 0
+"""
+    ph = """GaAs: dielectric + Born charges + phonons at Gamma
+&inputph
+  prefix='gaas'
+  outdir='./out'
+  fildyn='gaas.dyn'
+  epsil=.true.
+  trans=.true.
+  asr=.true.
+  tr2_ph=1.0d-15
+/
+0.0 0.0 0.0
+"""
+    open(os.path.join(wd, "scf.in"), "w").write(scf)
+    open(os.path.join(wd, "ph.in"), "w").write(ph)
+
+    def run(cmd, infile, outfile):
+        with open(os.path.join(wd, outfile), "w") as fo:
+            p = subprocess.run(cmd, stdin=open(os.path.join(wd, infile)),
+                               stdout=fo, stderr=subprocess.STDOUT, cwd=wd)
+        return p.returncode
+
+    rc_scf = run(["mpirun", "-np", str(N_CORES), "pw.x"], "scf.in", "scf.out")
+    rc_ph = run(["mpirun", "-np", str(N_CORES), "ph.x"], "ph.in", "ph.out")
+    scf_out = open(os.path.join(wd, "scf.out")).read()
+    ph_out = open(os.path.join(wd, "ph.out")).read()
+
+    etot = parse_total_energy(scf_out)
+    eps = parse_epsilon_inf(ph_out)
+    zb = parse_born_charges(ph_out)
+    wlo = parse_phonon_omega_LO(ph_out)
+    print(f"[phase2/dfpt] GaAs rc_scf={rc_scf} rc_ph={rc_ph}")
+    print(f"[phase2/dfpt] etot={etot.value} eps_inf={eps.value} "
+          f"Z*={zb.value} omega_LO={wlo.value} meV (tier dfpt)")
+    return {"material": material, "rc_scf": rc_scf, "rc_ph": rc_ph,
+            "etot_Ry": etot.to_dict(), "eps_inf": eps.to_dict(),
+            "Z_born": zb.to_dict(), "omega_LO_meV": wlo.to_dict(),
+            "reference": "GaAs: ω_LO≈36 meV (~292 cm⁻¹), ε∞≈10.9 (expt.)"}
+
+
+@app.local_entrypoint()
+def dfpt(material: str = "GaAs"):
+    """Run the real DFPT validation calc on Modal; write the result (tier dfpt)."""
+    res = run_dft_dfpt.remote(material)
+    out = os.path.join(HERE, "data", "manifests", "phase2_dfpt_gaas.json")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    with open(out, "w") as fh:
+        json.dump(res, fh, indent=2)
+    print(f"[phase2/dfpt] wrote {out}")
+    print(f"[phase2/dfpt] eps_inf={res['eps_inf']['value']} "
+          f"omega_LO={res['omega_LO_meV']['value']} meV (real DFPT)")
 
 
 @app.local_entrypoint()
