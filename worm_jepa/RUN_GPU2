@@ -1,1 +1,1 @@
-stage-2 GPU run 26eea87 : EM-JEPA real-scale + AlphaZero 20k-episode confirmation
+CREMI hierarchical EM-JEPA run f3c120f: boundary + synapse probes, 3 samples, dim256 depth6 5000 steps
