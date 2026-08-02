@@ -1,0 +1,14 @@
+{
+  "forecaster_self_r2": 0.7687,
+  "stage1_extracted_struct_J_vs_W": 0.2485,
+  "stage2_synthesized_model": {
+    "variant": "J_sym",
+    "fidelity": 0.8734,
+    "struct_M_vs_W": 0.3208
+  },
+  "unchained_baseline": {
+    "struct_corr_raw": 0.6582,
+    "pred_r2_raw": 0.7783
+  },
+  "note": "chained: stage-2 coupling derived from stage-1's extracted J, distilling the forecaster. baseline ignores box 1."
+}
