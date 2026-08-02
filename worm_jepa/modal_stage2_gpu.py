@@ -27,6 +27,8 @@ _PASS = {
     "WORM_SEG_DEC_STEPS": os.environ.get("WORM_SEG_DEC_STEPS", "600"),
     "WORM_S3_NEVAL": os.environ.get("WORM_S3_NEVAL", "3"),
     "WORM_S3_LABEL_POOL": os.environ.get("WORM_S3_LABEL_POOL", "1,16"),
+    "WORM_S3_SPARSE": os.environ.get("WORM_S3_SPARSE", "500,5000"),  # scarce voxel-label budgets
+    "WORM_VOL_DENSE": os.environ.get("WORM_VOL_DENSE", "1"),         # V-JEPA-2.1 dense features
 }
 SEEDS = [int(x) for x in os.environ.get("WORM_S3_SEEDS", "0,1,2").split(",")]
 
@@ -39,8 +41,29 @@ image = (
 )
 app = modal.App("worm-stage2-gpu")
 
+# Optimization: cache the ~525MB CREMI download on a persistent Volume so it is
+# fetched ONCE (by prepare) and reused by every seed-container and every future
+# run, instead of re-downloading per container per run.
+cremi_vol = modal.Volume.from_name("worm-cremi-cache", create_if_missing=True)
+CACHE = "/cache/cremi"
+_CREMI_URL = "https://cremi.org/static/data/sample_{}_20160501.hdf"
 
-@app.function(gpu="A10G", image=image, timeout=10800)
+
+@app.function(image=image, volumes={"/cache": cremi_vol}, timeout=3600)
+def prepare():
+    """Download CREMI A/B/C into the shared Volume once (race-free, before fan-out)."""
+    import urllib.request
+    os.makedirs(CACHE, exist_ok=True)
+    for s in os.environ.get("WORM_CREMI_SAMPLES", "A,B,C").split(","):
+        p = os.path.join(CACHE, f"sample_{s}.hdf")
+        if not os.path.exists(p):
+            print(f"[modal] caching CREMI sample {s} -> Volume", flush=True)
+            urllib.request.urlretrieve(_CREMI_URL.format(s), p)
+    cremi_vol.commit()
+    return sorted(os.listdir(CACHE))
+
+
+@app.function(gpu="A10G", image=image, volumes={"/cache": cremi_vol}, timeout=10800)
 def run_seed(seed: int) -> dict:
     """One A10G container runs segment3d for a SINGLE seed and returns its result
     dict (each metric's 'mean' is that seed's value, 'std' 0)."""
@@ -51,6 +74,7 @@ def run_seed(seed: int) -> dict:
         if p not in sys.path:
             sys.path.insert(0, p)
     os.environ["WORM_EM_DEVICE"] = "cuda"
+    os.environ["WORM_EM_DIR"] = CACHE                # read CREMI from the cached Volume
     os.environ["WORM_S3_SEEDS"] = str(seed)          # this container = one seed
     import torch
     print(f"[modal] seed {seed} torch {torch.__version__} cuda {torch.cuda.is_available()}", flush=True)
@@ -87,6 +111,8 @@ def _merge(dicts):
 
 @app.local_entrypoint()
 def main():
+    print("[modal] preparing CREMI cache (once) ...", flush=True)
+    print("[modal] cache:", prepare.remote(), flush=True)      # populate Volume before fan-out
     print(f"[modal] fanning out {len(SEEDS)} seeds in parallel: {SEEDS}", flush=True)
     results = list(run_seed.map(SEEDS))              # PARALLEL: one A10G per seed
     merged = _merge(results)

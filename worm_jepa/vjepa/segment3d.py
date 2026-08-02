@@ -183,22 +183,31 @@ def main():
             return dec(raw_t)
         return dec(V.feature_grid(encoder, sub.astype(np.float32))[None], raw_t)
 
-    def train_dec(source, encoder, pool):
-        # pool = fixed list of labeled (subvol, seg) -> label-efficiency: the decoder
-        # only ever sees `len(pool)` labeled subvolumes (re-sampled across steps).
+    def train_dec(source, encoder, pool, sparse_k=None, seed=0):
+        # pool = fixed labeled (subvol, seg) list. DENSE budget = len(pool) fully
+        # labeled subvolumes. SPARSE budget (sparse_k) = ONE subvolume but the loss
+        # is restricted to a FIXED set of sparse_k annotated voxel-edges -- the
+        # genuinely label-scarce regime where SSL is supposed to win most.
         dec = (RawAff3D() if source == "raw" else FeatAff3D()).to(DEV)
         opt = torch.optim.Adam(dec.parameters(), lr=2e-3)
+        smask = None
+        if sparse_k is not None:                          # fixed sparse annotation on pool[0]
+            _, seg0 = pool[0]; _, val0 = gt_affinity(seg0, OFFS)
+            vi = np.argwhere(val0 > 0)
+            r = np.random.default_rng(1234 + seed)
+            pick = vi[r.choice(len(vi), min(sparse_k, len(vi)), replace=False)]
+            smask = np.zeros_like(val0); smask[tuple(pick.T)] = 1.0
         for step in range(DEC_STEPS):
             sub, seg = pool[step % len(pool)]
             aff, val = gt_affinity(seg, OFFS)
+            if smask is not None:
+                val = val * smask                          # only the sparse_k labels count
             tgt = torch.tensor(aff, device=DEV); vmask = torch.tensor(val, device=DEV)
             logit = run_dec(source, dec, encoder, sub)
-            # per-offset class balancing so the decoder can't collapse to the
-            # majority class (short-range affinities are mostly "same neuron").
             pos = (tgt * vmask).sum((1, 2, 3)); neg = ((1 - tgt) * vmask).sum((1, 2, 3))
             pw = (neg / (pos + 1)).clamp(0.1, 10)[:, None, None, None]
             bce = F.binary_cross_entropy_with_logits(logit, tgt, pos_weight=pw, reduction="none")
-            loss = (bce * vmask).sum() / vmask.sum()
+            loss = (bce * vmask).sum() / vmask.sum().clamp(min=1)
             opt.zero_grad(); loss.backward(); opt.step()
         dec.eval(); return dec
 
@@ -206,8 +215,12 @@ def main():
     def predict(source, dec, encoder, sub):
         return torch.sigmoid(run_dec(source, dec, encoder, sub)).cpu().numpy()
 
-    POOL = [int(x) for x in os.environ.get("WORM_S3_LABEL_POOL", "1,4,16").split(",")]
+    POOL = [int(x) for x in os.environ.get("WORM_S3_LABEL_POOL", "1,16").split(",")]
+    SPARSE = [int(x) for x in os.environ.get("WORM_S3_SPARSE", "").split(",") if x.strip()]
     SEEDS = [int(x) for x in os.environ.get("WORM_S3_SEEDS", "0,1,2").split(",")]
+    # budgets: dense (N fully-labeled subvols) + sparse (K annotated voxels on 1 subvol)
+    BUDGETS = [(str(P), "dense", P) for P in POOL] + [(f"sparse{K}", "sparse", K) for K in SPARSE]
+    DENSE_MAX_KEY = str(max(POOL))
     ns = len(SHORT)
     # FIXED data across seeds -> isolates model-init/training variance (the thing we
     # need error bars on). label budget P uses the first P of the fixed pool.
@@ -242,7 +255,7 @@ def main():
                 "random_recovers": rand_ok / max(1, raw_errs)}
 
     # ---- multi-seed loop (mean +- std) ----
-    le_acc = {s: {P: [] for P in POOL} for s in ["jepa", "random", "raw"]}
+    le_acc = {s: {key: [] for key, _, _ in BUDGETS} for s in ["jepa", "random", "raw"]}
     es_acc = {"all_offsets": [], "long_range_merge_edges": []}
     std_finals = []
     for seed in SEEDS:
@@ -253,11 +266,14 @@ def main():
         encmap = {"jepa": enc, "random": rnd, "raw": None}
         full_preds = {}
         for source in ["jepa", "random", "raw"]:
-            for P in POOL:
-                dec = train_dec(source, encmap[source], full_pool[:P])
+            for key, kind, B in BUDGETS:
+                if kind == "dense":
+                    dec = train_dec(source, encmap[source], full_pool[:B])
+                else:
+                    dec = train_dec(source, encmap[source], full_pool[:1], sparse_k=B, seed=seed)
                 m, preds = evaluate(source, dec, encmap[source])
-                le_acc[source][P].append(m)
-                if P == max(POOL):
+                le_acc[source][key].append(m)
+                if key == DENSE_MAX_KEY:
                     full_preds[source] = preds
         es_acc["all_offsets"].append(recovery(full_preds, lambda j: np.ones_like(te_gt[j][1], bool)))
         es_acc["long_range_merge_edges"].append(recovery(
@@ -276,7 +292,7 @@ def main():
            "anticollapse": {"var": H.VAR_COEF, "cov": H.COV_COEF, "fine_aux": H.FINE_AUX,
                             "coarse_drop": H.COARSE_DROP, "target_std": V.TGT_STD,
                             "embedding_std_final_per_seed": std_finals},
-           "label_efficiency": {s: {P: agg(le_acc[s][P]) for P in POOL}
+           "label_efficiency": {s: {key: agg(le_acc[s][key]) for key, _, _ in BUDGETS}
                                 for s in ["jepa", "random", "raw"]},
            "error_set_analysis": {k: agg(es_acc[k]) for k in es_acc}}
     print(json.dumps(res, indent=2))
