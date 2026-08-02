@@ -71,8 +71,8 @@ def main():
     X = np.concatenate(blocks, axis=0)
     df = pd.DataFrame(X, columns=common)
 
-    corr = df.corr().values
-    cov = df.cov().values
+    corr = df.corr().values.copy()
+    cov = df.cov().values.copy()
     P = np.linalg.inv(np.nan_to_num(cov) + 1e-2 * np.eye(len(common)))
     dd = np.sqrt(np.abs(np.diag(P))); partial = -P / (np.outer(dd, dd) + 1e-9)
     for M in (corr, cov, partial):
