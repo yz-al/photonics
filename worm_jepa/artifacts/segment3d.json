@@ -1,0 +1,80 @@
+{
+  "device": "cuda",
+  "crop": 160,
+  "zc": 8,
+  "eval_crop": 160,
+  "n_eval": 3,
+  "offsets": {
+    "short": [
+      [
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        1
+      ]
+    ],
+    "long": [
+      [
+        0,
+        9,
+        0
+      ],
+      [
+        0,
+        0,
+        9
+      ],
+      [
+        2,
+        0,
+        0
+      ]
+    ]
+  },
+  "backbone": "vol_jepa (3D hierarchical)",
+  "anticollapse": {
+    "families": [
+      "distillation(EMA+predictor)",
+      "info-max(VICReg var+cov)",
+      "fine-pathway(FINE_AUX+coarse_drop)"
+    ],
+    "var": 0.2,
+    "cov": 0.01,
+    "fine_aux": 3.0,
+    "coarse_drop": 0.5,
+    "embedding_std_start": 0.0247,
+    "embedding_std_final": 0.0132
+  },
+  "sources": {
+    "jepa": {
+      "affinity_acc": 0.8206,
+      "VOI": 2.1134,
+      "adapted_rand_error": 0.3042,
+      "ERL_proxy": 119.0,
+      "n_segments": 544.7
+    },
+    "random": {
+      "affinity_acc": 0.7312,
+      "VOI": 3.0612,
+      "adapted_rand_error": 0.382,
+      "ERL_proxy": 96.3,
+      "n_segments": 594.3
+    },
+    "raw": {
+      "affinity_acc": 0.8368,
+      "VOI": 1.9792,
+      "adapted_rand_error": 0.2316,
+      "ERL_proxy": 111.0,
+      "n_segments": 664.0
+    }
+  }
+}
