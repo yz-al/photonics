@@ -1,1 +1,1 @@
-parallel super run 2dfce02: 3 seeds fanned across A10Gs, JEPA 5000, denser MWS offsets (8 long), label 1/16, error-set recovery mean+/-std
+dense+sparse super run 9ae1ea4: V-JEPA-2.1 dense features, dense(1,16)+sparse(500,5000) budgets, 3 seeds parallel, CREMI volume cache
