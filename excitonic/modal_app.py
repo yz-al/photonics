@@ -77,7 +77,13 @@ def train_baseline() -> dict:
         spec.loader.exec_module(mod)
         return mod
 
-    _load("/root/excitonic/scripts/phase1_build_dataset.py", "p1_build").main()
+    # Train from the committed dataset that ships in the image — do NOT re-pull
+    # from the live C2DB server on every run (it's a rate-limited academic host
+    # and a transient timeout there should not fail training). Only (re)build if
+    # the processed CSV is missing.
+    csv = "/root/excitonic/data/processed/c2db_excitonic.csv"
+    if not os.path.exists(csv):
+        _load("/root/excitonic/scripts/phase1_build_dataset.py", "p1_build").main()
     _load("/root/excitonic/scripts/phase1_train_baseline.py", "p1_train").main()
     with open("/root/excitonic/data/manifests/phase1_baseline_metrics.json") as fh:
         return json.load(fh)

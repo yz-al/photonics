@@ -80,14 +80,34 @@ def _clean(cell_html: str) -> str:
     return _html.unescape(_TAG.sub("", cell_html)).strip()
 
 
+def _make_session() -> requests.Session:
+    """Session with connect/read retries + backoff (the DTU host is a slow,
+    rate-limited academic server that occasionally times out)."""
+    s = requests.Session()
+    try:
+        from requests.adapters import HTTPAdapter
+        from urllib3.util.retry import Retry
+        retry = Retry(
+            total=5, connect=5, read=5, backoff_factor=1.5,
+            status_forcelist=(429, 500, 502, 503, 504),
+            allowed_methods=frozenset(["GET"]),
+        )
+        adapter = HTTPAdapter(max_retries=retry)
+        s.mount("https://", adapter)
+        s.mount("http://", adapter)
+    except Exception:
+        pass
+    return s
+
+
 @dataclass
 class C2DBClient:
     """Thin, polite client for the C2DB ASE-db web front-end."""
 
     base: str = BASE
-    timeout: float = 30.0
+    timeout: float = 60.0
     pause: float = 0.15  # be gentle to a public academic server
-    session: requests.Session = field(default_factory=requests.Session)
+    session: requests.Session = field(default_factory=_make_session)
     _sid: str | None = None
 
     # -- session ----------------------------------------------------------
