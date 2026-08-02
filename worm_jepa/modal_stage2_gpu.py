@@ -32,7 +32,7 @@ _PASS = {
     "WORM_S3_DBB": os.environ.get("WORM_S3_DBB", "1"),              # double black box (mechinterp -> discovery)
     "WORM_S3_EDGE": os.environ.get("WORM_S3_EDGE", "1"),            # SOTA edge-case (failure) analysis
     "WORM_S3_BEAT": os.environ.get("WORM_S3_BEAT", "1"),            # beat-sota failure-targeted strategies (VOI/Rand/ERL)
-    "WORM_S3_MAMBA": os.environ.get("WORM_S3_MAMBA", "1"),          # global-context Mamba long-range head
+    "WORM_S3_CTX": os.environ.get("WORM_S3_CTX", "mamba,transformer,gnn"),  # global-context heads head-to-head
     "WORM_VOL_DENSE": os.environ.get("WORM_VOL_DENSE", "1"),         # V-JEPA-2.1 dense features
     "WORM_VOL_EMA": os.environ.get("WORM_VOL_EMA", "0.998"),        # collapse fix: slower EMA target
     "WORM_EM_VAR": os.environ.get("WORM_EM_VAR", "0.6"),           # collapse fix: stronger variance hinge (0.4 left 1/3 seeds collapsing)
