@@ -1,0 +1,73 @@
+name: Excitonic Phase 1 (baseline surrogate) on Modal
+
+# Trains the Phase-1 multi-task baseline surrogate on Modal (CPU) via the GitHub
+# runner, and commits the metrics manifest back. The GNN upgrade (Phase 1b) will
+# switch this to a Modal GPU function.
+#
+# Credentials: prefers repo Actions secrets MODAL_TOKEN_ID / MODAL_TOKEN_SECRET,
+# falls back to the committed excitonic/modal_tokens.secret.
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: exciton-phase1-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  train-modal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal client
+        run: pip install "modal==1.5.3"
+
+      - name: Train Phase 1 baseline on Modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+        run: |
+          if [ -z "$MODAL_TOKEN_ID" ] && [ -f excitonic/modal_tokens.secret ]; then
+            set -a; . ./excitonic/modal_tokens.secret; set +a
+          fi
+          if [ -z "$MODAL_TOKEN_ID" ] || [ -z "$MODAL_TOKEN_SECRET" ]; then
+            echo "::error::No Modal credentials."
+            exit 1
+          fi
+          modal run excitonic/modal_app.py::train
+
+      - name: Upload metrics artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase1-metrics
+          path: excitonic/data/manifests/phase1_baseline_metrics.json
+          if-no-files-found: warn
+
+      - name: Commit metrics back to branch
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          mkdir -p /tmp/res && cp excitonic/data/manifests/phase1_baseline_metrics.json /tmp/res/ 2>/dev/null || true
+          git fetch origin ${{ github.ref_name }}
+          git checkout -B ${{ github.ref_name }} origin/${{ github.ref_name }}
+          mkdir -p excitonic/data/manifests
+          cp /tmp/res/phase1_baseline_metrics.json excitonic/data/manifests/ 2>/dev/null || true
+          git add excitonic/data/manifests/phase1_baseline_metrics.json
+          if git diff --cached --quiet; then
+            echo "no metrics change to commit"
+          else
+            git commit -m "Phase 1: refresh baseline metrics from Modal run [skip ci]"
+            git push origin HEAD:${{ github.ref_name }}
+          fi

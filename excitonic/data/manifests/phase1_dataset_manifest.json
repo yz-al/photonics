@@ -1,0 +1,128 @@
+{
+  "source": "C2DB via ASE-db web front-end",
+  "filter": "E_B (has BSE exciton binding label)",
+  "n_rows": 370,
+  "columns": [
+    "formula",
+    "E_B",
+    "alphax_el",
+    "alphay_el",
+    "alphaz_el",
+    "plasmafrequency_x",
+    "gap",
+    "gap_gw",
+    "gap_hse",
+    "emass_cbm",
+    "emass_vbm",
+    "alphax_lat",
+    "thickness",
+    "area",
+    "natoms",
+    "nspecies",
+    "dipz",
+    "ehull",
+    "hform",
+    "is_magnetic",
+    "layergroup"
+  ],
+  "column_presence": {
+    "formula": {
+      "present": 370,
+      "missing": 0
+    },
+    "E_B": {
+      "present": 370,
+      "missing": 0
+    },
+    "alphax_el": {
+      "present": 369,
+      "missing": 1
+    },
+    "alphay_el": {
+      "present": 369,
+      "missing": 1
+    },
+    "alphaz_el": {
+      "present": 369,
+      "missing": 1
+    },
+    "plasmafrequency_x": {
+      "present": 370,
+      "missing": 0
+    },
+    "gap": {
+      "present": 370,
+      "missing": 0
+    },
+    "gap_gw": {
+      "present": 283,
+      "missing": 87
+    },
+    "gap_hse": {
+      "present": 363,
+      "missing": 7
+    },
+    "emass_cbm": {
+      "present": 369,
+      "missing": 1
+    },
+    "emass_vbm": {
+      "present": 369,
+      "missing": 1
+    },
+    "alphax_lat": {
+      "present": 262,
+      "missing": 108
+    },
+    "thickness": {
+      "present": 370,
+      "missing": 0
+    },
+    "area": {
+      "present": 370,
+      "missing": 0
+    },
+    "natoms": {
+      "present": 370,
+      "missing": 0
+    },
+    "nspecies": {
+      "present": 370,
+      "missing": 0
+    },
+    "dipz": {
+      "present": 370,
+      "missing": 0
+    },
+    "ehull": {
+      "present": 370,
+      "missing": 0
+    },
+    "hform": {
+      "present": 370,
+      "missing": 0
+    },
+    "is_magnetic": {
+      "present": 370,
+      "missing": 0
+    },
+    "layergroup": {
+      "present": 370,
+      "missing": 0
+    }
+  },
+  "targets": {
+    "E_b": {
+      "col": "E_B",
+      "quality": "gw_bse"
+    },
+    "f_osc": {
+      "cols": [
+        "alphax_el",
+        "alphay_el",
+        "alphaz_el"
+      ],
+      "quality": "dft_proxy"
+    }
+  }
+}

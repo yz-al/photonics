@@ -48,6 +48,31 @@ def inventory() -> dict:
     return inv
 
 
+# --- Phase 1: multi-task baseline surrogate (CPU; the GNN upgrade will be GPU) ---
+train_image = (
+    modal.Image.debian_slim(python_version="3.11")
+    .pip_install(
+        "requests==2.33.1", "numpy", "pandas", "scikit-learn", "scipy",
+        "mendeleev", "joblib",
+    )
+    .add_local_dir(HERE, remote_path="/root/excitonic", copy=True)
+)
+
+
+@app.function(image=train_image, cpu=4.0, timeout=3600)
+def train_baseline() -> dict:
+    """Pull C2DB, featurize, train the multi-task ensemble, return metrics."""
+    import runpy
+    import sys
+    sys.path.insert(0, "/root/excitonic/src")
+    os.chdir("/root/excitonic")
+    # Build dataset then train (both scripts write under /root/excitonic).
+    runpy.run_path("/root/excitonic/scripts/phase1_build_dataset.py", run_name="__main__")
+    runpy.run_path("/root/excitonic/scripts/phase1_train_baseline.py", run_name="__main__")
+    with open("/root/excitonic/data/manifests/phase1_baseline_metrics.json") as fh:
+        return json.load(fh)
+
+
 @app.local_entrypoint()
 def main():
     """Runs on the CI runner; calls the remote function and writes the manifest."""
@@ -62,3 +87,18 @@ def main():
     for t in inv["targets"]:
         tag = "GAP" if t["is_gap"] else f"{t['covered_materials']} [{t['label_quality']}]"
         print(f"[modal]   {t['target']:<11s}: {tag}")
+
+
+@app.local_entrypoint()
+def train():
+    """Phase 1: run the baseline training on Modal; write metrics locally for CI."""
+    metrics = train_baseline.remote()
+    out_dir = os.path.join(HERE, "data", "manifests")
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, "phase1_baseline_metrics.json")
+    with open(out_path, "w") as fh:
+        json.dump(metrics, fh, indent=2)
+    print(f"[modal] wrote {out_path}")
+    for t, d in metrics.get("targets", {}).items():
+        m = d["cv_metrics"]
+        print(f"[modal]   {t:6s} MAE={m['mae']:.4f} R2={m['r2']:.3f} n={m['n']}")

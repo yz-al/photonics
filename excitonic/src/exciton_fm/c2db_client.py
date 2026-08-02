@@ -30,10 +30,54 @@ import requests
 BASE = "https://c2db.fysik.dtu.dk"
 _ROWS_OUT_OF = re.compile(r"([0-9][0-9,]*)\s*rows?\s*out of\s*([0-9][0-9,]*)", re.I)
 _SID = re.compile(r"sid=([0-9]+)")
+_CELL = re.compile(r"<t[hd][^>]*>(.*?)</t[hd]>", re.S | re.I)
+_TAG = re.compile(r"<[^>]+>")
+
+# The ASE-db table renders header + data cells flat, in document order, starting
+# at the "Formula" cell. Map the exact human-readable column headers C2DB emits
+# (unicode subscripts and all) back onto their schema keys. Covers the default
+# columns plus every column this client toggles on.
+HEADER_TO_KEY = {
+    "Formula": "formula",
+    "Energy above hull [eV/atom]": "ehull",
+    "Heat of formation [eV/atom]": "hform",
+    "Band gap (PBE) [eV]": "gap",
+    "Magnetic": "is_magnetic",
+    "Layer group (not Space group)": "layergroup",
+    "Exciton binding energy (BSE) [eV]": "E_B",
+    "Band gap (G₀W₀) [eV]": "gap_gw",
+    "Band gap (HSE06) [eV]": "gap_hse",
+    "CBM DOS effective mass (PBE)": "emass_cbm",
+    "VBM DOS effective mass (PBE)": "emass_vbm",
+    "Interband polarizability (x) [Å]": "alphax_el",
+    "Interband polarizability (y) [Å]": "alphay_el",
+    "Interband polarizability (z) [Å]": "alphaz_el",
+    "Plasma frequency (x) [eV Å0.5]": "plasmafrequency_x",
+    "Static polarizability (phonons) (x) [Å]": "alphax_lat",
+    "Thickness [Å]": "thickness",
+    "Unit cell area [Å2]": "area",
+    "Number of atoms": "natoms",
+    "Number of species": "nspecies",
+    "Out-of-plane dipole [e Å/unit cell]": "dipz",
+}
+
+# Non-default columns to toggle on for a Phase-1 feature pull. (Formula, ehull,
+# hform, is_magnetic, layergroup are already default columns — toggling them
+# would switch them OFF, since toggle is a switch.)
+FEATURE_TOGGLE_KEYS = (
+    "E_B", "gap_gw", "gap_hse", "emass_cbm", "emass_vbm",
+    "alphax_el", "alphay_el", "alphaz_el", "plasmafrequency_x", "alphax_lat",
+    "thickness", "area", "natoms", "nspecies", "dipz",
+)
 
 
 def _to_int(s: str) -> int:
     return int(s.replace(",", ""))
+
+
+def _clean(cell_html: str) -> str:
+    import html as _html
+    return _html.unescape(_TAG.sub("", cell_html)).strip()
 
 
 @dataclass
@@ -59,8 +103,15 @@ class C2DBClient:
         self._sid = m.group(1)
         return self._sid
 
-    def _table(self, filter_expr: str, page: int = 0) -> str:
-        params = {"sid": self.sid(), "filter": filter_expr, "page": str(page)}
+    def _table(self, filter_expr: str | None = None, page: int | None = None) -> str:
+        # The server treats a `filter` param as a *new search* and resets to
+        # page 0; to paginate you send `page` alone and rely on the session's
+        # stored filter. So never send both together.
+        params: dict[str, str] = {"sid": self.sid()}
+        if page is not None:
+            params["page"] = str(page)
+        else:
+            params["filter"] = filter_expr or ""
         r = self.session.get(self.base + "/table", params=params, timeout=self.timeout)
         r.raise_for_status()
         time.sleep(self.pause)
@@ -90,4 +141,83 @@ class C2DBClient:
         out: dict[str, int] = {}
         for k in keys:
             out[k] = self.count(k)[0]
+        return out
+
+    # -- row-level pull ---------------------------------------------------
+    def _toggle(self, key: str) -> None:
+        params = {"sid": self.sid(), "toggle": key}
+        r = self.session.get(self.base + "/table", params=params, timeout=self.timeout)
+        r.raise_for_status()
+        time.sleep(self.pause)
+
+    @staticmethod
+    def _parse_table(text: str) -> tuple[list[str], list[list[str]]]:
+        """Return (column_keys, rows) from a table fragment.
+
+        The header is the longest run of known-label cells starting at 'Formula';
+        the remainder is chunked into rows of len(header) values.
+        """
+        cells = [_clean(c) for c in _CELL.findall(text)]
+        if "Formula" not in cells:
+            return [], []
+        cells = cells[cells.index("Formula"):]
+        header: list[str] = []
+        for c in cells:
+            if c in HEADER_TO_KEY:
+                header.append(HEADER_TO_KEY[c])
+            else:
+                break
+        ncol = len(header)
+        data = cells[ncol:]
+        nrows = len(data) // ncol if ncol else 0
+        rows = [data[i * ncol:(i + 1) * ncol] for i in range(nrows)]
+        return header, rows
+
+    def fetch_rows(
+        self,
+        filter_expr: str,
+        toggle_keys: Iterable[str] = FEATURE_TOGGLE_KEYS,
+        max_pages: int = 100,
+    ) -> list[dict[str, str]]:
+        """Pull every row matching `filter_expr`, as {key: raw_string_value}.
+
+        Empty cells come back as "" (missing value). Values are left as strings;
+        numeric parsing is the caller's job (so "Yes"/"No"/formula/number are all
+        preserved faithfully). Pages until the returned page repeats or empties.
+        """
+        # Ensure a fresh session, then toggle the desired feature columns on.
+        self.sid(refresh=True)
+        for k in toggle_keys:
+            self._toggle(k)
+
+        out: list[dict[str, str]] = []
+        seen_prev: str | None = None
+        for page in range(max_pages):
+            # Page 0: set the filter (session-stored). Pages >0: page param only,
+            # never the filter (which would reset back to page 0).
+            text = self._table(filter_expr) if page == 0 else self._table(page=page)
+            header, rows = self._parse_table(text)
+            if not rows:
+                break
+            # Fail loudly if the schema grew a header column we don't map
+            # (which would silently truncate ncol and misalign every row).
+            if page == 0:
+                want = [k for k in toggle_keys if k not in header]
+                if want:
+                    raise RuntimeError(
+                        f"toggled columns missing from parsed header (unmapped "
+                        f"header column upstream?): {want}. Header={header}"
+                    )
+                total = None
+                m = _ROWS_OUT_OF.search(text)
+                if m:
+                    total = _to_int(m.group(1))
+            fingerprint = "|".join(rows[0])
+            if fingerprint == seen_prev:  # server clamped to last page; stop
+                break
+            seen_prev = fingerprint
+            for r in rows:
+                out.append(dict(zip(header, r)))
+            if total is not None and len(out) >= total:
+                break
         return out

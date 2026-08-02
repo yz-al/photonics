@@ -1,10 +1,16 @@
-# Phase 0 (data inventory) — deliberately minimal.
+# Phase 0 (data inventory)
 requests==2.33.1
 
-# Added in later phases (kept here as a forward manifest, commented):
-# Phase 1 (surrogate + baseline):
-#   numpy, pandas, scikit-learn, torch, ase, pymatgen, jarvis-tools, matminer
-#   alignn            # baseline structure->property regressor (coGN/ALIGNN)
-#   mace-torch, nequip # equivariant GNN options
-# Phase 2 (label generation, run on Modal CPU/MPI, not in this client env):
+# Phase 1 (baseline multi-task surrogate + uncertainty)
+numpy
+pandas
+scikit-learn
+scipy
+mendeleev        # vetted periodic-table element data for composition features
+joblib
+matplotlib       # parity figure (optional at runtime)
+
+# Phase 1b (GNN upgrade, Modal GPU) — deferred:
+#   torch, ase, jarvis-tools, alignn / mace-torch / nequip  (needs structures)
+# Phase 2 (label generation, Modal CPU/MPI):
 #   quantum-espresso, epw, berkeleygw / yambo  (containerized on Modal)

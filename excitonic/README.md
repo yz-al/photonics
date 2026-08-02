@@ -39,6 +39,19 @@ Live C2DB inventory. **17,001 materials.** Label coverage:
 have zero labels. That gap is the reason this project exists, now measured.
 The GW-BSE core of C2DB is ~283–370 materials, not thousands.
 
+## Phase 1 — done (see `reports/phase1_baseline.md`)
+Multi-task baseline surrogate on the 370-material GW-BSE core, 5-fold out-of-fold:
+
+| Target | MAE | R² | Quality |
+|--------|----:|---:|---------|
+| `E_b` (exciton binding) | **0.172 eV** | **0.81** | GW-BSE |
+| `f_osc` (oscillator strength) | 0.099 (log₁₀ α) | 0.85 | DFT proxy |
+
+All six TMD monolayer anchors (MoS₂/WS₂/… ) reproduced in the ~0.4–0.7 eV regime
+(Selig/Moody). Bootstrap-ensemble uncertainty is under-dispersed but ranks
+errors reliably (Spearman ≈ 0.5) — usable for active-learning acquisition.
+`Γ`, `U`, and the FOM remain **unpredicted** (no labels yet) — Phase 2.
+
 ## Layout
 ```
 excitonic/
@@ -69,7 +82,9 @@ tier (`none`/`dft_proxy`/`gw_bse`/`epw`/`measured`). No GW-BSE or EPW result is
 reported unless it actually ran; Γ/U/FOM are withheld until Phase 2 generates them.
 
 ## Roadmap
-- **P1** multi-task surrogate on `E_b` + `f_osc` + aux; validate vs anchors (GaAs, TMD, perovskite).
-- **P2** stand up GW-BSE + EPW on Modal CPU; generate Γ and U on a ~100–500 seed set.
+- **P0 ✅** unified C2DB inventory; exact label-gap quantified.
+- **P1 ✅** multi-task baseline on `E_b` + `f_osc`; validated vs TMD anchors.
+- **P1b** structure-graph GNN (ALIGNN / MACE fine-tune) on Modal GPU — needs structures.
+- **P2** stand up GW-BSE + DFPT/EPW on Modal CPU; generate Γ and U on a ~100–500 seed set.
 - **P3** active learning: surrogate → propose high-U/Γ → GW-BSE → retrain.
 - **P4** screen for RT-blockade candidates; rank with uncertainty; honest reachability verdict.

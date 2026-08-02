@@ -12,3 +12,6 @@ data/mnist/
 data/cifar/
 data/sklearn/
 scratch_logs/
+
+# Excitonic: regenerable trained model (rebuild via scripts/phase1_train_baseline.py)
+excitonic/models/*.joblib
