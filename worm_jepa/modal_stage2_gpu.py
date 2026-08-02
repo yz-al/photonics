@@ -28,9 +28,12 @@ _PASS = {
     "WORM_S3_NEVAL": os.environ.get("WORM_S3_NEVAL", "3"),
     "WORM_S3_LABEL_POOL": os.environ.get("WORM_S3_LABEL_POOL", "1,16"),
     "WORM_S3_SPARSE": os.environ.get("WORM_S3_SPARSE", "500,5000"),  # scarce voxel-label budgets
-    "WORM_S3_ACTIVE": os.environ.get("WORM_S3_ACTIVE", "500"),       # active-learning budget (uncertainty-selected)
+    "WORM_S3_ACTIVE": os.environ.get("WORM_S3_ACTIVE", ""),          # active-learning: dropped (no uplift last run)
     "WORM_S3_DBB": os.environ.get("WORM_S3_DBB", "1"),              # double black box (mechinterp -> discovery)
+    "WORM_S3_EDGE": os.environ.get("WORM_S3_EDGE", "1"),            # SOTA edge-case (failure) analysis
     "WORM_VOL_DENSE": os.environ.get("WORM_VOL_DENSE", "1"),         # V-JEPA-2.1 dense features
+    "WORM_VOL_EMA": os.environ.get("WORM_VOL_EMA", "0.998"),        # collapse fix: slower EMA target
+    "WORM_EM_VAR": os.environ.get("WORM_EM_VAR", "0.4"),           # collapse fix: stronger variance hinge
 }
 SEEDS = [int(x) for x in os.environ.get("WORM_S3_SEEDS", "0,1,2").split(",")]
 
