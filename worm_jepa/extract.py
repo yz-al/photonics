@@ -116,8 +116,9 @@ def extract() -> dict:
     encoder = Encoder(cfg).to(device)
     encoder.load_state_dict(ckpt["context_encoder"])
 
+    _mw = os.environ.get("WORM_JEPA_MAX_WORMS", "").strip()   # empty on push events
     dcfg = DataConfig(
-        max_worms=int(os.environ.get("WORM_JEPA_MAX_WORMS", "0")) or None,
+        max_worms=int(_mw) if _mw else None,
         window=cfg.window, stride=cfg.window // 2, patch=cfg.patch,
     )
     worms, names, gt = load_worms(dcfg)

@@ -63,12 +63,26 @@ def run() -> str:
     print("[modal] torch", torch.__version__, "cuda", torch.cuda.is_available(),
           torch.cuda.get_device_name(0) if torch.cuda.is_available() else "-")
 
-    # Head-to-head: flat JEPA vs hierarchical JEPA vs forecasting NN
-    # (synthetic ground-truth metrics + real-dataset foundation-model metrics).
-    runpy.run_path("/root/worm_jepa/benchmark.py", run_name="__main__")
-    # Also train + open up the flat JEPA on the real data (checkpoint + SAE).
-    runpy.run_path("/root/worm_jepa/train.py", run_name="__main__")
-    runpy.run_path("/root/worm_jepa/extract.py", run_name="__main__")
+    # Run stages independently so a failure in a later stage does not discard the
+    # results an earlier stage already wrote to artifacts/. Whatever completed is
+    # still tarred back and committed.
+    import traceback
+    stages = [
+        "benchmark.py",   # flat vs hier JEPA vs forecaster (synthetic + real)
+        "train.py",       # train the flat JEPA on real data (checkpoint)
+        "extract.py",     # open it up: SAE + probes + ablation
+    ]
+    failures = []
+    for stage in stages:
+        try:
+            print(f"[modal] === running {stage} ===", flush=True)
+            runpy.run_path(f"/root/worm_jepa/{stage}", run_name="__main__")
+        except Exception:
+            print(f"[modal] STAGE FAILED: {stage}", flush=True)
+            traceback.print_exc()
+            failures.append(stage)
+    if failures:
+        print(f"[modal] completed with stage failures: {failures}", flush=True)
 
     buf = io.BytesIO()
     with tarfile.open(fileobj=buf, mode="w:gz") as tar:

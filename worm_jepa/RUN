@@ -1,2 +1,2 @@
-run 3 — 023208
-fix: forecaster effective_connectivity in train mode + cudnn disabled (cuDNN RNN backward)
+run 4 — 024326
+fix: extract.py empty-string WORM_JEPA_MAX_WORMS; resilient modal stages
