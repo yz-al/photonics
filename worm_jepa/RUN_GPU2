@@ -1,1 +1,1 @@
-seg run 6759af1: gentle-VICReg encoder -> watershed/flood-fill -> VOI/Rand/ERL (jepa vs random vs raw), CREMI A/B/C
+seg re-run 3908b50: tuned encoder FINE_AUX=3 COARSE_DROP=0.5 -> watershed/flood-fill -> VOI/Rand/ERL (jepa vs random vs raw), CREMI A/B/C
