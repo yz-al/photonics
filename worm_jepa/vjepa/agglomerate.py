@@ -109,6 +109,53 @@ def _rag(frags, aff, short_offs, long_offs, lsd=None):
     return pairs, feats
 
 
+def _gaec(frags, pairs, weights):
+    """Greedy Additive Edge Contraction (multicut heuristic): edges carry SIGNED weights
+    (positive = merge-beneficial, negative = repel). Repeatedly contract the highest
+    positive edge, SUMMING parallel weights on contraction, until no positive edge
+    remains. Parameter-free (like MWS) but optimizes the global multicut objective MWS
+    only greedily approximates -> the genuine upgrade from MWS."""
+    import heapq
+    nf = int(frags.max()) + 1
+    parent = list(range(nf))
+
+    def find(a):
+        r = a
+        while parent[r] != r:
+            r = parent[r]
+        while parent[a] != r:
+            parent[a], a = r, parent[a]
+        return r
+    adj = defaultdict(lambda: defaultdict(float))
+    for (a, b), w in zip(pairs, weights):
+        if a != b:
+            adj[a][b] += w; adj[b][a] += w
+    heap = [(-adj[a][b], a, b) for a in adj for b in adj[a] if a < b]
+    heapq.heapify(heap)
+    while heap:
+        nw, a, b = heapq.heappop(heap)
+        w = -nw
+        if w <= 0:
+            break                                        # no merge-beneficial edge left
+        ra, rb = find(a), find(b)
+        if ra == rb:
+            continue
+        cur = adj[ra].get(rb)
+        if cur is None or abs(cur - w) > 1e-6:
+            continue                                     # stale heap entry (a fresher one exists)
+        parent[rb] = ra                                  # contract rb -> ra
+        adj[ra].pop(rb, None); adj[rb].pop(ra, None)
+        for nb, wt in list(adj[rb].items()):
+            adj[nb].pop(rb, None)
+            if nb == ra:
+                continue
+            adj[ra][nb] += wt; adj[nb][ra] += wt
+            if adj[ra][nb] > 0:
+                heapq.heappush(heap, (-adj[ra][nb], min(ra, nb), max(ra, nb)))
+        adj[rb].clear()
+    return _relabel(np.array([find(i) for i in range(nf)])[frags])
+
+
 def _agglomerate(frags, pairs, prob, thr):
     """Union fragment pairs with merge prob > thr (descending), producing final labels."""
     nf = frags.max() + 1
@@ -167,7 +214,7 @@ def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9,
                 "adapted_rand_error": round(float(np.mean([x[1] for x in v])), 4),
                 "ERL": round(float(np.mean([erl(l, s) for l, s in zip(labs, segs)])), 4)}
 
-    lab_A, lab_AB, lab_M, nfrag = [], [], [], []
+    lab_A, lab_AB, lab_MC, lab_M, nfrag = [], [], [], [], []
     for i, (aff, seg) in enumerate(zip(eval_affs, eval_segs)):
         frags = _relabel(_oversegment(aff, SHORT, thr_over)); nfrag.append(int(frags.max() + 1))
         pairs, feats = _rag(frags, aff, SHORT, LONG, eval_lsds[i] if has_lsd else None)
@@ -175,17 +222,24 @@ def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9,
             fs = (feats - mu) / sd
             pA = clfA.predict_proba(fs[:, A_cols])[:, 1]
             pB = clfB.predict_proba(fs[:, B_cols])[:, 1]
-            lab_A.append(_agglomerate(frags, pairs, pA, tA))                    # A only
-            keep = pA * (pB < tB)                                              # A AND not-B
-            lab_AB.append(_agglomerate(frags, pairs, keep, tA))
+            lab_A.append(_agglomerate(frags, pairs, pA, tA))                    # A only (greedy)
+            keep = pA * (pB < tB)
+            lab_AB.append(_agglomerate(frags, pairs, keep, tA))                 # A AND not-B (greedy)
+            p = np.clip(pA * (1 - pB), 1e-4, 1 - 1e-4)                          # combined merge prob
+            w = np.log(p / (1 - p))                                            # signed multicut weight
+            lab_MC.append(_gaec(frags, pairs, w))                              # learned MULTICUT (GAEC)
         else:
-            lab_A.append(frags); lab_AB.append(frags)
+            lab_A.append(frags); lab_AB.append(frags); lab_MC.append(frags)
         lab_M.append(mws(np.clip(aff, 0, 1), OFFS, ns))
-    A, AB, M = score_lab(lab_A, eval_segs), score_lab(lab_AB, eval_segs), score_lab(lab_M, eval_segs)
-    return {"method": "two-specialist proofreading (A split-fixer + B merge-fixer) vs MWS",
+    A = score_lab(lab_A, eval_segs); AB = score_lab(lab_AB, eval_segs)
+    MC = score_lab(lab_MC, eval_segs); M = score_lab(lab_M, eval_segs)
+    return {"method": "two-specialist proofreading + learned multicut (GAEC) vs MWS",
             "lsd_features": has_lsd, "n_train_pairs": int(len(ysame)),
             "same_rate": round(float(ysame.mean()), 3), "mean_fragments": round(float(np.mean(nfrag)), 1),
             "mws_baseline": M, "splitfix_A_only": A, "splitfix_A_plus_mergefix_B": AB,
-            "AB_dVOI_vs_mws": round(AB["VOI"] - M["VOI"], 4),
-            "AB_dERL_vs_mws": round(AB["ERL"] - M["ERL"], 4),
-            "beats_mws": bool(AB["VOI"] <= M["VOI"] and AB["ERL"] >= M["ERL"])}
+            "learned_multicut_gaec": MC,
+            "MC_dVOI_vs_mws": round(MC["VOI"] - M["VOI"], 4),
+            "MC_dERL_vs_mws": round(MC["ERL"] - M["ERL"], 4),
+            "best_vs_mws": min([("mws", M), ("A", A), ("AB", AB), ("multicut", MC)],
+                               key=lambda kv: kv[1]["VOI"])[0],
+            "multicut_beats_mws": bool(MC["VOI"] <= M["VOI"] and MC["ERL"] >= M["ERL"])}
