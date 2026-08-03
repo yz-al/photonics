@@ -330,11 +330,19 @@ TMDS = {
 }
 
 
-@app.function(image=qe_bgw_image, cpu=N_CORES, timeout=14400)
+# A 3-atom monolayer is TINY: 16-way MPI over-decomposes the G-vectors and ph.x
+# deadlocks (the first gate run sat to the 4 h wall — the signature of a hang, not
+# slow compute). Use MODERATE parallelism as pure k-point pools (1 rank/pool, no
+# intra-pool G-vector split) and a 45-min fail-fast wall so a hang costs minutes.
+N_CORES_2D = 8
+
+
+@app.function(image=qe_bgw_image, cpu=N_CORES_2D, timeout=2700)
 def dft_2d_one(name: str) -> dict:
     """One TMD monolayer: scf + ph (epsil+trans) -> ω_LO, Z*, ε∞ + DFPT-grounded Γ.
     Runs in its own container so the sweep parallelizes across materials (Modal
-    .map): wall-clock = slowest single material, not the sum."""
+    .map): wall-clock = slowest single material, not the sum. Fails fast (45 min)
+    rather than riding a hang to a multi-hour wall."""
     import subprocess
     import sys
     import time
@@ -352,8 +360,11 @@ def dft_2d_one(name: str) -> dict:
     env["OMPI_ALLOW_RUN_AS_ROOT_CONFIRM"] = "1"
     env["OMPI_MCA_plm_rsh_agent"] = "/usr/local/bin/fake_ssh"
     env["PRTE_MCA_plm_ssh_agent"] = "/usr/local/bin/fake_ssh"
-    MPI = ["mpirun", "--allow-run-as-root", "-np", str(N_CORES)]
-    POOL = ["-nk", str(N_CORES)]
+    # Pure k-point pooling (1 rank/pool): spreads the ~19 IBZ k-points, no
+    # G-vector decomposition on the tiny cell -> avoids the cdiaghg/collective
+    # deadlock that over-decomposition triggers in ph.x.
+    MPI = ["mpirun", "--allow-run-as-root", "-np", str(N_CORES_2D)]
+    POOL = ["-nk", str(N_CORES_2D)]
 
     def one(name: str) -> dict:
         m, x, a, th = TMDS[name]
@@ -410,7 +421,7 @@ K_POINTS automatic
   epsil=.true.
   trans=.true.
   asr=.true.
-  tr2_ph=1.0d-14
+  tr2_ph=1.0d-13
 /
 0.0 0.0 0.0
 """
@@ -466,7 +477,15 @@ def gamma2d():
     wall-clock ≈ one material's time instead of the sum."""
     formulas = ["MoS2", "MoSe2", "WS2", "WSe2"]
     results = {}
-    for name, r in zip(formulas, dft_2d_one.map(formulas)):
+    # return_exceptions=True: a container that times out/errors becomes an
+    # Exception in the stream instead of crashing the whole entrypoint, so the
+    # materials that DID finish are still banked (no all-or-nothing on one hang).
+    for name, r in zip(formulas, dft_2d_one.map(formulas, return_exceptions=True)):
+        if isinstance(r, Exception):
+            results[name] = {"formula": name, "rc": None,
+                             "error_tail": f"{type(r).__name__}: {r}"[:400]}
+            print(f"[phase2/2d] {name}: FAILED {type(r).__name__}: {r}")
+            continue
         results[name] = r
         print(f"[phase2/2d] {name}: omega_LO={r['omega_LO_meV']['value']} "
               f"Z*={r['Z_born']['value']} Gamma~{(r.get('gamma_300K_model') or {}).get('value')} "
@@ -488,11 +507,13 @@ def gamma2d():
 # generous cap lets it CONVERGE instead of reject-on-cost. See
 # reports/phase2_gwbse_cost_harness.md for the pre-declared convergence criteria.
 GWBSE_CORES = 48
-# Pre-committed spend CHECKPOINT = the wall cap: 36 h × 48 cores = 1728 core-hours
-# ≈ $173 (at $0.10) to $259 (at $0.15). If the run hits this without a convergence
-# signal it is KILLED and reviewed, not ridden to the ceiling — the fix for the
-# sunk-cost trap. Expected ACTUAL is ~$50-150 (500-1500 core-hours), well inside it.
-GWBSE_WALL_CAP_S = 129600                # 36 h hard wall-clock cap (~$250 checkpoint)
+# Modal's hard per-function timeout ceiling is 86400 s (24 h) — a longer value is
+# rejected at build time (that killed the first gwbse dispatch instantly). So the
+# wall cap IS 24 h, and the pre-committed spend CHECKPOINT is set to it:
+# 24 h × 48 cores = 1152 core-hours ≈ $115 (at $0.10) to $173 (at $0.15). If the
+# run hits this without a convergence signal it is KILLED and reviewed, not ridden
+# to the ceiling — the sunk-cost fix. Expected ACTUAL ~$50-150 (500-1500 core-h).
+GWBSE_WALL_CAP_S = 86400                 # 24 h hard wall-clock cap (Modal max; ~$115-173 checkpoint)
 GWBSE_SPEND_CEILING_USD = 400            # backstop $ ceiling (rarely binds; wall cap first)
 GWBSE_RATE_USD_PER_CORE_HR = 0.15        # conservative Modal CPU rate for the ceiling
 

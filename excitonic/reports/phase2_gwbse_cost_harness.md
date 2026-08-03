@@ -76,9 +76,15 @@ passes all three.**
 ## Pre-committed spend checkpoint (no sunk-cost ride)
 
 Expected actual is ~$50–150 against a $400 backstop — a wide gap. The **wall-clock
-cap is set to the checkpoint**: 36 h × 48 cores ≈ **$250**. If the run reaches it
-with no convergence signal, it is **killed and reviewed**, not ridden to the
-ceiling. Decided now, in advance, so it isn't decided badly under sunk cost.
+cap is set to the checkpoint**. Note: **Modal's hard per-function timeout ceiling is
+24 h (86 400 s)** — a longer value is rejected at build time (this killed the first
+`gwbse` dispatch instantly with `InvalidError: Timeout must be between 10s and
+86400s`). So the wall cap **is** 24 h: 24 h × 48 cores = 1152 core-hours ≈ **$115
+(at $0.10) – $173 (at $0.15)**. If the run reaches it with no convergence signal, it
+is **killed and reviewed**, not ridden to the $400 ceiling. Decided in advance so it
+isn't decided badly under sunk cost. (If a converged result genuinely needs > 24 h,
+that is a checkpointing problem — restart from Yambo's saved databases in a second
+capped run — not a reason to raise the per-run cap.)
 
 ## Gate before launch
 
