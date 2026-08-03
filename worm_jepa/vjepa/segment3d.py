@@ -123,6 +123,36 @@ class SotaUNet3D(nn.Module):
         return self.head(x)[0]
 
 
+class SotaMamba3D(SotaUNet3D):
+    """SOTA + Mamba: the SAME residual U-Net, but with a Mamba global-context block
+    fused at the BOTTLENECK (deepest, coarsest features, ~40-long in-plane axes -> cheap
+    Mamba, big reach). Local U-Net detail + long-range in-plane context in ONE model,
+    trained end-to-end (NeuroMamba-style local+global). A strict superset of SOTA, so a
+    fair head-to-head: any gain is what the long-range context adds."""
+    def __init__(self):
+        super().__init__()
+        from mamba_head import MambaBlock
+        self.mblocks = nn.ModuleList([MambaBlock(128) for _ in range(2)])
+
+    @staticmethod
+    def _scan(g, blk, axis):                              # bidirectional scan along axis {3,4}
+        x = g.movedim(1, -1).movedim(axis - 1, 3)         # (B, a, b, L, d)
+        B, a, b, L, d = x.shape
+        s = x.reshape(B * a * b, L, d)
+        o = blk(s) + blk(s.flip(1)).flip(1)               # forward + backward
+        return o.reshape(B, a, b, L, d).movedim(3, axis - 1).movedim(-1, 1)
+
+    def forward(self, img):
+        s1 = self.e1(img); x = self.d1(s1)
+        s2 = self.e2(x); x = self.d2(s2)
+        x = self.bott(x)
+        for blk in self.mblocks:                          # fuse global in-plane context here
+            x = x + self._scan(x, blk, 3) + self._scan(x, blk, 4)
+        x = self.dec2(torch.cat([self.u2(x), s2], 1))
+        x = self.dec1(torch.cat([self.u1(x), s1], 1))
+        return self.head(x)[0]
+
+
 def gt_affinity(seg, offs):
     Z, Hh, W = seg.shape
     aff = np.zeros((len(offs), Z, Hh, W), np.float32); val = np.zeros_like(aff)
@@ -240,14 +270,17 @@ def main():
           f"jepa_steps={JEPA_STEPS} dec_steps={DEC_STEPS} affs={NAFF}", flush=True)
 
     CTX_KINDS = ("mamba", "transformer", "gnn")           # global-context image->affinity heads
+    IMG_KINDS = ("raw", "sota", "sotamamba") + CTX_KINDS   # all image -> affinity nets
 
     def run_dec(source, dec, encoder, sub):
         raw_t = torch.tensor(sub, device=DEV)[None, None].float()
-        if source in ("raw", "sota") or source in CTX_KINDS:   # image -> affinity nets
+        if source in IMG_KINDS:                            # image -> affinity nets
             return dec(raw_t)
         return dec(V.feature_grid(encoder, sub.astype(np.float32))[None], raw_t)
 
     def make_dec(source):
+        if source == "sotamamba":                          # SOTA U-Net + Mamba bottleneck (the fusion)
+            return SotaMamba3D().to(DEV)
         if source in CTX_KINDS:
             import context_heads as CH                     # mamba / transformer / gnn
             return CH.make_context_head(source, NAFF).to(DEV)
@@ -287,7 +320,7 @@ def main():
                     boost_w.append(1.0 + boost * wrong.astype(np.float32))
         dec = make_dec(source)
         if init_state is not None:
-            dec.load_state_dict(init_state)
+            dec.load_state_dict(init_state, strict=False)  # partial ok (e.g. sotamamba warm-start from sota)
         opt = torch.optim.Adam(dec.parameters(), lr=2e-3)
         if smask is None and sparse_k is not None:        # fixed random sparse annotation
             smask, _ = _rand_sparse_mask(pool, sparse_k, seed)
@@ -431,10 +464,20 @@ def main():
         for ctx in CTX_HEADS:                             # global-context heads (dense, once/seed)
             if ctx in full_preds:
                 continue
-            cdec = train_dec(ctx, None, full_pool, steps=CTX_STEPS)
+            # sotamamba = SOTA + Mamba: warm-start from the trained SOTA U-Net and
+            # fine-tune (literally "take SOTA, add Mamba"), so any gain is Mamba's.
+            init = sota_init if ctx == "sotamamba" else None
+            cdec = train_dec(ctx, None, full_pool, steps=CTX_STEPS, init_state=init)
             cm, cpreds = evaluate(ctx, cdec, None)
             full_preds[ctx] = cpreds
             print(f"[s3d] {ctx} dense metrics={cm}", flush=True)
+        if "sotamamba" in CTX_HEADS and "sota_plus" not in full_preds:
+            # fair control: SOTA warm-started + SAME extra fine-tune steps, NO mamba.
+            # sotamamba vs sota_plus isolates Mamba's contribution at equal budget.
+            spdec = train_dec("sota", None, full_pool, steps=CTX_STEPS, init_state=sota_init)
+            _, sppreds = evaluate("sota", spdec, None)
+            full_preds["sota_plus"] = sppreds
+            print("[s3d] sota_plus (SOTA + same fine-tune, no mamba) done", flush=True)
         for rk in REFINERS:                               # hard-example-mined refiners (boosted on SOTA errors)
             rdec = train_dec(rk, None, full_pool, steps=CTX_STEPS, boost_dec=sota_base, boost=BOOST)
             rm, rpreds = evaluate(rk, rdec, None)
