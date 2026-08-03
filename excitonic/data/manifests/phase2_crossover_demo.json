@@ -1,0 +1,182 @@
+{
+  "criterion": "300 K pass condition (LOCKED); per-material headline = crossover temperature T* where U=0.71\u00b7\u0393(T); full \u0393(T) curve reported.",
+  "why_not_relax_T": [
+    "A 77 K yes fails the program's pump-free/CMOS energy accounting \u2014 a cryostat is standing power (thermal hold) at scale, the same argument we used to kill 44 pJ/MAC architectures, and it does not amortize.",
+    "At a relaxed target the ranking sorts on the phonon linewidth (quiet phonons) not on U \u2014 capturing the search with the variable we hold fixed; we would learn about dephasing (already characterized), not interaction.",
+    "The cryogenic corner is not empty: best measured U/\u0393\u22480.05 at a few K is ~14\u00d7 short at that temperature and never crosses \u2014 relaxing T past 77 K re-asks a question the literature already answered negatively."
+  ],
+  "gamma_T_model_used": {
+    "gamma0_meV": 2.0,
+    "gamma_LO_meV": 15.0,
+    "hw_LO_meV": 48.0,
+    "note": "illustrative; real \u03b30/\u03b3_LO from EPW, \u0127\u03c9_LO from DFPT"
+  },
+  "selftest_inversion_ok": true,
+  "selftest": [
+    {
+      "U_eV": 0.006,
+      "T_star_K": 463.6,
+      "gamma_at_Tstar_meV": 8.451,
+      "target_meV": 8.451,
+      "ok": true
+    },
+    {
+      "U_eV": 0.01,
+      "T_star_K": 690.2,
+      "gamma_at_Tstar_meV": 14.085,
+      "target_meV": 14.085,
+      "ok": true
+    },
+    {
+      "U_eV": 0.02,
+      "T_star_K": 1229.3,
+      "gamma_at_Tstar_meV": 28.168,
+      "target_meV": 28.169,
+      "ok": true
+    },
+    {
+      "U_eV": 0.05,
+      "T_star_K": 2810.1,
+      "gamma_at_Tstar_meV": 70.421,
+      "target_meV": 70.423,
+      "ok": true
+    }
+  ],
+  "best_measured_cryo_anchor": {
+    "T_star_K": 0.0,
+    "crosses_at_any_T": false,
+    "crossover_reason": "U/0.71=0.14 meV \u2264 \u03930=2.00 meV: below the T\u21920 linewidth floor \u2014 never blockades",
+    "meets_at_300K": false,
+    "U_over_gamma_at_300K": 0.0209,
+    "gamma_at_300K_meV": 4.776,
+    "shortfall_factor_at_300K": 33.91,
+    "threshold": 0.71,
+    "provenance": "frohlich_model",
+    "first_principles": false,
+    "U": {
+      "name": "U",
+      "value": 0.0001,
+      "unit": "eV",
+      "tier": "measured",
+      "source": "back-out of best reported U/\u0393\u22480.05 at ~4 K (cryogenic)",
+      "uncertainty": null,
+      "converged": null,
+      "notes": "",
+      "computed": true,
+      "is_model_estimate": false
+    },
+    "gamma_T_model": {
+      "gamma0_meV": 2.0,
+      "gamma_LO_meV": 15.0,
+      "hw_LO_meV": 48.0
+    },
+    "gamma_T_curve": [
+      {
+        "T_K": 4,
+        "gamma_meV": 2.0,
+        "U_over_gamma": 0.05,
+        "meets": false
+      },
+      {
+        "T_K": 77,
+        "gamma_meV": 2.011,
+        "U_over_gamma": 0.0497,
+        "meets": false
+      },
+      {
+        "T_K": 150,
+        "gamma_meV": 2.375,
+        "U_over_gamma": 0.0421,
+        "meets": false
+      },
+      {
+        "T_K": 200,
+        "gamma_meV": 2.987,
+        "U_over_gamma": 0.0335,
+        "meets": false
+      },
+      {
+        "T_K": 250,
+        "gamma_meV": 3.811,
+        "U_over_gamma": 0.0262,
+        "meets": false
+      },
+      {
+        "T_K": 300,
+        "gamma_meV": 4.776,
+        "U_over_gamma": 0.0209,
+        "meets": false
+      }
+    ],
+    "caveat": "\u0393(T) params and/or U are MODEL-tier \u2014 not GW-BSE/EPW. T* is a demonstration of the criterion, not a first-principles result."
+  },
+  "illustrative_near_RT_crosser": {
+    "T_star_K": 250.0,
+    "crosses_at_any_T": true,
+    "crossover_reason": "crosses at finite T*",
+    "meets_at_300K": false,
+    "U_over_gamma_at_300K": 0.5665,
+    "gamma_at_300K_meV": 4.776,
+    "shortfall_factor_at_300K": 1.25,
+    "threshold": 0.71,
+    "provenance": "frohlich_model",
+    "first_principles": false,
+    "U": {
+      "name": "U",
+      "value": 0.002706,
+      "unit": "eV",
+      "tier": "saturation_model",
+      "source": "illustrative: U set so T*\u2248250 K (demonstrates surfacing)",
+      "uncertainty": null,
+      "converged": null,
+      "notes": "",
+      "computed": false,
+      "is_model_estimate": true
+    },
+    "gamma_T_model": {
+      "gamma0_meV": 2.0,
+      "gamma_LO_meV": 15.0,
+      "hw_LO_meV": 48.0
+    },
+    "gamma_T_curve": [
+      {
+        "T_K": 4,
+        "gamma_meV": 2.0,
+        "U_over_gamma": 1.353,
+        "meets": true
+      },
+      {
+        "T_K": 77,
+        "gamma_meV": 2.011,
+        "U_over_gamma": 1.3457,
+        "meets": true
+      },
+      {
+        "T_K": 150,
+        "gamma_meV": 2.375,
+        "U_over_gamma": 1.1393,
+        "meets": true
+      },
+      {
+        "T_K": 200,
+        "gamma_meV": 2.987,
+        "U_over_gamma": 0.906,
+        "meets": true
+      },
+      {
+        "T_K": 250,
+        "gamma_meV": 3.811,
+        "U_over_gamma": 0.71,
+        "meets": true
+      },
+      {
+        "T_K": 300,
+        "gamma_meV": 4.776,
+        "U_over_gamma": 0.5665,
+        "meets": false
+      }
+    ],
+    "caveat": "\u0393(T) params and/or U are MODEL-tier \u2014 not GW-BSE/EPW. T* is a demonstration of the criterion, not a first-principles result."
+  },
+  "rigor": "No physics verdict. Inputs are model/measured and flagged; real T* requires GW-BSE U + EPW \u0393(T). This fixes the CRITERION and shows it reproduces the known cryogenic negative and would surface a near-RT crosser if one existed."
+}
