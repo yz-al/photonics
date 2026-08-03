@@ -507,6 +507,7 @@ def main():
     DBB = os.environ.get("WORM_S3_DBB", "0") == "1"       # double black box analysis
     EDGE = os.environ.get("WORM_S3_EDGE", "0") == "1"     # sota edge-case (failure) analysis
     BEAT = os.environ.get("WORM_S3_BEAT", "0") == "1"     # beat-sota failure-targeted strategies
+    AGGLO = os.environ.get("WORM_S3_AGGLO", "0") == "1"   # learned agglomeration (split-fixer proofreading)
     # global-context heads to train + compare (subset of mamba,transformer,gnn)
     CTX_HEADS = [x.strip() for x in os.environ.get("WORM_S3_CTX", "").split(",") if x.strip()]
     CTX_STEPS = int(os.environ.get("WORM_S3_CTX_STEPS", str(DEC_STEPS)))
@@ -518,7 +519,7 @@ def main():
     le_acc = {s: {key: [] for key, _, _ in BUDGETS} for s in SOURCES}
     es_acc = {"all_offsets": [], "long_range_merge_edges": []}
     std_finals = []
-    dbb_res = None; edge_res = None; beat_res = None
+    dbb_res = None; edge_res = None; beat_res = None; agglo_res = None
     for seed in SEEDS:
         torch.manual_seed(seed)
         enc = V.train_vol_jepa(tr_raw, JEPA_STEPS, np.random.default_rng(seed))
@@ -587,6 +588,16 @@ def main():
             rm, rpreds = evaluate(rk, rdec, None)
             full_preds[f"{rk}_refiner"] = rpreds
             print(f"[s3d] {rk}_refiner (boost={BOOST}) dense metrics={rm}", flush=True)
+        if AGGLO and agglo_res is None:                   # split-fixer: learned agglomeration
+            import agglomerate as AG
+            actx = {"SHORT": SHORT, "OFFS": OFFS, "mutex_watershed": mutex_watershed,
+                    "seg_metrics": seg_metrics, "erl_proxy": erl_proxy}
+            tr_aff = [predict("sota", sota_base, None, sub) for sub, _ in full_pool]
+            tr_seg = [seg for _, seg in full_pool]
+            ev_aff = full_preds.get("sota", [predict("sota", sota_base, None, sub) for sub, _ in te_subs])
+            ev_seg = [seg for _, seg in te_subs]
+            agglo_res = AG.run(tr_aff, tr_seg, ev_aff, ev_seg, actx)
+            print(f"[s3d] agglomerate={agglo_res}", flush=True)
         if BEAT and beat_res is None:                     # failure-targeted strategies vs SOTA
             import beat_sota as BEATM
             ctx = {"mutex_watershed": mutex_watershed, "seg_metrics": seg_metrics,
@@ -619,6 +630,8 @@ def main():
         res["sota_edge_cases"] = edge_res
     if beat_res is not None:
         res["beat_sota"] = beat_res
+    if agglo_res is not None:
+        res["agglomerate"] = agglo_res
     print(json.dumps(res, indent=2))
     with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
         json.dump(res, f, indent=2)
