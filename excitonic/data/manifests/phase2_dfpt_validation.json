@@ -6,9 +6,9 @@
       "rc_scf": 0,
       "rc_ph": 0,
       "wall_clock": {
-        "scf_s": 134.3,
-        "ph_s": 534.9,
-        "total_s": 669.2,
+        "scf_s": 86.9,
+        "ph_s": 468.8,
+        "total_s": 555.7,
         "ranks": 8
       },
       "etot_Ry": {
@@ -25,37 +25,37 @@
       },
       "eps_inf": {
         "name": "eps_inf",
-        "value": 27.3819,
+        "value": 27.3829,
         "unit": "1",
         "tier": "dfpt",
         "source": "QE ph.x (epsil=.true.)",
         "uncertainty": null,
         "converged": null,
-        "notes": "trace/3 of \u03b5\u221e; diagonal=['27.382', '27.382', '27.382']",
+        "notes": "trace/3 of \u03b5\u221e; diagonal=['27.383', '27.383', '27.383']",
         "computed": true,
         "is_model_estimate": false
       },
       "Z_born": {
         "name": "Z_born",
-        "value": 0.9134,
+        "value": null,
         "unit": "e",
-        "tier": "dfpt",
-        "source": "QE ph.x",
+        "tier": "not_run",
+        "source": "",
         "uncertainty": null,
         "converged": null,
-        "notes": "mean |Z*| component over the block",
-        "computed": true,
+        "notes": "no per-atom Born-charge tensor parsed",
+        "computed": false,
         "is_model_estimate": false
       },
       "omega_max_meV": {
         "name": "omega_LO",
-        "value": 33.534,
+        "value": 33.519,
         "unit": "meV",
         "tier": "dfpt",
         "source": "QE ph.x (top \u0393 mode)",
         "uncertainty": null,
         "converged": null,
-        "notes": "\u03c9_LO\u2248270.5 cm^-1; LO-TO exactness needs dynmat.x",
+        "notes": "\u03c9_LO\u2248270.4 cm^-1; LO-TO exactness needs dynmat.x",
         "computed": true,
         "is_model_estimate": false
       },
@@ -68,9 +68,9 @@
       "rc_scf": 0,
       "rc_ph": 0,
       "wall_clock": {
-        "scf_s": 15.7,
-        "ph_s": 100.0,
-        "total_s": 115.8,
+        "scf_s": 13.0,
+        "ph_s": 78.1,
+        "total_s": 91.1,
         "ranks": 8
       },
       "etot_Ry": {
@@ -99,14 +99,14 @@
       },
       "Z_born": {
         "name": "Z_born",
-        "value": 0.0353,
+        "value": null,
         "unit": "e",
-        "tier": "dfpt",
-        "source": "QE ph.x",
+        "tier": "not_run",
+        "source": "",
         "uncertainty": null,
         "converged": null,
-        "notes": "mean |Z*| component over the block",
-        "computed": true,
+        "notes": "no per-atom Born-charge tensor parsed",
+        "computed": false,
         "is_model_estimate": false
       },
       "omega_max_meV": {
@@ -125,10 +125,5 @@
       "reference": "NON-polar: Z*\u22480, no LO-TO splitting, Fr\u00f6hlich=0, \u03b5\u221e\u224811.7"
     }
   },
-  "polarity_test": {
-    "Z_Si": 0.0353,
-    "Z_GaAs": 0.9134,
-    "pass": false,
-    "criterion": "Z*(Si)<0.3 (non-polar) and Z*(GaAs)>1.0 (polar)"
-  }
+  "polarity_test": null
 }
