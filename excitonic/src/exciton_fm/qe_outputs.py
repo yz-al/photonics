@@ -38,40 +38,41 @@ def parse_epsilon_inf(ph_out: str) -> Label:
                  notes=f"trace/3 of ε∞; diagonal={['%.3f'%d for d in diag]}")
 
 
-# Per-atom Born-charge tensor block:
-#   atom    1   Ga
-#      Ex  (  2.190   0.000   0.000 )
-#      Ey  (  0.000   2.190   0.000 )
-#      Ez  (  0.000   0.000   2.190 )
-# The isotropic Z* is the trace/3 = (Ex_x + Ey_y + Ez_z)/3 (the DIAGONAL), not
-# the mean of all components (which dilutes with the zero off-diagonals and the
-# opposite-sign second atom).
-_BORN_ATOM = re.compile(
-    r"atom\s+\d+\s+\S+\s*\n"
-    r"\s*Ex\s*\(\s*([-+]?\d+\.\d+)\s+[-+]?\d+\.\d+\s+[-+]?\d+\.\d+\s*\)\s*\n"
-    r"\s*Ey\s*\(\s*[-+]?\d+\.\d+\s+([-+]?\d+\.\d+)\s+[-+]?\d+\.\d+\s*\)\s*\n"
-    r"\s*Ez\s*\(\s*[-+]?\d+\.\d+\s+[-+]?\d+\.\d+\s+([-+]?\d+\.\d+)\s*\)",
-    re.I)
+_NUM = re.compile(r"[-+]?\d+\.\d+")
+_ATOM_LINE = re.compile(r"\batom\s+\d+", re.I)
 
 
 def parse_born_charges(ph_out: str) -> Label:
     """Born effective charge |Z*_iso| = |trace/3| at the MOST polar site.
 
-    Non-polar (Si) -> ~0; polar (GaAs) -> ~2.2. Reports the max over atoms so a
-    polar bond is not averaged away against its counter-ion.
+    Non-polar (Si) -> ~0; polar (GaAs) -> ~2.2. Robust to QE spacing: locate the
+    'Effective charges' section, then for each 'atom N' block read the diagonal of
+    the next three numeric rows (Z*_xx, Z*_yy, Z*_zz). Reports the max over atoms so
+    a polar bond is not averaged away against its counter-ion.
     """
     if not _finished(ph_out):
         return not_run("Z_born", "e", "ph.x run did not finish")
+    idx = ph_out.rfind("Effective charges")
+    if idx < 0:
+        return not_run("Z_born", "e", "no 'Effective charges' section")
+    lines = ph_out[idx:idx + 6000].splitlines()
     zs = []
-    for m in _BORN_ATOM.finditer(ph_out):
-        a, e, i = float(m.group(1)), float(m.group(2)), float(m.group(3))
-        zs.append(abs((a + e + i) / 3.0))
+    i = 0
+    while i < len(lines) - 3:
+        if _ATOM_LINE.search(lines[i]):
+            r1 = _NUM.findall(lines[i + 1])
+            r2 = _NUM.findall(lines[i + 2])
+            r3 = _NUM.findall(lines[i + 3])
+            if len(r1) >= 3 and len(r2) >= 3 and len(r3) >= 3:
+                diag = (float(r1[0]) + float(r2[1]) + float(r3[2])) / 3.0
+                zs.append(abs(diag))
+                i += 4
+                continue
+        i += 1
     if not zs:
         return not_run("Z_born", "e", "no per-atom Born-charge tensor parsed")
-    z = max(zs)
-    return Label("Z_born", round(z, 4), "e", "dfpt",
-                 source="QE ph.x", notes=f"max |Z*_iso| over {len(zs)} atoms "
-                        f"(diagonal trace/3)")
+    return Label("Z_born", round(max(zs), 4), "e", "dfpt",
+                 source="QE ph.x", notes=f"max |Z*_iso| (diag trace/3) over {len(zs)} atoms")
 
 
 def parse_phonon_omega_LO(ph_out: str) -> Label:
