@@ -153,6 +153,57 @@ class SotaMamba3D(SotaUNet3D):
         return self.head(x)[0]
 
 
+class SotaLSD3D(SotaUNet3D):
+    """SOTA U-Net + a Local Shape Descriptor (LSD) auxiliary head (Sheridan & Funke,
+    Nature Methods 2022). The SAME net also predicts a 10-D per-voxel local shape stat
+    (CoM offset, covariance, size); training with that auxiliary task makes the
+    affinities shape-aware and closes most of the gap to flood-filling nets. The LSD
+    output ALSO feeds proofreading: shape descriptors are the features a learned
+    agglomeration / merge-decision model uses. forward() returns affinities (for the
+    usual pipeline); forward(return_lsd=True) also returns the 10-D LSD."""
+    def __init__(self):
+        super().__init__()
+        self.lsd_head = nn.Conv3d(32, 10, 1)              # from the 32-ch voxel decoder features
+
+    def forward(self, img, return_lsd=False):
+        s1 = self.e1(img); x = self.d1(s1)
+        s2 = self.e2(x); x = self.d2(s2)
+        x = self.bott(x)
+        x = self.dec2(torch.cat([self.u2(x), s2], 1))
+        feat = self.dec1(torch.cat([self.u1(x), s1], 1))  # 32-ch voxel features
+        aff = self.head(feat)[0]
+        if return_lsd:
+            return aff, torch.sigmoid(self.lsd_head(feat))[0]
+        return aff
+
+
+def local_shape_descriptors(seg, sigma=(2.0, 6.0, 6.0), max_obj=40):
+    """GT 10-D LSD per voxel (Funke): within a Gaussian window, the local CoM offset (3),
+    covariance (6) and size (1) of the voxel's OWN object, normalized to [0,1]. Computed
+    on the training pool only (targets for the auxiliary task)."""
+    from scipy.ndimage import gaussian_filter
+    Z, Hh, W = seg.shape
+    zz, yy, xx = np.meshgrid(np.arange(Z), np.arange(Hh), np.arange(W), indexing="ij")
+    C = np.stack([zz, yy, xx]).astype(np.float32)         # (3,Z,H,W)
+    out = np.zeros((10, Z, Hh, W), np.float32)
+    labels, counts = np.unique(seg, return_counts=True)
+    for L in labels[np.argsort(-counts)][:max_obj]:       # largest objects cover most volume
+        if L == 0:
+            continue
+        m = (seg == L).astype(np.float32)
+        dens = gaussian_filter(m, sigma); d = dens + 1e-6
+        mean = np.stack([gaussian_filter(m * C[i], sigma) / d for i in range(3)])
+        offset = mean - C
+        cov = np.stack([gaussian_filter(m * C[i] * C[j], sigma) / d - mean[i] * mean[j]
+                        for i in range(3) for j in range(i, 3)])
+        idx = m > 0.5
+        sig = np.array(sigma).reshape(3, 1, 1, 1)
+        out[0:3][:, idx] = np.clip(offset / (3 * sig) + 0.5, 0, 1)[:, idx]
+        out[3:9][:, idx] = np.clip(cov / (9 * float(np.mean(sigma)) ** 2) + 0.5, 0, 1)[:, idx]
+        out[9][idx] = np.clip(dens, 0, 1)[idx]
+    return out
+
+
 def gt_affinity(seg, offs):
     Z, Hh, W = seg.shape
     aff = np.zeros((len(offs), Z, Hh, W), np.float32); val = np.zeros_like(aff)
@@ -270,7 +321,7 @@ def main():
           f"jepa_steps={JEPA_STEPS} dec_steps={DEC_STEPS} affs={NAFF}", flush=True)
 
     CTX_KINDS = ("mamba", "transformer", "gnn")           # global-context image->affinity heads
-    IMG_KINDS = ("raw", "sota", "sotamamba") + CTX_KINDS   # all image -> affinity nets
+    IMG_KINDS = ("raw", "sota", "sotamamba", "sotalsd") + CTX_KINDS   # all image -> affinity nets
 
     def run_dec(source, dec, encoder, sub):
         raw_t = torch.tensor(sub, device=DEV)[None, None].float()
@@ -281,10 +332,49 @@ def main():
     def make_dec(source):
         if source == "sotamamba":                          # SOTA U-Net + Mamba bottleneck (the fusion)
             return SotaMamba3D().to(DEV)
+        if source == "sotalsd":                            # SOTA U-Net + LSD auxiliary head
+            return SotaLSD3D().to(DEV)
         if source in CTX_KINDS:
             import context_heads as CH                     # mamba / transformer / gnn
             return CH.make_context_head(source, NAFF).to(DEV)
         return {"raw": RawAff3D, "sota": SotaUNet3D}.get(source, FeatAff3D)().to(DEV)
+
+    def train_lsd(pool, malis=False, lsd_w=1.0,
+                  malis_m=float(os.environ.get("WORM_S3_MALIS_M", "3.0")),
+                  malis_s=float(os.environ.get("WORM_S3_MALIS_S", "1.0")),
+                  steps=None, init_state=None):
+        # SOTA + LSD auxiliary loss (+ optional MALIS-style structured term). LSD makes
+        # the affinities shape-aware; the MALIS-style term up-weights edges that would
+        # CAUSE a topological error under the current prediction -- a between-object edge
+        # predicted 'same' (a merge, weighted heavily) or a within-object edge predicted
+        # 'boundary' (a split). This is the merge-discipline SotaMamba lacked, and both
+        # signals feed proofreading.
+        dec = SotaLSD3D().to(DEV)
+        if init_state is not None:
+            dec.load_state_dict(init_state, strict=False)
+        opt = torch.optim.Adam(dec.parameters(), lr=2e-3)
+        lsd_t = [torch.tensor(local_shape_descriptors(seg), device=DEV) for _, seg in pool]
+        for step in range(steps or DEC_STEPS):
+            i = step % len(pool); sub, seg = pool[i]
+            aff, val = gt_affinity(seg, OFFS)
+            tgt = torch.tensor(aff, device=DEV); vmask = torch.tensor(val, device=DEV)
+            raw_t = torch.tensor(sub, device=DEV)[None, None].float()
+            logit, lsd_p = dec(raw_t, return_lsd=True)
+            p = torch.sigmoid(logit.detach())
+            pos = (tgt * vmask).sum((1, 2, 3)); neg = ((1 - tgt) * vmask).sum((1, 2, 3))
+            pw = (neg / (pos + 1)).clamp(0.1, 10)[:, None, None, None]
+            bce = F.binary_cross_entropy_with_logits(logit, tgt, pos_weight=pw, reduction="none")
+            w = torch.ones_like(vmask)
+            if malis:                                     # structured / topological up-weighting
+                w = w + malis_m * ((tgt < 0.5) & (p > 0.5)).float()   # would-be MERGE (heavy)
+                w = w + malis_s * ((tgt > 0.5) & (p < 0.5)).float()   # would-be SPLIT
+            aloss = (bce * vmask * w).sum() / (vmask * w).sum().clamp(min=1)
+            # LSD MSE on object (non-background) voxels
+            om = torch.tensor((seg > 0).astype(np.float32), device=DEV)[None]
+            lloss = ((lsd_p - lsd_t[i]) ** 2 * om).sum() / om.sum().clamp(min=1) / 10
+            loss = aloss + lsd_w * lloss
+            opt.zero_grad(); loss.backward(); opt.step()
+        dec.eval(); return dec
 
     def _rand_sparse_mask(pool, sparse_k, seed):
         """A FIXED random set of sparse_k annotated voxel-edges on pool[0]."""
@@ -419,6 +509,8 @@ def main():
     # global-context heads to train + compare (subset of mamba,transformer,gnn)
     CTX_HEADS = [x.strip() for x in os.environ.get("WORM_S3_CTX", "").split(",") if x.strip()]
     CTX_STEPS = int(os.environ.get("WORM_S3_CTX_STEPS", str(DEC_STEPS)))
+    # LSD / MALIS heads: "sotalsd" (LSD aux), "sotalsdmalis" (LSD + structured merge loss)
+    LSD_HEADS = [x.strip() for x in os.environ.get("WORM_S3_LSD", "").split(",") if x.strip()]
     # hard-example-mined refiners: heads boosted on SOTA's GT-verified error set
     REFINERS = [x.strip() for x in os.environ.get("WORM_S3_REFINER", "").split(",") if x.strip()]
     BOOST = float(os.environ.get("WORM_S3_BOOST", "5.0"))
@@ -471,7 +563,14 @@ def main():
             cm, cpreds = evaluate(ctx, cdec, None)
             full_preds[ctx] = cpreds
             print(f"[s3d] {ctx} dense metrics={cm}", flush=True)
-        if "sotamamba" in CTX_HEADS and "sota_plus" not in full_preds:
+        for lk in LSD_HEADS:                              # LSD (+ optional MALIS) heads, warm-started
+            if lk in full_preds:
+                continue
+            ldec = train_lsd(full_pool, malis=("malis" in lk), steps=CTX_STEPS, init_state=sota_init)
+            lm, lpreds = evaluate("sotalsd", ldec, None)
+            full_preds[lk] = lpreds
+            print(f"[s3d] {lk} dense metrics={lm}", flush=True)
+        if (CTX_HEADS or LSD_HEADS) and "sota_plus" not in full_preds:
             # fair control: SOTA warm-started + SAME extra fine-tune steps, NO mamba.
             # sotamamba vs sota_plus isolates Mamba's contribution at equal budget.
             spdec = train_dec("sota", None, full_pool, steps=CTX_STEPS, init_state=sota_init)
