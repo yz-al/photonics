@@ -73,23 +73,58 @@ def run(full_preds, te_subs, te_gt, ctx, biases=(0.05, 0.1, 0.2), max_subs=2):
             out.append(a2)
         return out
 
+    # ---- conditional net-corrections (the fix for the dilution problem) ----
+    # Score at the EDGES THE HEAD CHANGED (aff-decision != sota-decision), NOT the whole
+    # volume -- so a real effect on a small region isn't averaged into noise. Needs NO
+    # confidence: the "changed region" is just where the head disagrees with SOTA.
+    #   fix   = SOTA wrong there, head right   (a correction)
+    #   break = SOTA right there, head wrong   (damage)
+    # merges (said-same-but-boundary) split out because ERL weights them heavier.
+    gt_bin = [(te_gt[j][0] > 0.5) for j in range(nsub)]
+    val_bin = [(te_gt[j][1] > 0) for j in range(nsub)]
+    sconf = [np.abs(sota[j] - 0.5) for j in range(nsub)]
+    # confidence gate threshold (80% error-recall) -- ONLY for the optional gated variant
+    ce, ee = [], []
+    for j in range(nsub):
+        v = val_bin[j]; ce.append(sconf[j][v]); ee.append(((sota[j] > 0.5) != gt_bin[j])[v])
+    ce = np.concatenate(ce); ee = np.concatenate(ee)
+    tau = float(np.sort(ce[ee])[min(int(0.8 * ee.sum()), max(0, ee.sum() - 1))]) if ee.sum() else 0.0
+
+    def conditional(aff_list, gated=False):
+        fix = brk = fix_m = brk_m = changed = 0
+        for j in range(nsub):
+            v = val_bin[j]; g = gt_bin[j]
+            sp = sota[j] > 0.5; ap = aff_list[j] > 0.5
+            region = (ap != sp) & v                            # where the head changed the call
+            if gated:
+                region = region & (sconf[j] <= tau)            # ...and SOTA was unsure (routed variant)
+            sota_wrong = (sp != g); head_right = (ap == g)
+            f = region & sota_wrong & head_right               # correction
+            b = region & (~sota_wrong) & (~head_right)         # damage
+            merge_here = (~g)                                  # boundary truth: said-same == merge error
+            fix += int(f.sum()); brk += int(b.sum()); changed += int(region.sum())
+            fix_m += int((f & merge_here).sum()); brk_m += int((b & merge_here).sum())
+        return {"changed_edges": changed, "fixes": fix, "breaks": brk,
+                "net": fix - brk, "net_merge": fix_m - brk_m, "net_split": (fix - fix_m) - (brk - brk_m)}
+
     results = {"baseline_sota": base}
+    cond = {}
     # merge-bias sweep (attack over-segmentation)
-    mb = {f"merge_bias_{b}": score(merge_bias(b)) for b in biases}
-    results.update(mb)
-    # confidence-gated ensembles (diversity where SOTA is unsure)
-    results["ens_sota_jepa"] = score(ens_lowconf(jepa))
+    for b in biases:
+        aff = merge_bias(b); results[f"merge_bias_{b}"] = score(aff); cond[f"merge_bias_{b}"] = conditional(aff)
+    # heads applied GLOBALLY (just add + run) + their affinity variants
+    others = {"jepa": jepa}
     if raw is not None:
-        results["ens_sota_raw"] = score(ens_lowconf(raw))
-    # long-range specialist swap (attack the 79%-long-range errors)
-    results["longrange_from_jepa"] = score(longrange_from(jepa))
-    # global-context heads (mamba / transformer / gnn): their whole point is the
-    # long-range band SOTA fails on. Score each the same three ways.
+        others["raw"] = raw
     for name in [s for s in full_preds if s not in ("sota", "jepa", "raw", "random")]:
-        arr = [full_preds[name][j] for j in range(nsub)]
-        results[f"{name}_alone"] = score(arr)
-        results[f"longrange_from_{name}"] = score(longrange_from(arr))
-        results[f"ens_sota_{name}"] = score(ens_lowconf(arr))
+        others[name] = [full_preds[name][j] for j in range(nsub)]
+    for name, arr in others.items():
+        for tag, aff in ((f"{name}_alone", arr),
+                         (f"longrange_from_{name}", longrange_from(arr)),
+                         (f"ens_sota_{name}", ens_lowconf(arr))):
+            results[tag] = score(aff)
+            cond[tag] = conditional(aff)                        # global changed-region net corrections
+            cond[tag + "|gated"] = conditional(aff, gated=True) # confidence-routed variant (comparison)
 
     # deltas vs baseline (VOI/Rand lower=better, ERL higher=better)
     for k, v in results.items():
@@ -107,12 +142,22 @@ def run(full_preds, te_subs, te_gt, ctx, biases=(0.05, 0.1, 0.2), max_subs=2):
             if v["VOI"] <= base["VOI"] and v["adapted_rand_error"] <= base["adapted_rand_error"]
             and v["ERL"] >= erl_floor}
     safe_best = min(safe.items(), key=lambda kv: kv[1]["VOI"]) if safe else None
-    return {"method": "beat-sota failure-targeted strategies (real VOI/Rand/ERL)",
+    # conditional winner: best NET corrections, merges weighted 3x (ERL cares about them)
+    def cscore(d):
+        return d["net"] + 2 * d["net_merge"]                   # net + extra credit for net merge fixes
+    ungated = {k: v for k, v in cond.items() if not k.endswith("|gated")}
+    cond_best = max(ungated.items(), key=lambda kv: cscore(kv[1])) if ungated else None
+    return {"method": "beat-sota strategies: global VOI/Rand/ERL + CONDITIONAL net-corrections",
             "n_subs": nsub, "baseline_sota": base, "strategies": results,
+            "conditional_net_corrections": cond,
+            "conditional_best": ({"name": cond_best[0], **cond_best[1]} if cond_best else None),
+            "conditional_note": ("net>0 = the head fixes more than it breaks in the region it "
+                                 "changed; net_merge>0 = it net-reduces the costly merge errors. "
+                                 "'|gated' = same but only where SOTA was unsure (routed variant)."),
             "best_by_voi": {"name": best_voi[0], "VOI": best_voi[1]["VOI"], "ERL": best_voi[1]["ERL"]},
             "best_by_erl": {"name": best_erl[0], "ERL": best_erl[1]["ERL"], "VOI": best_erl[1]["VOI"]},
             "safe_best": ({"name": safe_best[0], **{m: safe_best[1][m] for m in ("VOI", "adapted_rand_error", "ERL")}}
                           if safe_best else None),
             "verdict": (f"{safe_best[0]} beats SOTA without a merge tradeoff"
                         if safe_best else
-                        "no strategy beats SOTA on VOI+Rand without sacrificing ERL (compounding merges)")}
+                        "no strategy beats SOTA on global VOI+Rand -- read conditional_best for the real signal")}
