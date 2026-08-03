@@ -1,0 +1,251 @@
+{
+  "results": {
+    "MoS2": {
+      "formula": "MoS2",
+      "rc": [
+        0,
+        0
+      ],
+      "wall_s": 893.0,
+      "omega_LO_meV": {
+        "name": "omega_LO",
+        "value": 56.428,
+        "unit": "meV",
+        "tier": "dfpt",
+        "source": "QE ph.x (top \u0393 mode)",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "\u03c9_LO\u2248455.1 cm^-1; LO-TO exactness needs dynmat.x",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "omega_LO_physical": true,
+      "Z_born": {
+        "name": "Z_born",
+        "value": 0.6903,
+        "unit": "e",
+        "tier": "dfpt",
+        "source": "QE ph.x",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "max |Z*_iso| (diag trace/3) over 3 atoms",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "eps_inf": {
+        "name": "eps_inf",
+        "value": 3.7991,
+        "unit": "1",
+        "tier": "dfpt",
+        "source": "QE ph.x (epsil=.true.)",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "trace/3 of \u03b5\u221e; diagonal=['5.077', '5.077', '1.243']",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "gamma_300K_model": {
+        "name": "Gamma_300K",
+        "value": 10.317,
+        "unit": "meV",
+        "tier": "frohlich_model",
+        "source": "Fr\u00f6hlich model (\u03b1=0.400, \u0127\u03c9_LO=56.4 meV, \u03b3_LO=65.5 meV, C_cal=2.9)",
+        "uncertainty": 4.127,
+        "converged": null,
+        "notes": "MODEL estimate for prioritization; replace with EPW (tier 'epw').",
+        "computed": false,
+        "is_model_estimate": true
+      },
+      "error_tail": ""
+    },
+    "MoSe2": {
+      "formula": "MoSe2",
+      "rc": [
+        0,
+        0
+      ],
+      "wall_s": 920.5,
+      "omega_LO_meV": {
+        "name": "omega_LO",
+        "value": 43.631,
+        "unit": "meV",
+        "tier": "dfpt",
+        "source": "QE ph.x (top \u0393 mode)",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "\u03c9_LO\u2248351.9 cm^-1; LO-TO exactness needs dynmat.x",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "omega_LO_physical": true,
+      "Z_born": {
+        "name": "Z_born",
+        "value": 1.2263,
+        "unit": "e",
+        "tier": "dfpt",
+        "source": "QE ph.x",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "max |Z*_iso| (diag trace/3) over 3 atoms",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "eps_inf": {
+        "name": "eps_inf",
+        "value": 4.2018,
+        "unit": "1",
+        "tier": "dfpt",
+        "source": "QE ph.x (epsil=.true.)",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "trace/3 of \u03b5\u221e; diagonal=['5.672', '5.672', '1.262']",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "gamma_300K_model": {
+        "name": "Gamma_300K",
+        "value": 13.484,
+        "unit": "meV",
+        "tier": "frohlich_model",
+        "source": "Fr\u00f6hlich model (\u03b1=0.400, \u0127\u03c9_LO=43.6 meV, \u03b3_LO=50.6 meV, C_cal=2.9)",
+        "uncertainty": 5.394,
+        "converged": null,
+        "notes": "MODEL estimate for prioritization; replace with EPW (tier 'epw').",
+        "computed": false,
+        "is_model_estimate": true
+      },
+      "error_tail": ""
+    },
+    "WS2": {
+      "formula": "WS2",
+      "rc": [
+        0,
+        0
+      ],
+      "wall_s": 1152.5,
+      "omega_LO_meV": {
+        "name": "omega_LO",
+        "value": 54.152,
+        "unit": "meV",
+        "tier": "dfpt",
+        "source": "QE ph.x (top \u0393 mode)",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "\u03c9_LO\u2248436.8 cm^-1; LO-TO exactness needs dynmat.x",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "omega_LO_physical": true,
+      "Z_born": {
+        "name": "Z_born",
+        "value": 0.3631,
+        "unit": "e",
+        "tier": "dfpt",
+        "source": "QE ph.x",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "max |Z*_iso| (diag trace/3) over 3 atoms",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "eps_inf": {
+        "name": "eps_inf",
+        "value": 3.5275,
+        "unit": "1",
+        "tier": "dfpt",
+        "source": "QE ph.x (epsil=.true.)",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "trace/3 of \u03b5\u221e; diagonal=['4.670', '4.670', '1.242']",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "gamma_300K_model": {
+        "name": "Gamma_300K",
+        "value": 10.819,
+        "unit": "meV",
+        "tier": "frohlich_model",
+        "source": "Fr\u00f6hlich model (\u03b1=0.400, \u0127\u03c9_LO=54.2 meV, \u03b3_LO=62.8 meV, C_cal=2.9)",
+        "uncertainty": 4.328,
+        "converged": null,
+        "notes": "MODEL estimate for prioritization; replace with EPW (tier 'epw').",
+        "computed": false,
+        "is_model_estimate": true
+      },
+      "error_tail": ""
+    },
+    "WSe2": {
+      "formula": "WSe2",
+      "rc": [
+        0,
+        0
+      ],
+      "wall_s": 1737.4,
+      "omega_LO_meV": {
+        "name": "omega_LO",
+        "value": 38.011,
+        "unit": "meV",
+        "tier": "dfpt",
+        "source": "QE ph.x (top \u0393 mode)",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "\u03c9_LO\u2248306.6 cm^-1; LO-TO exactness needs dynmat.x",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "omega_LO_physical": true,
+      "Z_born": {
+        "name": "Z_born",
+        "value": 0.8192,
+        "unit": "e",
+        "tier": "dfpt",
+        "source": "QE ph.x",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "max |Z*_iso| (diag trace/3) over 3 atoms",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "eps_inf": {
+        "name": "eps_inf",
+        "value": 3.9178,
+        "unit": "1",
+        "tier": "dfpt",
+        "source": "QE ph.x (epsil=.true.)",
+        "uncertainty": null,
+        "converged": null,
+        "notes": "trace/3 of \u03b5\u221e; diagonal=['5.246', '5.246', '1.262']",
+        "computed": true,
+        "is_model_estimate": false
+      },
+      "gamma_300K_model": {
+        "name": "Gamma_300K",
+        "value": 15.159,
+        "unit": "meV",
+        "tier": "frohlich_model",
+        "source": "Fr\u00f6hlich model (\u03b1=0.400, \u0127\u03c9_LO=38.0 meV, \u03b3_LO=44.1 meV, C_cal=2.9)",
+        "uncertainty": 6.064,
+        "converged": null,
+        "notes": "MODEL estimate for prioritization; replace with EPW (tier 'epw').",
+        "computed": false,
+        "is_model_estimate": true
+      },
+      "error_tail": ""
+    }
+  },
+  "gamma_cluster": {
+    "gamma_values_meV": [
+      10.317,
+      13.484,
+      10.819,
+      15.159
+    ],
+    "mean": 12.44,
+    "range": [
+      10.32,
+      15.16
+    ],
+    "near_10meV": true
+  },
+  "note": "\u03c9_LO/Z*/\u03b5\u221e are real DFPT (tier dfpt); \u0393 is a DFPT-grounded model estimate (\u03b1 at anchor; real linewidth needs 2D-Fr\u00f6hlich EPW)."
+}
