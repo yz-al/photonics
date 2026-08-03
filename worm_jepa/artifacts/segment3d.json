@@ -8,7 +8,7 @@
     1,
     2
   ],
-  "jepa_steps": 1000,
+  "jepa_steps": 5000,
   "label_pool": [
     16
   ],
@@ -81,57 +81,57 @@
     "coarse_drop": 0.5,
     "target_std": true,
     "embedding_std_final_per_seed": [
-      0.05,
-      0.5858,
-      0.8381
+      0.9881,
+      0.8892,
+      1.0044
     ]
   },
   "label_efficiency": {
     "jepa": {
       "16": {
         "affinity_acc": {
-          "mean": 0.7833,
-          "std": 0.0152
+          "mean": 0.8,
+          "std": 0.0292
         },
         "VOI": {
-          "mean": 3.2999,
-          "std": 0.4525
+          "mean": 3.2954,
+          "std": 0.3686
         },
         "adapted_rand_error": {
-          "mean": 0.4088,
-          "std": 0.064
+          "mean": 0.4273,
+          "std": 0.0805
         },
         "ERL_proxy": {
-          "mean": 56.9985,
-          "std": 27.412
+          "mean": 25.3456,
+          "std": 11.0189
         },
         "n_segments": {
-          "mean": 2035.3333,
-          "std": 202.5349
+          "mean": 1715.5,
+          "std": 259.0913
         }
       }
     },
     "random": {
       "16": {
         "affinity_acc": {
-          "mean": 0.8025,
-          "std": 0.0206
+          "mean": 0.7944,
+          "std": 0.0098
         },
         "VOI": {
-          "mean": 3.5181,
-          "std": 0.5902
+          "mean": 3.4804,
+          "std": 0.634
         },
         "adapted_rand_error": {
-          "mean": 0.6086,
-          "std": 0.1706
+          "mean": 0.5903,
+          "std": 0.1931
         },
         "ERL_proxy": {
-          "mean": 31.1016,
-          "std": 43.9844
+          "mean": 34.789,
+          "std": 46.3443
         },
         "n_segments": {
-          "mean": 629.0,
-          "std": 883.8835
+          "mean": 629.8333,
+          "std": 885.062
         }
       }
     },
@@ -191,12 +191,12 @@
         "std": 0.0087
       },
       "jepa_recovers": {
-        "mean": 0.3665,
-        "std": 0.0532
+        "mean": 0.4655,
+        "std": 0.0455
       },
       "random_recovers": {
-        "mean": 0.5462,
-        "std": 0.1843
+        "mean": 0.5251,
+        "std": 0.1625
       },
       "sota_recovers": {
         "mean": 0.5713,
@@ -209,12 +209,12 @@
         "std": 0.0117
       },
       "jepa_recovers": {
-        "mean": 0.3532,
-        "std": 0.0556
+        "mean": 0.4591,
+        "std": 0.0459
       },
       "random_recovers": {
-        "mean": 0.5412,
-        "std": 0.1905
+        "mean": 0.5533,
+        "std": 0.1983
       },
       "sota_recovers": {
         "mean": 0.5643,
@@ -222,527 +222,61 @@
       }
     }
   },
-  "sota_edge_cases": {
-    "method": "sota edge-case analysis (composition + detector + mechanistic correction)",
-    "n_edges_scored": 80000,
-    "error_composition": {
-      "sota_error_rate": 0.1479,
-      "merge_frac": 0.1748,
-      "split_frac": 0.8252,
-      "short_frac": 0.2058,
-      "long_frac": 0.7942,
-      "on_membrane_frac": 0.4638,
-      "interior_frac": 0.5362
+  "agglomerate": {
+    "method": "learned multicut (GAEC) feature-variants vs MWS",
+    "features_available": [
+      "mean_short",
+      "mean_long",
+      "log_contact",
+      "log_min_size",
+      "lsd_dist",
+      "lsd_cos",
+      "jepa_dist",
+      "jepa_cos"
+    ],
+    "n_train_pairs": 2791,
+    "same_rate": 0.461,
+    "mean_fragments": 112.2,
+    "mws_baseline": {
+      "VOI": 2.2755,
+      "adapted_rand_error": 0.3646,
+      "ERL": 56.8163
     },
-    "routing_bound": {
-      "target_recall": 0.8,
-      "flag_fraction": 0.2994,
-      "precision_in_flagged": 0.3951,
-      "base_error_rate": 0.1479,
-      "enrichment_x": 2.67,
-      "achieved_recall": 0.8,
-      "flagged_errors": {
-        "n": 960917,
-        "merge_frac": 0.1549,
-        "split_frac": 0.8451,
-        "long_frac": 0.7761
-      },
-      "missed_confident_errors": {
-        "n": 240228,
-        "merge_frac": 0.2545,
-        "split_frac": 0.7455,
-        "long_frac": 0.8666
-      },
-      "verdict": "missed (confident) errors are split-dominated -> routing a 2nd stage can still improve ERL"
+    "multicut_affinity": {
+      "VOI": 1.9748,
+      "adapted_rand_error": 0.3468,
+      "ERL": 63.0299
     },
-    "error_detector_auc": {
-      "conf": {
-        "auc": 0.8512,
-        "bal_acc": 0.7626
+    "multicut_affinity_lsd": {
+      "VOI": 1.9826,
+      "adapted_rand_error": 0.3472,
+      "ERL": 62.5884
+    },
+    "multicut_affinity_lsd_jepa": {
+      "VOI": 1.9437,
+      "adapted_rand_error": 0.3422,
+      "ERL": 62.3765
+    },
+    "best_by_voi": "multicut_affinity_lsd_jepa",
+    "best_beats_mws": true,
+    "deltas_vs_mws": {
+      "multicut_affinity": {
+        "dVOI": -0.3007,
+        "dERL": 6.2136
       },
-      "conf_raw": {
-        "auc": 0.8475,
-        "bal_acc": 0.7633
+      "multicut_affinity_lsd": {
+        "dVOI": -0.2929,
+        "dERL": 5.7721
       },
-      "conf_raw_jepa": {
-        "auc": 0.859,
-        "bal_acc": 0.7853
+      "multicut_affinity_lsd_jepa": {
+        "dVOI": -0.3318,
+        "dERL": 5.5602
       }
-    },
-    "jepa_auc_uplift_over_conf_raw": 0.0115,
-    "detector_verdict": "JEPA adds little to error prediction -> corrector not yet justified",
-    "mechanistic_correction": {
-      "sota_boundary_bal_acc": 0.8256,
-      "mechanistic_boundary_bal_acc": 0.7023,
-      "gated_correction_bal_acc": 0.8067,
-      "low_conf_frac": 0.3,
-      "on_low_conf_sota_bal_acc": 0.7006,
-      "on_low_conf_mechanistic_bal_acc": 0.6124,
-      "correction_helps": false
     }
-  },
-  "beat_sota": {
-    "method": "beat-sota strategies: global VOI/Rand/ERL + CONDITIONAL net-corrections",
-    "n_subs": 2,
-    "baseline_sota": {
-      "VOI": 2.4087,
-      "adapted_rand_error": 0.3214,
-      "ERL": 47.0191,
-      "dVOI_vs_sota": 0.0,
-      "dRand_vs_sota": 0.0,
-      "dERL_vs_sota": 0.0
-    },
-    "strategies": {
-      "baseline_sota": {
-        "VOI": 2.4087,
-        "adapted_rand_error": 0.3214,
-        "ERL": 47.0191,
-        "dVOI_vs_sota": 0.0,
-        "dRand_vs_sota": 0.0,
-        "dERL_vs_sota": 0.0
-      },
-      "merge_bias_0.05": {
-        "VOI": 4.2189,
-        "adapted_rand_error": 0.7521,
-        "ERL": 2.4813,
-        "dVOI_vs_sota": 1.8102,
-        "dRand_vs_sota": 0.4307,
-        "dERL_vs_sota": -44.5378
-      },
-      "merge_bias_0.1": {
-        "VOI": 4.2376,
-        "adapted_rand_error": 0.7625,
-        "ERL": 1.7346,
-        "dVOI_vs_sota": 1.8289,
-        "dRand_vs_sota": 0.4411,
-        "dERL_vs_sota": -45.2845
-      },
-      "merge_bias_0.2": {
-        "VOI": 4.126,
-        "adapted_rand_error": 0.7636,
-        "ERL": 1.7812,
-        "dVOI_vs_sota": 1.7173,
-        "dRand_vs_sota": 0.4422,
-        "dERL_vs_sota": -45.2379
-      },
-      "jepa_alone": {
-        "VOI": 4.1697,
-        "adapted_rand_error": 0.5316,
-        "ERL": 20.4829,
-        "dVOI_vs_sota": 1.761,
-        "dRand_vs_sota": 0.2102,
-        "dERL_vs_sota": -26.5362
-      },
-      "longrange_from_jepa": {
-        "VOI": 3.0517,
-        "adapted_rand_error": 0.4784,
-        "ERL": 11.6699,
-        "dVOI_vs_sota": 0.643,
-        "dRand_vs_sota": 0.157,
-        "dERL_vs_sota": -35.3492
-      },
-      "ens_sota_jepa": {
-        "VOI": 2.5329,
-        "adapted_rand_error": 0.3256,
-        "ERL": 46.702,
-        "dVOI_vs_sota": 0.1242,
-        "dRand_vs_sota": 0.0042,
-        "dERL_vs_sota": -0.3171
-      },
-      "raw_alone": {
-        "VOI": 2.7301,
-        "adapted_rand_error": 0.4085,
-        "ERL": 60.6408,
-        "dVOI_vs_sota": 0.3214,
-        "dRand_vs_sota": 0.0871,
-        "dERL_vs_sota": 13.6217
-      },
-      "longrange_from_raw": {
-        "VOI": 2.9432,
-        "adapted_rand_error": 0.4931,
-        "ERL": 34.0515,
-        "dVOI_vs_sota": 0.5345,
-        "dRand_vs_sota": 0.1717,
-        "dERL_vs_sota": -12.9676
-      },
-      "ens_sota_raw": {
-        "VOI": 2.3016,
-        "adapted_rand_error": 0.3211,
-        "ERL": 48.1951,
-        "dVOI_vs_sota": -0.1071,
-        "dRand_vs_sota": -0.0003,
-        "dERL_vs_sota": 1.176
-      },
-      "sotalsd_alone": {
-        "VOI": 2.4928,
-        "adapted_rand_error": 0.3352,
-        "ERL": 56.4915,
-        "dVOI_vs_sota": 0.0841,
-        "dRand_vs_sota": 0.0138,
-        "dERL_vs_sota": 9.4724
-      },
-      "longrange_from_sotalsd": {
-        "VOI": 2.3976,
-        "adapted_rand_error": 0.3205,
-        "ERL": 44.95,
-        "dVOI_vs_sota": -0.0111,
-        "dRand_vs_sota": -0.0009,
-        "dERL_vs_sota": -2.0691
-      },
-      "ens_sota_sotalsd": {
-        "VOI": 2.3707,
-        "adapted_rand_error": 0.319,
-        "ERL": 47.463,
-        "dVOI_vs_sota": -0.038,
-        "dRand_vs_sota": -0.0024,
-        "dERL_vs_sota": 0.4439
-      },
-      "sotalsdmalis_alone": {
-        "VOI": 2.7685,
-        "adapted_rand_error": 0.3884,
-        "ERL": 49.4424,
-        "dVOI_vs_sota": 0.3598,
-        "dRand_vs_sota": 0.067,
-        "dERL_vs_sota": 2.4233
-      },
-      "longrange_from_sotalsdmalis": {
-        "VOI": 2.4526,
-        "adapted_rand_error": 0.3346,
-        "ERL": 53.8037,
-        "dVOI_vs_sota": 0.0439,
-        "dRand_vs_sota": 0.0132,
-        "dERL_vs_sota": 6.7846
-      },
-      "ens_sota_sotalsdmalis": {
-        "VOI": 2.4336,
-        "adapted_rand_error": 0.32,
-        "ERL": 46.9769,
-        "dVOI_vs_sota": 0.0249,
-        "dRand_vs_sota": -0.0014,
-        "dERL_vs_sota": -0.0422
-      },
-      "sota_plus_alone": {
-        "VOI": 2.2616,
-        "adapted_rand_error": 0.2898,
-        "ERL": 52.8761,
-        "dVOI_vs_sota": -0.1471,
-        "dRand_vs_sota": -0.0316,
-        "dERL_vs_sota": 5.857
-      },
-      "longrange_from_sota_plus": {
-        "VOI": 2.3434,
-        "adapted_rand_error": 0.304,
-        "ERL": 58.7622,
-        "dVOI_vs_sota": -0.0653,
-        "dRand_vs_sota": -0.0174,
-        "dERL_vs_sota": 11.7431
-      },
-      "ens_sota_sota_plus": {
-        "VOI": 2.3835,
-        "adapted_rand_error": 0.3198,
-        "ERL": 47.7621,
-        "dVOI_vs_sota": -0.0252,
-        "dRand_vs_sota": -0.0016,
-        "dERL_vs_sota": 0.743
-      }
-    },
-    "conditional_net_corrections": {
-      "merge_bias_0.05": {
-        "changed_edges": 8679,
-        "fixes": 6314,
-        "breaks": 2365,
-        "net": 3949,
-        "net_merge": -2365,
-        "net_split": 6314
-      },
-      "merge_bias_0.1": {
-        "changed_edges": 17343,
-        "fixes": 12423,
-        "breaks": 4920,
-        "net": 7503,
-        "net_merge": -4920,
-        "net_split": 12423
-      },
-      "merge_bias_0.2": {
-        "changed_edges": 35449,
-        "fixes": 24178,
-        "breaks": 11271,
-        "net": 12907,
-        "net_merge": -11271,
-        "net_split": 24178
-      },
-      "jepa_alone": {
-        "changed_edges": 848481,
-        "fixes": 182173,
-        "breaks": 666308,
-        "net": -484135,
-        "net_merge": -14664,
-        "net_split": -469471
-      },
-      "jepa_alone|gated": {
-        "changed_edges": 472396,
-        "fixes": 143610,
-        "breaks": 328786,
-        "net": -185176,
-        "net_merge": 1562,
-        "net_split": -186738
-      },
-      "longrange_from_jepa": {
-        "changed_edges": 651384,
-        "fixes": 144918,
-        "breaks": 506466,
-        "net": -361548,
-        "net_merge": -9524,
-        "net_split": -352024
-      },
-      "longrange_from_jepa|gated": {
-        "changed_edges": 346310,
-        "fixes": 110998,
-        "breaks": 235312,
-        "net": -124314,
-        "net_merge": 5714,
-        "net_split": -130028
-      },
-      "ens_sota_jepa": {
-        "changed_edges": 189364,
-        "fixes": 69133,
-        "breaks": 120231,
-        "net": -51098,
-        "net_merge": 10865,
-        "net_split": -61963
-      },
-      "ens_sota_jepa|gated": {
-        "changed_edges": 189364,
-        "fixes": 69133,
-        "breaks": 120231,
-        "net": -51098,
-        "net_merge": 10865,
-        "net_split": -61963
-      },
-      "raw_alone": {
-        "changed_edges": 649092,
-        "fixes": 292253,
-        "breaks": 356839,
-        "net": -64586,
-        "net_merge": 72215,
-        "net_split": -136801
-      },
-      "raw_alone|gated": {
-        "changed_edges": 448449,
-        "fixes": 257432,
-        "breaks": 191017,
-        "net": 66415,
-        "net_merge": 58990,
-        "net_split": 7425
-      },
-      "longrange_from_raw": {
-        "changed_edges": 524660,
-        "fixes": 238661,
-        "breaks": 285999,
-        "net": -47338,
-        "net_merge": 57059,
-        "net_split": -104397
-      },
-      "longrange_from_raw|gated": {
-        "changed_edges": 359476,
-        "fixes": 209036,
-        "breaks": 150440,
-        "net": 58596,
-        "net_merge": 46492,
-        "net_split": 12104
-      },
-      "ens_sota_raw": {
-        "changed_edges": 162496,
-        "fixes": 116905,
-        "breaks": 45591,
-        "net": 71314,
-        "net_merge": 29765,
-        "net_split": 41549
-      },
-      "ens_sota_raw|gated": {
-        "changed_edges": 162496,
-        "fixes": 116905,
-        "breaks": 45591,
-        "net": 71314,
-        "net_merge": 29765,
-        "net_split": 41549
-      },
-      "sotalsd_alone": {
-        "changed_edges": 299157,
-        "fixes": 142392,
-        "breaks": 156765,
-        "net": -14373,
-        "net_merge": -28392,
-        "net_split": 14019
-      },
-      "sotalsd_alone|gated": {
-        "changed_edges": 277742,
-        "fixes": 135840,
-        "breaks": 141902,
-        "net": -6062,
-        "net_merge": -24737,
-        "net_split": 18675
-      },
-      "longrange_from_sotalsd": {
-        "changed_edges": 221909,
-        "fixes": 108149,
-        "breaks": 113760,
-        "net": -5611,
-        "net_merge": -20635,
-        "net_split": 15024
-      },
-      "longrange_from_sotalsd|gated": {
-        "changed_edges": 205182,
-        "fixes": 102664,
-        "breaks": 102518,
-        "net": 146,
-        "net_merge": -17704,
-        "net_split": 17850
-      },
-      "ens_sota_sotalsd": {
-        "changed_edges": 152805,
-        "fixes": 81585,
-        "breaks": 71220,
-        "net": 10365,
-        "net_merge": -9784,
-        "net_split": 20149
-      },
-      "ens_sota_sotalsd|gated": {
-        "changed_edges": 152805,
-        "fixes": 81585,
-        "breaks": 71220,
-        "net": 10365,
-        "net_merge": -9784,
-        "net_split": 20149
-      },
-      "sotalsdmalis_alone": {
-        "changed_edges": 270158,
-        "fixes": 100017,
-        "breaks": 170141,
-        "net": -70124,
-        "net_merge": -27599,
-        "net_split": -42525
-      },
-      "sotalsdmalis_alone|gated": {
-        "changed_edges": 255714,
-        "fixes": 96223,
-        "breaks": 159491,
-        "net": -63268,
-        "net_merge": -22616,
-        "net_split": -40652
-      },
-      "longrange_from_sotalsdmalis": {
-        "changed_edges": 194739,
-        "fixes": 75421,
-        "breaks": 119318,
-        "net": -43897,
-        "net_merge": -20591,
-        "net_split": -23306
-      },
-      "longrange_from_sotalsdmalis|gated": {
-        "changed_edges": 182792,
-        "fixes": 72252,
-        "breaks": 110540,
-        "net": -38288,
-        "net_merge": -16299,
-        "net_split": -21989
-      },
-      "ens_sota_sotalsdmalis": {
-        "changed_edges": 109382,
-        "fixes": 47765,
-        "breaks": 61617,
-        "net": -13852,
-        "net_merge": -7963,
-        "net_split": -5889
-      },
-      "ens_sota_sotalsdmalis|gated": {
-        "changed_edges": 109382,
-        "fixes": 47765,
-        "breaks": 61617,
-        "net": -13852,
-        "net_merge": -7963,
-        "net_split": -5889
-      },
-      "sota_plus_alone": {
-        "changed_edges": 215849,
-        "fixes": 110905,
-        "breaks": 104944,
-        "net": 5961,
-        "net_merge": 5959,
-        "net_split": 2
-      },
-      "sota_plus_alone|gated": {
-        "changed_edges": 209373,
-        "fixes": 108581,
-        "breaks": 100792,
-        "net": 7789,
-        "net_merge": 5683,
-        "net_split": 2106
-      },
-      "longrange_from_sota_plus": {
-        "changed_edges": 163067,
-        "fixes": 80930,
-        "breaks": 82137,
-        "net": -1207,
-        "net_merge": 6100,
-        "net_split": -7307
-      },
-      "longrange_from_sota_plus|gated": {
-        "changed_edges": 157764,
-        "fixes": 78945,
-        "breaks": 78819,
-        "net": 126,
-        "net_merge": 5804,
-        "net_split": -5678
-      },
-      "ens_sota_sota_plus": {
-        "changed_edges": 106730,
-        "fixes": 60709,
-        "breaks": 46021,
-        "net": 14688,
-        "net_merge": 6576,
-        "net_split": 8112
-      },
-      "ens_sota_sota_plus|gated": {
-        "changed_edges": 106730,
-        "fixes": 60709,
-        "breaks": 46021,
-        "net": 14688,
-        "net_merge": 6576,
-        "net_split": 8112
-      }
-    },
-    "conditional_best": {
-      "name": "ens_sota_raw",
-      "changed_edges": 162496,
-      "fixes": 116905,
-      "breaks": 45591,
-      "net": 71314,
-      "net_merge": 29765,
-      "net_split": 41549
-    },
-    "conditional_note": "net>0 = the head fixes more than it breaks in the region it changed; net_merge>0 = it net-reduces the costly merge errors. '|gated' = same but only where SOTA was unsure (routed variant).",
-    "best_by_voi": {
-      "name": "sota_plus_alone",
-      "VOI": 2.2616,
-      "ERL": 52.8761
-    },
-    "best_by_erl": {
-      "name": "raw_alone",
-      "ERL": 60.6408,
-      "VOI": 2.7301
-    },
-    "safe_best": {
-      "name": "sota_plus_alone",
-      "VOI": 2.2616,
-      "adapted_rand_error": 0.2898,
-      "ERL": 52.8761
-    },
-    "verdict": "sota_plus_alone beats SOTA without a merge tradeoff"
   },
   "jepa_analysis_seed": {
     "index": 2,
-    "std_final": 0.8381,
+    "std_final": 1.0044,
     "seed": 2
   }
 }
