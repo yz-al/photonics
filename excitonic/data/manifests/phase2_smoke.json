@@ -1,7 +1,7 @@
 {
   "qe_ok": true,
   "epw_branch_ok": true,
-  "bgw_branch_ok": false,
+  "gwbse_branch_ok": true,
   "core_eph_chain_ok": true,
   "binaries": {
     "pw.x": {
@@ -24,25 +24,20 @@
       "found": true,
       "path": "/opt/conda/bin/pw2bgw.x"
     },
-    "epsilon.cplx.x": {
-      "binary": "epsilon.cplx.x",
-      "found": false,
-      "path": ""
+    "yambo": {
+      "binary": "yambo",
+      "found": true,
+      "path": "/opt/conda/bin/yambo"
     },
-    "sigma.cplx.x": {
-      "binary": "sigma.cplx.x",
-      "found": false,
-      "path": ""
+    "p2y": {
+      "binary": "p2y",
+      "found": true,
+      "path": "/opt/conda/bin/p2y"
     },
-    "kernel.cplx.x": {
-      "binary": "kernel.cplx.x",
-      "found": false,
-      "path": ""
-    },
-    "absorption.cplx.x": {
-      "binary": "absorption.cplx.x",
-      "found": false,
-      "path": ""
+    "ypp": {
+      "binary": "ypp",
+      "found": true,
+      "path": "/opt/conda/bin/ypp"
     },
     "mpirun": {
       "binary": "mpirun",
@@ -55,5 +50,5 @@
       ]
     }
   },
-  "note": "binary-presence check only; no science computed. BerkeleyGW is not on conda-forge \u2014 the GW-BSE branch needs the optional source build (BUILD_BERKELEYGW=True); the QE/EPW \u0393 branch is complete."
+  "note": "binary-presence check only; no science computed. GW-BSE branch now uses Yambo (conda-forge, free) instead of the gated BerkeleyGW."
 }
