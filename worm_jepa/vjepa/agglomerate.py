@@ -68,10 +68,20 @@ def _frag_gt(frags, seg):
     return out
 
 
-def _rag(frags, aff, short_offs, long_offs, lsd=None):
-    """Per adjacent fragment-pair edge features: mean short aff (attraction), mean long
-    aff (repulsion), contact count, sizes, and (if lsd given) LSD shape agreement across
-    the pair -- the signal MWS lacks: do the two fragments' shapes CONTINUE?"""
+def _pair_agree(frags, feat, ak, bk):
+    """Per-fragment mean of a (C,Z,H,W) feature, then pair L2 distance + cosine."""
+    fl = _frag_lsd(frags, feat)                          # reuse per-fragment mean
+    dist = np.linalg.norm(fl[ak] - fl[bk], axis=1)
+    cos = (fl[ak] * fl[bk]).sum(1) / (np.linalg.norm(fl[ak], axis=1) *
+                                      np.linalg.norm(fl[bk], axis=1) + 1e-6)
+    return dist, cos
+
+
+def _rag(frags, aff, short_offs, long_offs, lsd=None, jepa=None):
+    """Per adjacent fragment-pair edge features. Returns (pairs, feats, names). Base
+    features: mean short aff (attraction), mean long aff (repulsion), contact, sizes.
+    Optional LSD and JEPA give shape/context AGREEMENT across the pair (dist + cos) --
+    the signals MWS lacks: do the two fragments' shape/representation CONTINUE?"""
     ns = len(short_offs); Z, H, W = frags.shape
     offs = list(short_offs) + list(long_offs)
     NF = int(frags.max()) + 1
@@ -96,17 +106,16 @@ def _rag(frags, aff, short_offs, long_offs, lsd=None):
     keep = ns_e > 0                                       # need a short-range contact
     mean_short = ss[keep] / ns_e[keep]
     mean_long = np.where(nl_e[keep] > 0, sl[keep] / np.maximum(nl_e[keep], 1), 0.5)
+    ak, bk = a[keep], b[keep]
     cols = [mean_short, mean_long, np.log1p(ns_e[keep]),
-            np.log1p(np.minimum(sizes[a[keep]], sizes[b[keep]]))]
-    if lsd is not None:                                   # LSD shape agreement (the MWS-lacking signal)
-        fl = _frag_lsd(frags, lsd); ak, bk = a[keep], b[keep]
-        dist = np.linalg.norm(fl[ak] - fl[bk], axis=1)    # shape descriptor distance (low = continue)
-        cos = (fl[ak] * fl[bk]).sum(1) / (np.linalg.norm(fl[ak], axis=1) *
-                                          np.linalg.norm(fl[bk], axis=1) + 1e-6)
-        cols += [dist, cos]
+            np.log1p(np.minimum(sizes[ak], sizes[bk]))]
+    names = ["mean_short", "mean_long", "log_contact", "log_min_size"]
+    if lsd is not None:                                   # LSD shape agreement across the pair
+        d, c = _pair_agree(frags, lsd, ak, bk); cols += [d, c]; names += ["lsd_dist", "lsd_cos"]
+    if jepa is not None:                                  # hierarchical JEPA context agreement
+        d, c = _pair_agree(frags, jepa, ak, bk); cols += [d, c]; names += ["jepa_dist", "jepa_cos"]
     feats = np.stack(cols, 1).astype(np.float32)
-    pairs = list(zip(a[keep].tolist(), b[keep].tolist()))
-    return pairs, feats
+    return list(zip(ak.tolist(), bk.tolist())), feats, names
 
 
 def _gaec(frags, pairs, weights):
@@ -175,71 +184,83 @@ def _agglomerate(frags, pairs, prob, thr):
     return _relabel(remap[frags])
 
 
+ATTRACT = {"mean_short", "log_contact", "lsd_cos", "jepa_cos"}     # merge-favoring (specialist A)
+REPEL = {"mean_long", "log_min_size", "lsd_dist", "jepa_dist"}     # boundary-favoring (specialist B)
+
+
 def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9,
-        train_lsds=None, eval_lsds=None, tA=0.5, tB=0.5):
-    """Two specialists on the fragment RAG, composed on top of SOTA:
-      A (split-fixer)  = attraction/shape classifier -> merge over-segmented fragments.
-      B (merge-fixer)  = repulsion/shape classifier -> VETO merges across true boundaries.
-    Final merge iff A says merge AND B does not say boundary. Scored vs plain MWS."""
+        train_lsds=None, eval_lsds=None, train_jepas=None, eval_jepas=None):
+    """Learned MULTICUT (GAEC) agglomeration with two-specialist signed edge weights,
+    vs plain MWS. Runs multiple FEATURE VARIANTS so we can isolate each signal's value:
+    affinity-only, +LSD shape, +JEPA context. Fed to GAEC as logit(P_A*(1-P_B))."""
     try:
         from sklearn.linear_model import LogisticRegression
     except Exception as e:
         return {"error": f"sklearn unavailable: {e}"}
     SHORT = ctx["SHORT"]; OFFS = ctx["OFFS"]; ns = len(SHORT); LONG = OFFS[ns:]
     mws = ctx["mutex_watershed"]; seg_metrics = ctx["seg_metrics"]; erl = ctx["erl_proxy"]
-    has_lsd = train_lsds is not None
-    # feature columns: 0 mean_short,1 mean_long,2 log_contact,3 log_min_size,(4 lsd_dist,5 lsd_cos)
-    A_cols = [0, 2, 5] if has_lsd else [0, 2]              # attraction + shape-continuity
-    B_cols = [1, 3, 4] if has_lsd else [1, 3]              # repulsion + shape-discontinuity
+
+    def build(affs, lsds, jepas):
+        out = []
+        for i, aff in enumerate(affs):
+            frags = _relabel(_oversegment(aff, SHORT, thr_over))
+            pairs, feats, names = _rag(frags, aff, SHORT, LONG,
+                                       lsds[i] if lsds else None, jepas[i] if jepas else None)
+            out.append((frags, pairs, feats, names))
+        return out
+    tr = build(train_affs, train_lsds, train_jepas)
+    ev = build(eval_affs, eval_lsds, eval_jepas)
+    names = next((r[3] for r in tr if r[3]), ["mean_short", "mean_long", "log_contact", "log_min_size"])
 
     X, ysame = [], []
-    for i, (aff, seg) in enumerate(zip(train_affs, train_segs)):
-        frags = _relabel(_oversegment(aff, SHORT, thr_over))
-        pairs, feats = _rag(frags, aff, SHORT, LONG, train_lsds[i] if has_lsd else None)
-        if not len(pairs):
+    for (frags, pairs, feats, _), seg in zip(tr, train_segs):
+        if not pairs:
             continue
         fg = _frag_gt(frags, seg)
-        lbl = np.array([1 if fg[a] == fg[b] and fg[a] != 0 else 0 for a, b in pairs])
-        X.append(feats); ysame.append(lbl)
+        X.append(feats); ysame.append(np.array([1 if fg[a] == fg[b] and fg[a] != 0 else 0 for a, b in pairs]))
+    if not X:
+        return {"error": "no fragment pairs"}
     X = np.concatenate(X); ysame = np.concatenate(ysame)
     if len(np.unique(ysame)) < 2:
         return {"error": "degenerate merge labels"}
-    mu, sd = X.mean(0), X.std(0) + 1e-6; Xs = (X - mu) / sd
-    clfA = LogisticRegression(class_weight="balanced", max_iter=300).fit(Xs[:, A_cols], ysame)
-    clfB = LogisticRegression(class_weight="balanced", max_iter=300).fit(Xs[:, B_cols], 1 - ysame)
+    mu, sd = X.mean(0), X.std(0) + 1e-6
 
-    def score_lab(labs, segs):
-        v = [seg_metrics(l, s) for l, s in zip(labs, segs)]
+    def score_lab(labs):
+        v = [seg_metrics(l, s) for l, s in zip(labs, eval_segs)]
         return {"VOI": round(float(np.mean([x[0] for x in v])), 4),
                 "adapted_rand_error": round(float(np.mean([x[1] for x in v])), 4),
-                "ERL": round(float(np.mean([erl(l, s) for l, s in zip(labs, segs)])), 4)}
+                "ERL": round(float(np.mean([erl(l, s) for l, s in zip(labs, eval_segs)])), 4)}
 
-    lab_A, lab_AB, lab_MC, lab_M, nfrag = [], [], [], [], []
-    for i, (aff, seg) in enumerate(zip(eval_affs, eval_segs)):
-        frags = _relabel(_oversegment(aff, SHORT, thr_over)); nfrag.append(int(frags.max() + 1))
-        pairs, feats = _rag(frags, aff, SHORT, LONG, eval_lsds[i] if has_lsd else None)
-        if len(pairs):
-            fs = (feats - mu) / sd
-            pA = clfA.predict_proba(fs[:, A_cols])[:, 1]
-            pB = clfB.predict_proba(fs[:, B_cols])[:, 1]
-            lab_A.append(_agglomerate(frags, pairs, pA, tA))                    # A only (greedy)
-            keep = pA * (pB < tB)
-            lab_AB.append(_agglomerate(frags, pairs, keep, tA))                 # A AND not-B (greedy)
-            p = np.clip(pA * (1 - pB), 1e-4, 1 - 1e-4)                          # combined merge prob
-            w = np.log(p / (1 - p))                                            # signed multicut weight
-            lab_MC.append(_gaec(frags, pairs, w))                              # learned MULTICUT (GAEC)
-        else:
-            lab_A.append(frags); lab_AB.append(frags); lab_MC.append(frags)
-        lab_M.append(mws(np.clip(aff, 0, 1), OFFS, ns))
-    A = score_lab(lab_A, eval_segs); AB = score_lab(lab_AB, eval_segs)
-    MC = score_lab(lab_MC, eval_segs); M = score_lab(lab_M, eval_segs)
-    return {"method": "two-specialist proofreading + learned multicut (GAEC) vs MWS",
-            "lsd_features": has_lsd, "n_train_pairs": int(len(ysame)),
-            "same_rate": round(float(ysame.mean()), 3), "mean_fragments": round(float(np.mean(nfrag)), 1),
-            "mws_baseline": M, "splitfix_A_only": A, "splitfix_A_plus_mergefix_B": AB,
-            "learned_multicut_gaec": MC,
-            "MC_dVOI_vs_mws": round(MC["VOI"] - M["VOI"], 4),
-            "MC_dERL_vs_mws": round(MC["ERL"] - M["ERL"], 4),
-            "best_vs_mws": min([("mws", M), ("A", A), ("AB", AB), ("multicut", MC)],
-                               key=lambda kv: kv[1]["VOI"])[0],
-            "multicut_beats_mws": bool(MC["VOI"] <= M["VOI"] and MC["ERL"] >= M["ERL"])}
+    def multicut(use):                                    # use = feature-name subset
+        Ai = [names.index(n) for n in use if n in ATTRACT]
+        Bi = [names.index(n) for n in use if n in REPEL]
+        clfA = LogisticRegression(class_weight="balanced", max_iter=300).fit(
+            ((X[:, Ai] - mu[Ai]) / sd[Ai]), ysame)
+        clfB = LogisticRegression(class_weight="balanced", max_iter=300).fit(
+            ((X[:, Bi] - mu[Bi]) / sd[Bi]), 1 - ysame)
+        labs = []
+        for frags, pairs, feats, _ in ev:
+            if not pairs:
+                labs.append(frags); continue
+            pA = clfA.predict_proba((feats[:, Ai] - mu[Ai]) / sd[Ai])[:, 1]
+            pB = clfB.predict_proba((feats[:, Bi] - mu[Bi]) / sd[Bi])[:, 1]
+            p = np.clip(pA * (1 - pB), 1e-4, 1 - 1e-4)
+            labs.append(_gaec(frags, pairs, np.log(p / (1 - p))))
+        return score_lab(labs)
+
+    M = score_lab([mws(np.clip(a, 0, 1), OFFS, ns) for a in eval_affs])
+    variants = {"multicut_affinity": multicut(["mean_short", "mean_long", "log_contact", "log_min_size"])}
+    if "lsd_cos" in names:
+        variants["multicut_affinity_lsd"] = multicut([n for n in names if not n.startswith("jepa")])
+    if "jepa_cos" in names:
+        variants["multicut_affinity_lsd_jepa"] = multicut(names)
+    best = min([("mws", M)] + list(variants.items()), key=lambda kv: kv[1]["VOI"])
+    return {"method": "learned multicut (GAEC) feature-variants vs MWS",
+            "features_available": names, "n_train_pairs": int(len(ysame)),
+            "same_rate": round(float(ysame.mean()), 3),
+            "mean_fragments": round(float(np.mean([r[0].max() + 1 for r in ev])), 1),
+            "mws_baseline": M, **variants,
+            "best_by_voi": best[0],
+            "best_beats_mws": bool(best[0] != "mws" and best[1]["VOI"] <= M["VOI"]),
+            "deltas_vs_mws": {k: {"dVOI": round(v["VOI"] - M["VOI"], 4),
+                                  "dERL": round(v["ERL"] - M["ERL"], 4)} for k, v in variants.items()}}

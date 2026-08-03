@@ -606,8 +606,23 @@ def main():
                     return ldec(rt, return_lsd=True)[1].cpu().numpy()
                 tr_lsd = [_lsd(sub) for sub, _ in full_pool]
                 ev_lsd = [_lsd(sub) for sub, _ in te_subs]
+            tr_jepa = ev_jepa = None
+            if os.environ.get("WORM_S3_AGGLO_JEPA", "1") == "1":  # hierarchical JEPA context features
+                with torch.no_grad():
+                    fg0 = V.feature_grid(enc, full_pool[0][0].astype(np.float32))
+                    jidx = torch.topk(fg0.reshape(fg0.shape[0], -1).var(1),
+                                      min(16, fg0.shape[0])).indices    # fixed top-var channels
+
+                @torch.no_grad()
+                def _jepa(sub):                                 # reduced JEPA voxel features (16-D)
+                    fg = V.feature_grid(enc, sub.astype(np.float32))[jidx]
+                    up = F.interpolate(fg[None], size=tuple(sub.shape), mode="nearest")[0]
+                    return up.cpu().numpy().astype(np.float32)
+                tr_jepa = [_jepa(sub) for sub, _ in full_pool]
+                ev_jepa = [_jepa(sub) for sub, _ in te_subs]
             agglo_res = AG.run(tr_aff, tr_seg, ev_aff, ev_seg, actx,
-                               train_lsds=tr_lsd, eval_lsds=ev_lsd)
+                               train_lsds=tr_lsd, eval_lsds=ev_lsd,
+                               train_jepas=tr_jepa, eval_jepas=ev_jepa)
             print(f"[s3d] agglomerate={agglo_res}", flush=True)
         if BEAT and beat_res is None:                     # failure-targeted strategies vs SOTA
             import beat_sota as BEATM
