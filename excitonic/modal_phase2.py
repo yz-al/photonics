@@ -349,6 +349,7 @@ def dft_2d_one(name: str) -> dict:
     import numpy as np
     sys.path.insert(0, "/root/excitonic/src")
     from ase.build import mx2
+    from ase.data import atomic_masses, atomic_numbers
     from exciton_fm.pseudos import stage_pseudos, pseudo_filename, recommended_cutoffs
     from exciton_fm.qe_outputs import (parse_epsilon_inf, parse_born_charges,
                                        parse_phonon_omega_LO)
@@ -383,7 +384,13 @@ def dft_2d_one(name: str) -> dict:
         cellblk = "\n".join(" %.10f %.10f %.10f" % tuple(cell[i]) for i in range(3))
         posblk = "\n".join(" %s %.10f %.10f %.10f" % (chem[i], *spos[i])
                            for i in range(len(chem)))
-        spblk = "\n".join(" %s %.4f %s" % (s, 1.0, pseudo_filename(s)) for s in syms)
+        # REAL atomic masses: phonon frequencies scale as 1/√M, so a placeholder
+        # mass of 1.0 amu inflates ω_LO ~5–13× (S=32, Mo=96, W=184…) — that inflated
+        # ω_LO drove the Bose occupation to ~0 and floored Γ(300 K) at Γ0 for every
+        # material in the first successful sweep. Dielectric ε∞ and Born Z* are
+        # mass-INDEPENDENT and were unaffected.
+        spblk = "\n".join(" %s %.4f %s" % (s, atomic_masses[atomic_numbers[s]],
+                                           pseudo_filename(s)) for s in syms)
         scf = f"""&control
   calculation='scf'
   prefix='{pfx}'
@@ -443,18 +450,24 @@ K_POINTS automatic
         eps = parse_epsilon_inf(ph_out)
         zb = parse_born_charges(ph_out)
         wlo = parse_phonon_omega_LO(ph_out)
+        # Sanity band: a monolayer LO phonon is ~30–80 meV. Anything far outside
+        # (e.g. the ~428 meV that a placeholder atomic mass produced) is unphysical
+        # and must NOT be fed to the Fröhlich Γ — it would silently floor Γ at Γ0.
+        wlo_physical = bool(wlo.value is not None and 10.0 <= wlo.value <= 120.0)
         # DFPT-grounded Γ: use the real ω_LO; α held at the anchor value (the real
         # per-material 2D α / linewidth needs the 2D Fröhlich + EPW). Flagged.
         gamma = (estimate_gamma_300K(wlo.value, alpha=0.4).to_dict()
-                 if wlo.value else None)
+                 if wlo_physical else None)
         err = ""
         if rc_scf != 0 or rc_ph != 0:
             err = ("SCF:\n" + "\n".join(scf_out.splitlines()[-10:]) + "\nPH:\n"
                    + "\n".join(ph_out.splitlines()[-10:]))
-        print(f"[phase2/2d] {name}: omega_LO={wlo.value} Z*={zb.value} "
-              f"eps_inf={eps.value} Gamma~{(gamma or {}).get('value')} meV wall={wall}s")
+        print(f"[phase2/2d] {name}: omega_LO={wlo.value} meV "
+              f"(physical={wlo_physical}) Z*={zb.value} eps_inf={eps.value} "
+              f"Gamma~{(gamma or {}).get('value')} meV wall={wall}s")
         return {"formula": name, "rc": [rc_scf, rc_ph], "wall_s": wall,
-                "omega_LO_meV": wlo.to_dict(), "Z_born": zb.to_dict(),
+                "omega_LO_meV": wlo.to_dict(), "omega_LO_physical": wlo_physical,
+                "Z_born": zb.to_dict(),
                 "eps_inf": eps.to_dict(), "gamma_300K_model": gamma,
                 "error_tail": err[:400]}
 
@@ -541,6 +554,7 @@ def gwbse_cost(material: str = "MoS2", mode: str = "debug", vacuum: float = 10.0
     import numpy as np
     sys.path.insert(0, "/root/excitonic/src")
     from ase.build import mx2
+    from ase.data import atomic_masses, atomic_numbers
     from exciton_fm.provenance import not_run, Label
     from exciton_fm.pseudos import stage_pseudos, pseudo_filename, recommended_cutoffs
 
@@ -574,7 +588,8 @@ def gwbse_cost(material: str = "MoS2", mode: str = "debug", vacuum: float = 10.0
     cell = np.array(atoms.cell); spos = atoms.get_scaled_positions(); chem = atoms.get_chemical_symbols()
     cellblk = "\n".join(" %.10f %.10f %.10f" % tuple(cell[i]) for i in range(3))
     posblk = "\n".join(" %s %.10f %.10f %.10f" % (chem[i], *spos[i]) for i in range(len(chem)))
-    spblk = "\n".join(" %s 1.0 %s" % (s, pseudo_filename(s)) for s in [m, x])
+    spblk = "\n".join(" %s %.4f %s" % (s, atomic_masses[atomic_numbers[s]],
+                                       pseudo_filename(s)) for s in [m, x])
     k = p["kgrid"]
     common = f"""  ibrav=0
   nat={len(chem)}

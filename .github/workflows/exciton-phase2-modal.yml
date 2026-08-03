@@ -82,15 +82,19 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          mkdir -p /tmp/res && cp excitonic/data/manifests/phase2_smoke.json excitonic/data/manifests/phase2_dfpt_validation.json excitonic/data/manifests/phase2_tmd_gamma.json excitonic/data/manifests/phase2_gwbse_debug.json excitonic/data/manifests/phase2_gwbse_production.json /tmp/res/ 2>/dev/null || true
-          git fetch origin ${{ github.ref_name }}
-          git checkout -B ${{ github.ref_name }} origin/${{ github.ref_name }}
-          mkdir -p excitonic/data/manifests
-          cp /tmp/res/*.json excitonic/data/manifests/ 2>/dev/null || true
-          git add excitonic/data/manifests/phase2_smoke.json excitonic/data/manifests/phase2_dfpt_validation.json excitonic/data/manifests/phase2_tmd_gamma.json excitonic/data/manifests/phase2_gwbse_debug.json excitonic/data/manifests/phase2_gwbse_production.json 2>/dev/null || true
+          # Operate on the already-checked-out branch tip (actions/checkout). Force-add
+          # any manifest Modal wrote, then rebase onto latest and push with retry.
+          # (The old checkout -B origin/... reset dropped the freshly written file — the
+          # cause of the persistent "no manifest change to commit".)
+          git add -f excitonic/data/manifests/phase2_*.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "no manifest change to commit"
           else
             git commit -m "Phase 2: first-principles manifest from Modal [skip ci]"
-            git push origin HEAD:${{ github.ref_name }}
+            git fetch --unshallow origin ${{ github.ref_name }} 2>/dev/null || git fetch origin ${{ github.ref_name }}
+            for i in 1 2 3 4; do
+              git pull --rebase origin ${{ github.ref_name }} \
+                && git push origin HEAD:${{ github.ref_name }} && break
+              echo "push attempt $i failed; retrying"; sleep $((i * 2))
+            done
           fi
