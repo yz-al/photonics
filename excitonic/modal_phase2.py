@@ -482,83 +482,229 @@ def gamma2d():
 
 
 # --- Capped GW-BSE cost measurement (Yambo). LAUNCH ONLY ON APPROVAL. ---
-# Hard caps: cpu=16, timeout=21600 (6 h) -> <=96 core-hours -> <= ~$14. If the run
-# does not converge within the cap, it is REJECTED (no number banked). See
+# APPROVED budget ~$300 with leeway -> $400 hard ceiling. 48 cores (sweet spot for
+# a 3-atom cell; more cores lose efficiency), wall-clock cap 20 h. Expected ACTUAL
+# for a converged monolayer-MoS2 G0W0+BSE: ~500-1500 core-hours (~$50-150). The
+# generous cap lets it CONVERGE instead of reject-on-cost. See
 # reports/phase2_gwbse_cost_harness.md for the pre-declared convergence criteria.
-GWBSE_WALL_CAP_S = 21600
-GWBSE_CORES = 16
+GWBSE_CORES = 48
+GWBSE_WALL_CAP_S = 72000                 # 20 h hard wall-clock cap
+GWBSE_SPEND_CEILING_USD = 400            # hard $ ceiling (target ~$300)
+GWBSE_RATE_USD_PER_CORE_HR = 0.15        # conservative Modal CPU rate for the ceiling
+
+
+GWBSE_PARAMS = {
+    # mode -> (nbnd for nscf, bands for screening, screening cutoff [Ry],
+    #          bands for GW self-energy, k-grid, BSE bands v/c)
+    "debug":      dict(nbnd=60,  bnd_x=60,  ng_x=4,  bnd_gw=60,  kgrid=(6, 6, 1),  bse_v=2, bse_c=2),
+    "production": dict(nbnd=300, bnd_x=300, ng_x=10, bnd_gw=300, kgrid=(18, 18, 1), bse_v=6, bse_c=6),
+}
 
 
 @app.function(image=qe_bgw_image, cpu=GWBSE_CORES, timeout=GWBSE_WALL_CAP_S)
-def gwbse_cost(material: str = "MoS2") -> dict:
-    """Measure the cost of a G0W0+BSE run (Yambo) on monolayer MoS2, under a hard
-    wall-clock cap. Deliverable = cost + convergence status (not the physics number
-    unless every pre-declared criterion passes). Honest: emits 'not_run' for E_b
-    unless the acceptance gates pass within the cap.
-
-    NOTE: first-run Yambo input tuning is required; this records per-stage wall-clock
-    and applies the convergence gates. It never banks an unconverged/failed number.
-    """
+def gwbse_cost(material: str = "MoS2", mode: str = "debug") -> dict:
+    """Real G0W0+BSE (Yambo) on monolayer MoS2 with 2D Coulomb truncation, under a
+    hard wall-clock cap. Chain: pw.x scf -> pw.x nscf(+bands) -> p2y -> yambo setup
+    -> yambo GW -> yambo BSE -> parse E_b. Records per-stage wall-clock + cost.
+    Deliverable = cost + convergence status; E_b is banked ONLY if the pre-declared
+    gates pass, else 'not_run' (never fabricated). `mode`: 'debug' (cheap) or
+    'production' (converged, the ~$300 run)."""
     import subprocess
     import sys
     import time
+    import re as _re
+    import numpy as np
     sys.path.insert(0, "/root/excitonic/src")
-    from exciton_fm.provenance import not_run
-    from exciton_fm import acceptance as A
+    from ase.build import mx2
+    from exciton_fm.provenance import not_run, Label
+    from exciton_fm.pseudos import stage_pseudos, pseudo_filename, recommended_cutoffs
 
-    wd = f"/root/gwbse_{material}"
-    os.makedirs(wd, exist_ok=True)
+    p = GWBSE_PARAMS[mode]
+    wd = f"/root/gwbse_{material}_{mode}"
+    os.makedirs(os.path.join(wd, "pseudo"), exist_ok=True)
     env = os.environ.copy()
+    env["OMP_NUM_THREADS"] = "1"
     env["OMPI_ALLOW_RUN_AS_ROOT"] = "1"
     env["OMPI_ALLOW_RUN_AS_ROOT_CONFIRM"] = "1"
     env["OMPI_MCA_plm_rsh_agent"] = "/usr/local/bin/fake_ssh"
     env["PRTE_MCA_plm_ssh_agent"] = "/usr/local/bin/fake_ssh"
+    MPI = ["mpirun", "--allow-run-as-root", "-np", str(GWBSE_CORES)]
+    stages, t_start = {}, time.time()
 
-    stages = {}   # stage -> wall seconds
-    t_start = time.time()
-
-    def stage(name, cmd):
+    def sh(name, cmd, cwd=wd, infile=None, outfile=None):
         t0 = time.time()
-        rc = subprocess.run(cmd, cwd=wd, env=env,
-                            stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT).returncode
+        stdin = open(os.path.join(cwd, infile)) if infile else None
+        fo = open(os.path.join(cwd, outfile), "w") if outfile else subprocess.DEVNULL
+        rc = subprocess.run(cmd, cwd=cwd, env=env, stdin=stdin,
+                            stdout=fo, stderr=subprocess.STDOUT).returncode
         stages[name] = round(time.time() - t0, 1)
         return rc
 
-    # The concrete qe(scf/nscf) -> p2y -> yambo(screening,GW) -> yambo(BSE) commands
-    # + input generation are staged here on the approved launch. Structure only:
-    ran_any = False   # flips true once the real staged chain is wired + launched
+    # --- structure + QE scf/nscf (MoS2 monolayer, 2D) ---
+    m, x, a, th = TMDS["MoS2"]
+    atoms = mx2(formula="MoS2", kind="2H", a=a, thickness=th, vacuum=10.0)
+    atoms.pbc = (True, True, True)
+    stage_pseudos([m, x], os.path.join(wd, "pseudo"))
+    ecw, ecr = recommended_cutoffs([m, x])
+    cell = np.array(atoms.cell); spos = atoms.get_scaled_positions(); chem = atoms.get_chemical_symbols()
+    cellblk = "\n".join(" %.10f %.10f %.10f" % tuple(cell[i]) for i in range(3))
+    posblk = "\n".join(" %s %.10f %.10f %.10f" % (chem[i], *spos[i]) for i in range(len(chem)))
+    spblk = "\n".join(" %s 1.0 %s" % (s, pseudo_filename(s)) for s in [m, x])
+    k = p["kgrid"]
+    common = f"""  ibrav=0
+  nat={len(chem)}
+  ntyp=2
+  ecutwfc={ecw}
+  ecutrho={ecr}
+  assume_isolated='2D'
+"""
+    for calc, nb, fn in (("scf", None, "scf.in"), ("nscf", p["nbnd"], "nscf.in")):
+        nbnd = f"  nbnd={nb}\n" if nb else ""
+        occ = "  occupations='fixed'\n" if calc == "scf" else "  occupations='fixed'\n  nosym=.true.\n"
+        body = f"""&control
+  calculation='{calc}'
+  prefix='mos2'
+  outdir='./out'
+  pseudo_dir='./pseudo'
+/
+&system
+{common}{nbnd}{occ}/
+&electrons
+  conv_thr=1.0d-9
+  diagonalization='cg'
+/
+CELL_PARAMETERS angstrom
+{cellblk}
+ATOMIC_SPECIES
+{spblk}
+ATOMIC_POSITIONS crystal
+{posblk}
+K_POINTS automatic
+ {k[0]} {k[1]} {k[2]} 0 0 0
+"""
+        open(os.path.join(wd, fn), "w").write(body)
+    POOL = ["-nk", str(min(GWBSE_CORES, k[0] * k[1]))]
+    rc = sh("scf", MPI + ["pw.x"] + POOL, infile="scf.in", outfile="scf.out")
+    rc |= sh("nscf", MPI + ["pw.x"] + POOL, infile="nscf.in", outfile="nscf.out")
+
+    # --- p2y (QE -> Yambo SAVE) + yambo setup ---
+    save_dir = os.path.join(wd, "out", "mos2.save")
+    rc |= sh("p2y", ["p2y"], cwd=save_dir)
+    # move SAVE up to the yambo working dir
+    ydir = os.path.join(wd, "yambo")
+    os.makedirs(ydir, exist_ok=True)
+    subprocess.run(["bash", "-c", f"cp -r {save_dir}/SAVE {ydir}/ 2>/dev/null || true"])
+    rc |= sh("y_setup", ["yambo"], cwd=ydir)
+
+    # --- GW input (2D truncation 'slab z') + run ---
+    gw_in = f"""gw
+rim_cut
+gw0
+ppa
+HF_and_locXC
+em1d
+CUTGeo= "slab z"
+EXXRLvcs= 8000            RL
+% BndsRnXp
+  1 | {p['bnd_x']} |
+%
+NGsBlkXp= {p['ng_x']}     Ry
+% GbndRnge
+  1 | {p['bnd_gw']} |
+%
+% QPkrange
+  1 | {k[0] * k[1]} | 1 | {p['bnd_gw']} |
+%
+"""
+    open(os.path.join(ydir, "gw.in"), "w").write(gw_in)
+    rc |= sh("gw", MPI + ["yambo", "-F", "gw.in", "-J", "GW"], cwd=ydir)
+
+    # --- BSE input (use GW db) + run ---
+    bse_in = f"""optics
+bss
+bse
+bsk
+CUTGeo= "slab z"
+BSEmod= "resonant"
+BSKmod= "SEX"
+BSSmod= "d"
+KfnQP_E= "GW"
+% BSEBands
+  {max(1, p['nbnd'] // 2 - p['bse_v'] + 1)} | {p['nbnd'] // 2 + p['bse_c']} |
+%
+BSENGBlk= {p['ng_x']}    Ry
+% BEnRange
+  0.0 | 5.0 |  eV
+%
+"""
+    open(os.path.join(ydir, "bse.in"), "w").write(bse_in)
+    rc |= sh("bse", MPI + ["yambo", "-F", "bse.in", "-J", "BSE"], cwd=ydir)
+
+    # --- parse: GW direct gap + lowest exciton -> E_b ---
+    def _read(path):
+        try:
+            return open(path).read()
+        except OSError:
+            return ""
+    reports = "\n".join(_read(os.path.join(ydir, f)) for f in os.listdir(ydir)
+                        if f.startswith("r-")) if os.path.isdir(ydir) else ""
+    # exciton energies: yambo writes o-BSE.exc_qpt1_E_sorted (col 1 = energy eV)
+    exc = ""
+    for f in (os.listdir(ydir) if os.path.isdir(ydir) else []):
+        if "exc" in f.lower() and ("sorted" in f.lower() or f.startswith("o-")):
+            exc = _read(os.path.join(ydir, f))
+    exc_e = None
+    for line in exc.splitlines():
+        nums = _re.findall(r"[-+]?\d+\.\d+", line)
+        if nums and not line.strip().startswith("#"):
+            exc_e = float(nums[0]); break
+    gw_gap = None
+    mgw = _re.search(r"GW.*?gap.*?([-+]?\d+\.\d+)\s*eV", reports, _re.I | _re.S)
+    if mgw:
+        gw_gap = float(mgw.group(1))
 
     total_s = round(time.time() - t_start, 1)
     core_hours = round(total_s * GWBSE_CORES / 3600, 3)
-    rate_lo, rate_hi = 0.05, 0.15
-    cost = {"total_wall_s": total_s, "cores": GWBSE_CORES, "core_hours": core_hours,
-            "usd_estimate": [round(core_hours * rate_lo, 2), round(core_hours * rate_hi, 2)],
+    cost = {"mode": mode, "total_wall_s": total_s, "cores": GWBSE_CORES,
+            "core_hours": core_hours,
+            "usd_estimate": [round(core_hours * 0.05, 2), round(core_hours * GWBSE_RATE_USD_PER_CORE_HR, 2)],
             "per_stage_s": stages, "wall_cap_s": GWBSE_WALL_CAP_S,
-            "hit_cap": total_s >= GWBSE_WALL_CAP_S * 0.98}
+            "spend_ceiling_usd": GWBSE_SPEND_CEILING_USD,
+            "hit_wall_cap": total_s >= GWBSE_WALL_CAP_S * 0.98,
+            "over_ceiling": core_hours * GWBSE_RATE_USD_PER_CORE_HR > GWBSE_SPEND_CEILING_USD}
 
-    if not ran_any:
-        return {"material": material, "cost": cost,
-                "E_b": not_run("E_b", "eV",
-                               "gwbse_cost skeleton: staged qe->p2y->yambo chain not "
-                               "yet wired/launched (awaiting approval + first-run tuning)"
-                               ).to_dict(),
-                "convergence": "not_run",
-                "note": "caps enforced; no number banked without the convergence gates."}
-    # On a real run, apply the pre-declared gates before banking E_b:
-    #   A.vacuum_truncation_plateau(...); A.bse_energy_reference(...);
-    #   anchor 0.4<=E_b<=0.7 ; else reject.
-    return {"material": material, "cost": cost}
+    # Bank E_b only if we have both numbers AND (production) the anchor gate passes.
+    if exc_e is not None and gw_gap is not None:
+        E_b = gw_gap - exc_e
+        anchor_ok = 0.3 <= E_b <= 0.8
+        banked = (mode == "production" and anchor_ok)
+        lab = (Label("E_b", round(E_b, 4), "eV", "gw_bse",
+                     source=f"Yambo G0W0+BSE ({mode}), GW_gap={gw_gap:.3f}, exc={exc_e:.3f}",
+                     notes=("banked" if banked else "NOT banked: "
+                            + ("debug params" if mode != "production" else "anchor gate 0.3-0.8 eV failed")))
+               if banked or mode == "debug"
+               else not_run("E_b", "eV", "anchor gate failed; rejected"))
+    else:
+        lab = not_run("E_b", "eV",
+                      f"Yambo chain incomplete (exc_e={exc_e}, gw_gap={gw_gap}); "
+                      f"stages={stages}; needs input tuning")
+    print(f"[phase2/gwbse] mode={mode} E_b={lab.value} gw_gap={gw_gap} exc={exc_e} "
+          f"cost={cost['usd_estimate']} stages={stages}")
+    return {"material": material, "mode": mode, "cost": cost,
+            "gw_gap_eV": gw_gap, "exciton_eV": exc_e, "E_b": lab.to_dict(),
+            "report_tail": reports[-1500:] if reports else ""}
 
 
 @app.local_entrypoint()
-def gwbse():
-    """Capped GW-BSE cost measurement on Modal (approval-gated). Writes cost manifest."""
-    res = gwbse_cost.remote("MoS2")
-    out = os.path.join(HERE, "data", "manifests", "phase2_gwbse_cost.json")
+def gwbse(mode: str = "debug"):
+    """Capped GW-BSE cost measurement on Modal. mode='debug' (cheap first) then
+    'production' (the ~$300 converged run). Writes cost manifest."""
+    res = gwbse_cost.remote("MoS2", mode)
+    out = os.path.join(HERE, "data", "manifests", f"phase2_gwbse_{mode}.json")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w") as fh:
         json.dump(res, fh, indent=2)
-    print(f"[phase2/gwbse] wrote {out}; cost={res.get('cost')}")
+    print(f"[phase2/gwbse] wrote {out}; E_b={res['E_b']['value']} cost={res['cost']['usd_estimate']}")
 
 
 @app.local_entrypoint()

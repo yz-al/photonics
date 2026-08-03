@@ -13,9 +13,13 @@ on:
   workflow_dispatch:
     inputs:
       entrypoint:
-        description: 'smoke (verify container) | dfpt (real GaAs DFPT) | generate'
+        description: 'smoke | dfpt | gamma2d | gwbse | generate'
         required: false
         default: 'smoke'
+      mode:
+        description: 'for gwbse: debug (cheap) or production (~$300 converged)'
+        required: false
+        default: 'debug'
   push:
     branches:
       - claude/excitonic-property-model-88byhk
@@ -50,6 +54,7 @@ jobs:
           MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
           MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
           ENTRY: ${{ github.event.inputs.entrypoint || 'smoke' }}
+          MODE: ${{ github.event.inputs.mode || 'debug' }}
         run: |
           if [ -z "$MODAL_TOKEN_ID" ] && [ -f excitonic/modal_tokens.secret ]; then
             set -a; . ./excitonic/modal_tokens.secret; set +a
@@ -58,7 +63,11 @@ jobs:
             echo "::error::No Modal credentials."
             exit 1
           fi
-          modal run "excitonic/modal_phase2.py::${ENTRY}"
+          if [ "$ENTRY" = "gwbse" ]; then
+            modal run "excitonic/modal_phase2.py::gwbse" --mode "$MODE"
+          else
+            modal run "excitonic/modal_phase2.py::${ENTRY}"
+          fi
 
       - name: Upload smoke/label manifest
         if: always()
@@ -73,12 +82,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          mkdir -p /tmp/res && cp excitonic/data/manifests/phase2_smoke.json excitonic/data/manifests/phase2_dfpt_validation.json excitonic/data/manifests/phase2_tmd_gamma.json excitonic/data/manifests/phase2_gwbse_cost.json /tmp/res/ 2>/dev/null || true
+          mkdir -p /tmp/res && cp excitonic/data/manifests/phase2_smoke.json excitonic/data/manifests/phase2_dfpt_validation.json excitonic/data/manifests/phase2_tmd_gamma.json excitonic/data/manifests/phase2_gwbse_debug.json excitonic/data/manifests/phase2_gwbse_production.json /tmp/res/ 2>/dev/null || true
           git fetch origin ${{ github.ref_name }}
           git checkout -B ${{ github.ref_name }} origin/${{ github.ref_name }}
           mkdir -p excitonic/data/manifests
           cp /tmp/res/*.json excitonic/data/manifests/ 2>/dev/null || true
-          git add excitonic/data/manifests/phase2_smoke.json excitonic/data/manifests/phase2_dfpt_validation.json excitonic/data/manifests/phase2_tmd_gamma.json excitonic/data/manifests/phase2_gwbse_cost.json 2>/dev/null || true
+          git add excitonic/data/manifests/phase2_smoke.json excitonic/data/manifests/phase2_dfpt_validation.json excitonic/data/manifests/phase2_tmd_gamma.json excitonic/data/manifests/phase2_gwbse_debug.json excitonic/data/manifests/phase2_gwbse_production.json 2>/dev/null || true
           if git diff --cached --quiet; then
             echo "no manifest change to commit"
           else
