@@ -318,6 +318,160 @@ def dfpt():
     print(f"[phase2/dfpt] polarity test: {res.get('polarity_test')}")
 
 
+# --- 2D TMD DFPT-Γ sweep (Suggestion 2): real ω_LO/Z*/ε∞ -> DFPT-grounded Γ ---
+# The question: do the RT linewidths of the TMD family cluster near ~10 meV? If not,
+# the FOM is out of reach before U is ever computed. Cheap (DFPT, no EPW/BSE).
+TMDS = {
+    # formula: (metal, chalcogen, a[Å], layer-thickness[Å])
+    "MoS2":  ("Mo", "S", 3.16, 3.17),
+    "MoSe2": ("Mo", "Se", 3.29, 3.34),
+    "WS2":   ("W", "S", 3.15, 3.14),
+    "WSe2":  ("W", "Se", 3.28, 3.36),
+}
+
+
+@app.function(image=qe_bgw_image, cpu=N_CORES, timeout=14400)
+def run_dft_2d(formulas=("MoS2", "MoSe2", "WS2", "WSe2")) -> dict:
+    """DFPT (scf + ph epsil+trans) on 2D TMD monolayers; parse ω_LO, Z*, ε∞ and a
+    DFPT-grounded Fröhlich Γ(300 K). Real numbers (tier 'dfpt' for the phonon
+    ingredients); Γ is a model estimate using the DFPT ω_LO, flagged as such."""
+    import subprocess
+    import sys
+    import time
+    import numpy as np
+    sys.path.insert(0, "/root/excitonic/src")
+    from ase.build import mx2
+    from exciton_fm.pseudos import stage_pseudos, pseudo_filename, recommended_cutoffs
+    from exciton_fm.qe_outputs import (parse_epsilon_inf, parse_born_charges,
+                                       parse_phonon_omega_LO)
+    from exciton_fm.frohlich import estimate_gamma_300K
+
+    env = os.environ.copy()
+    env["OMP_NUM_THREADS"] = "1"
+    env["OMPI_ALLOW_RUN_AS_ROOT"] = "1"
+    env["OMPI_ALLOW_RUN_AS_ROOT_CONFIRM"] = "1"
+    env["OMPI_MCA_plm_rsh_agent"] = "/usr/local/bin/fake_ssh"
+    env["PRTE_MCA_plm_ssh_agent"] = "/usr/local/bin/fake_ssh"
+    MPI = ["mpirun", "--allow-run-as-root", "-np", str(N_CORES)]
+    POOL = ["-nk", str(N_CORES)]
+
+    def one(name: str) -> dict:
+        m, x, a, th = TMDS[name]
+        wd = f"/root/tmd_{name}"
+        os.makedirs(os.path.join(wd, "pseudo"), exist_ok=True)
+        os.makedirs(os.path.join(wd, "out"), exist_ok=True)
+        syms = [m, x]
+        stage_pseudos(syms, os.path.join(wd, "pseudo"))
+        ecutwfc, ecutrho = recommended_cutoffs(syms)
+        atoms = mx2(formula=name, kind="2H", a=a, thickness=th, vacuum=9.0)
+        atoms.pbc = (True, True, True)
+        cell = np.array(atoms.cell)
+        spos = atoms.get_scaled_positions()
+        chem = atoms.get_chemical_symbols()
+        pfx = name.lower()
+        cellblk = "\n".join(" %.10f %.10f %.10f" % tuple(cell[i]) for i in range(3))
+        posblk = "\n".join(" %s %.10f %.10f %.10f" % (chem[i], *spos[i])
+                           for i in range(len(chem)))
+        spblk = "\n".join(" %s %.4f %s" % (s, 1.0, pseudo_filename(s)) for s in syms)
+        scf = f"""&control
+  calculation='scf'
+  prefix='{pfx}'
+  outdir='./out'
+  pseudo_dir='./pseudo'
+/
+&system
+  ibrav=0
+  nat={len(chem)}
+  ntyp={len(syms)}
+  ecutwfc={ecutwfc}
+  ecutrho={ecutrho}
+  assume_isolated='2D'
+  occupations='fixed'
+/
+&electrons
+  conv_thr=1.0d-9
+  mixing_beta=0.7
+  diagonalization='cg'
+/
+CELL_PARAMETERS angstrom
+{cellblk}
+ATOMIC_SPECIES
+{spblk}
+ATOMIC_POSITIONS crystal
+{posblk}
+K_POINTS automatic
+ 12 12 1 0 0 0
+"""
+        ph = f"""{name} 2D: dielectric + Born charges + phonons at Gamma
+&inputph
+  prefix='{pfx}'
+  outdir='./out'
+  fildyn='{pfx}.dyn'
+  epsil=.true.
+  trans=.true.
+  asr=.true.
+  tr2_ph=1.0d-14
+/
+0.0 0.0 0.0
+"""
+        open(os.path.join(wd, "scf.in"), "w").write(scf)
+        open(os.path.join(wd, "ph.in"), "w").write(ph)
+
+        def run(cmd, i, o):
+            with open(os.path.join(wd, o), "w") as fo:
+                return subprocess.run(cmd, stdin=open(os.path.join(wd, i)),
+                                      stdout=fo, stderr=subprocess.STDOUT,
+                                      cwd=wd, env=env).returncode
+
+        t0 = time.time()
+        rc_scf = run(MPI + ["pw.x"] + POOL, "scf.in", "scf.out")
+        rc_ph = run(MPI + ["ph.x"] + POOL, "ph.in", "ph.out")
+        wall = round(time.time() - t0, 1)
+        ph_out = open(os.path.join(wd, "ph.out")).read()
+        scf_out = open(os.path.join(wd, "scf.out")).read()
+        eps = parse_epsilon_inf(ph_out)
+        zb = parse_born_charges(ph_out)
+        wlo = parse_phonon_omega_LO(ph_out)
+        # DFPT-grounded Γ: use the real ω_LO; α held at the anchor value (the real
+        # per-material 2D α / linewidth needs the 2D Fröhlich + EPW). Flagged.
+        gamma = (estimate_gamma_300K(wlo.value, alpha=0.4).to_dict()
+                 if wlo.value else None)
+        err = ""
+        if rc_scf != 0 or rc_ph != 0:
+            err = ("SCF:\n" + "\n".join(scf_out.splitlines()[-10:]) + "\nPH:\n"
+                   + "\n".join(ph_out.splitlines()[-10:]))
+        print(f"[phase2/2d] {name}: omega_LO={wlo.value} Z*={zb.value} "
+              f"eps_inf={eps.value} Gamma~{(gamma or {}).get('value')} meV wall={wall}s")
+        return {"formula": name, "rc": [rc_scf, rc_ph], "wall_s": wall,
+                "omega_LO_meV": wlo.to_dict(), "Z_born": zb.to_dict(),
+                "eps_inf": eps.to_dict(), "gamma_300K_model": gamma,
+                "error_tail": err[:400]}
+
+    results = {n: one(n) for n in formulas}
+    good = [r["gamma_300K_model"]["value"] for r in results.values()
+            if r.get("gamma_300K_model")]
+    cluster = None
+    if good:
+        cluster = {"gamma_values_meV": good,
+                   "mean": round(sum(good) / len(good), 2),
+                   "range": [round(min(good), 2), round(max(good), 2)],
+                   "near_10meV": bool(all(3 <= g <= 25 for g in good))}
+    return {"results": results, "gamma_cluster": cluster,
+            "note": "ω_LO/Z*/ε∞ are real DFPT (tier dfpt); Γ is a DFPT-grounded model "
+                    "estimate (α at anchor value; real linewidth needs 2D-Fröhlich EPW)."}
+
+
+@app.local_entrypoint()
+def gamma2d():
+    """Run the TMD DFPT-Γ sweep on Modal; write the manifest."""
+    res = run_dft_2d.remote(("MoS2", "MoSe2", "WS2", "WSe2"))
+    out = os.path.join(HERE, "data", "manifests", "phase2_tmd_gamma.json")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    with open(out, "w") as fh:
+        json.dump(res, fh, indent=2)
+    print(f"[phase2/2d] wrote {out}; cluster={res.get('gamma_cluster')}")
+
+
 # --- Capped GW-BSE cost measurement (Yambo). LAUNCH ONLY ON APPROVAL. ---
 # Hard caps: cpu=16, timeout=21600 (6 h) -> <=96 core-hours -> <= ~$14. If the run
 # does not converge within the cap, it is REJECTED (no number banked). See
