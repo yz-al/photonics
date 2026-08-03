@@ -23,16 +23,19 @@ _PASS = {
     "WORM_VOL_DIM": os.environ.get("WORM_VOL_DIM", "256"),
     "WORM_VOL_DEPTH": os.environ.get("WORM_VOL_DEPTH", "6"),
     "WORM_VOL_BATCH": os.environ.get("WORM_VOL_BATCH", "8"),
-    "WORM_SEG_JEPA_STEPS": os.environ.get("WORM_SEG_JEPA_STEPS", "5000"),
+    # LEAN BOUND RUN: measure the routing bound (missed-20% composition) on a
+    # well-trained SOTA before any more expensive head-to-head. JEPA minimal (the
+    # bound uses only SOTA confidence), no context heads / beat / dbb, one budget.
+    "WORM_SEG_JEPA_STEPS": os.environ.get("WORM_SEG_JEPA_STEPS", "600"),
     "WORM_SEG_DEC_STEPS": os.environ.get("WORM_SEG_DEC_STEPS", "600"),
-    "WORM_S3_NEVAL": os.environ.get("WORM_S3_NEVAL", "3"),
-    "WORM_S3_LABEL_POOL": os.environ.get("WORM_S3_LABEL_POOL", "1,16"),
-    "WORM_S3_SPARSE": os.environ.get("WORM_S3_SPARSE", "500,5000"),  # scarce voxel-label budgets
-    "WORM_S3_ACTIVE": os.environ.get("WORM_S3_ACTIVE", ""),          # active-learning: dropped (no uplift last run)
-    "WORM_S3_DBB": os.environ.get("WORM_S3_DBB", "1"),              # double black box (mechinterp -> discovery)
-    "WORM_S3_EDGE": os.environ.get("WORM_S3_EDGE", "1"),            # SOTA edge-case (failure) analysis
-    "WORM_S3_BEAT": os.environ.get("WORM_S3_BEAT", "1"),            # beat-sota failure-targeted strategies (VOI/Rand/ERL)
-    "WORM_S3_CTX": os.environ.get("WORM_S3_CTX", "mamba,transformer,gnn"),  # global-context heads head-to-head
+    "WORM_S3_NEVAL": os.environ.get("WORM_S3_NEVAL", "4"),          # more eval subs -> tighter bound
+    "WORM_S3_LABEL_POOL": os.environ.get("WORM_S3_LABEL_POOL", "16"),
+    "WORM_S3_SPARSE": os.environ.get("WORM_S3_SPARSE", ""),
+    "WORM_S3_ACTIVE": os.environ.get("WORM_S3_ACTIVE", ""),
+    "WORM_S3_DBB": os.environ.get("WORM_S3_DBB", "0"),
+    "WORM_S3_EDGE": os.environ.get("WORM_S3_EDGE", "1"),            # includes the routing bound
+    "WORM_S3_BEAT": os.environ.get("WORM_S3_BEAT", "0"),
+    "WORM_S3_CTX": os.environ.get("WORM_S3_CTX", ""),
     "WORM_VOL_DENSE": os.environ.get("WORM_VOL_DENSE", "1"),         # V-JEPA-2.1 dense features
     "WORM_VOL_EMA": os.environ.get("WORM_VOL_EMA", "0.998"),        # collapse fix: slower EMA target
     "WORM_EM_VAR": os.environ.get("WORM_EM_VAR", "0.6"),           # collapse fix: stronger variance hinge (0.4 left 1/3 seeds collapsing)
