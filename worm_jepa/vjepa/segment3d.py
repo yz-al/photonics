@@ -588,7 +588,7 @@ def main():
             rm, rpreds = evaluate(rk, rdec, None)
             full_preds[f"{rk}_refiner"] = rpreds
             print(f"[s3d] {rk}_refiner (boost={BOOST}) dense metrics={rm}", flush=True)
-        if AGGLO and agglo_res is None:                   # split-fixer: learned agglomeration
+        if AGGLO and agglo_res is None:                   # two-specialist proofreading vs MWS
             import agglomerate as AG
             actx = {"SHORT": SHORT, "OFFS": OFFS, "mutex_watershed": mutex_watershed,
                     "seg_metrics": seg_metrics, "erl_proxy": erl_proxy}
@@ -596,7 +596,18 @@ def main():
             tr_seg = [seg for _, seg in full_pool]
             ev_aff = full_preds.get("sota", [predict("sota", sota_base, None, sub) for sub, _ in te_subs])
             ev_seg = [seg for _, seg in te_subs]
-            agglo_res = AG.run(tr_aff, tr_seg, ev_aff, ev_seg, actx)
+            tr_lsd = ev_lsd = None
+            if os.environ.get("WORM_S3_AGGLO_LSD", "1") == "1":   # LSD shape features (the MWS-lacking signal)
+                ldec = train_lsd(full_pool, malis=False, steps=CTX_STEPS, init_state=sota_init)
+
+                @torch.no_grad()
+                def _lsd(sub):
+                    rt = torch.tensor(sub, device=DEV)[None, None].float()
+                    return ldec(rt, return_lsd=True)[1].cpu().numpy()
+                tr_lsd = [_lsd(sub) for sub, _ in full_pool]
+                ev_lsd = [_lsd(sub) for sub, _ in te_subs]
+            agglo_res = AG.run(tr_aff, tr_seg, ev_aff, ev_seg, actx,
+                               train_lsds=tr_lsd, eval_lsds=ev_lsd)
             print(f"[s3d] agglomerate={agglo_res}", flush=True)
         if BEAT and beat_res is None:                     # failure-targeted strategies vs SOTA
             import beat_sota as BEATM

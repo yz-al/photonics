@@ -23,22 +23,37 @@ from collections import defaultdict
 
 
 def _oversegment(aff, short_offs, thr):
-    """Conservative fragments (fast): boundary where mean short-range affinity is low;
-    fragments = connected components of the non-boundary interior; boundary voxels filled
-    from the nearest fragment. Over-segments -> essentially merge-free. All C-level."""
-    from scipy.ndimage import label, distance_transform_edt
+    """Robust over-segmentation via watershed: seeds = connected components of the
+    high-attraction interior (mean short affinity above a data-adaptive threshold), then
+    flood the boundary height (1 - attraction). Scale-robust -> many fragments regardless
+    of the affinity distribution, essentially merge-free."""
+    from scipy.ndimage import label
+    from skimage.segmentation import watershed
     ns = len(short_offs)
-    bnd = aff[:ns].min(0) < thr                           # weakest short edge low = at a boundary
-    lab, n = label(~bnd)                                  # CC of confident interior
+    a = aff[:ns].mean(0)                                  # attraction: high inside objects
+    seed_thr = max(thr, float(np.quantile(a, 0.6)))       # adaptive: interior cores
+    seeds, n = label(a > seed_thr)
     if n == 0:
-        return np.zeros(aff.shape[1:], np.int64)
-    _, (iz, iy, ix) = distance_transform_edt(lab == 0, return_indices=True)
-    return lab[iz, iy, ix]                                # fill boundary from nearest fragment
+        seeds, n = label(a > float(np.quantile(a, 0.8)))
+    if n == 0:
+        return np.zeros(a.shape, np.int64)
+    return watershed(1.0 - a, seeds)                      # flood boundaries from the cores
 
 
 def _relabel(lab):
     _, inv = np.unique(lab, return_inverse=True)
     return inv.reshape(lab.shape)
+
+
+def _frag_lsd(frags, lsd):
+    """Per-fragment mean LSD descriptor (10-D). Shape signature of each fragment."""
+    nf = int(frags.max()) + 1
+    C = lsd.shape[0]
+    ff = frags.ravel(); out = np.zeros((nf, C), np.float32)
+    cnt = np.bincount(ff, minlength=nf).astype(np.float32) + 1e-6
+    for c in range(C):
+        out[:, c] = np.bincount(ff, weights=lsd[c].ravel(), minlength=nf) / cnt
+    return out
 
 
 def _frag_gt(frags, seg):
@@ -53,9 +68,10 @@ def _frag_gt(frags, seg):
     return out
 
 
-def _rag(frags, aff, short_offs, long_offs):
+def _rag(frags, aff, short_offs, long_offs, lsd=None):
     """Per adjacent fragment-pair edge features: mean short aff (attraction), mean long
-    aff (repulsion), contact count, sizes."""
+    aff (repulsion), contact count, sizes, and (if lsd given) LSD shape agreement across
+    the pair -- the signal MWS lacks: do the two fragments' shapes CONTINUE?"""
     ns = len(short_offs); Z, H, W = frags.shape
     offs = list(short_offs) + list(long_offs)
     NF = int(frags.max()) + 1
@@ -80,8 +96,15 @@ def _rag(frags, aff, short_offs, long_offs):
     keep = ns_e > 0                                       # need a short-range contact
     mean_short = ss[keep] / ns_e[keep]
     mean_long = np.where(nl_e[keep] > 0, sl[keep] / np.maximum(nl_e[keep], 1), 0.5)
-    feats = np.stack([mean_short, mean_long, np.log1p(ns_e[keep]),
-                      np.log1p(np.minimum(sizes[a[keep]], sizes[b[keep]]))], 1).astype(np.float32)
+    cols = [mean_short, mean_long, np.log1p(ns_e[keep]),
+            np.log1p(np.minimum(sizes[a[keep]], sizes[b[keep]]))]
+    if lsd is not None:                                   # LSD shape agreement (the MWS-lacking signal)
+        fl = _frag_lsd(frags, lsd); ak, bk = a[keep], b[keep]
+        dist = np.linalg.norm(fl[ak] - fl[bk], axis=1)    # shape descriptor distance (low = continue)
+        cos = (fl[ak] * fl[bk]).sum(1) / (np.linalg.norm(fl[ak], axis=1) *
+                                          np.linalg.norm(fl[bk], axis=1) + 1e-6)
+        cols += [dist, cos]
+    feats = np.stack(cols, 1).astype(np.float32)
     pairs = list(zip(a[keep].tolist(), b[keep].tolist()))
     return pairs, feats
 
@@ -105,54 +128,64 @@ def _agglomerate(frags, pairs, prob, thr):
     return _relabel(remap[frags])
 
 
-def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9, thr_merge=0.5):
-    """Train the split-fixer on train subvols, apply on eval, score vs plain MWS."""
+def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9,
+        train_lsds=None, eval_lsds=None, tA=0.5, tB=0.5):
+    """Two specialists on the fragment RAG, composed on top of SOTA:
+      A (split-fixer)  = attraction/shape classifier -> merge over-segmented fragments.
+      B (merge-fixer)  = repulsion/shape classifier -> VETO merges across true boundaries.
+    Final merge iff A says merge AND B does not say boundary. Scored vs plain MWS."""
     try:
         from sklearn.linear_model import LogisticRegression
     except Exception as e:
         return {"error": f"sklearn unavailable: {e}"}
-    SHORT = ctx["SHORT"]; OFFS = ctx["OFFS"]; ns = len(SHORT)
-    LONG = OFFS[ns:]
+    SHORT = ctx["SHORT"]; OFFS = ctx["OFFS"]; ns = len(SHORT); LONG = OFFS[ns:]
     mws = ctx["mutex_watershed"]; seg_metrics = ctx["seg_metrics"]; erl = ctx["erl_proxy"]
+    has_lsd = train_lsds is not None
+    # feature columns: 0 mean_short,1 mean_long,2 log_contact,3 log_min_size,(4 lsd_dist,5 lsd_cos)
+    A_cols = [0, 2, 5] if has_lsd else [0, 2]              # attraction + shape-continuity
+    B_cols = [1, 3, 4] if has_lsd else [1, 3]              # repulsion + shape-discontinuity
 
-    # ---- build training set: fragment-pair features + merge labels ----
-    X, y = [], []
-    for aff, seg in zip(train_affs, train_segs):
+    X, ysame = [], []
+    for i, (aff, seg) in enumerate(zip(train_affs, train_segs)):
         frags = _relabel(_oversegment(aff, SHORT, thr_over))
-        pairs, feats = _rag(frags, aff, SHORT, LONG)
+        pairs, feats = _rag(frags, aff, SHORT, LONG, train_lsds[i] if has_lsd else None)
         if not len(pairs):
             continue
         fg = _frag_gt(frags, seg)
         lbl = np.array([1 if fg[a] == fg[b] and fg[a] != 0 else 0 for a, b in pairs])
-        X.append(feats); y.append(lbl)
-    X = np.concatenate(X); y = np.concatenate(y)
-    if len(np.unique(y)) < 2:
+        X.append(feats); ysame.append(lbl)
+    X = np.concatenate(X); ysame = np.concatenate(ysame)
+    if len(np.unique(ysame)) < 2:
         return {"error": "degenerate merge labels"}
-    mu, sd = X.mean(0), X.std(0) + 1e-6
-    clf = LogisticRegression(class_weight="balanced", max_iter=300)
-    clf.fit((X - mu) / sd, y)
+    mu, sd = X.mean(0), X.std(0) + 1e-6; Xs = (X - mu) / sd
+    clfA = LogisticRegression(class_weight="balanced", max_iter=300).fit(Xs[:, A_cols], ysame)
+    clfB = LogisticRegression(class_weight="balanced", max_iter=300).fit(Xs[:, B_cols], 1 - ysame)
 
-    # ---- apply on eval, score agglomeration vs plain MWS baseline ----
-    vs_a, rs_a, es_a, vs_m, rs_m, es_m, nfrag = [], [], [], [], [], [], []
-    for aff, seg in zip(eval_affs, eval_segs):
-        frags = _relabel(_oversegment(aff, SHORT, thr_over))
-        nfrag.append(int(frags.max() + 1))
-        pairs, feats = _rag(frags, aff, SHORT, LONG)
+    def score_lab(labs, segs):
+        v = [seg_metrics(l, s) for l, s in zip(labs, segs)]
+        return {"VOI": round(float(np.mean([x[0] for x in v])), 4),
+                "adapted_rand_error": round(float(np.mean([x[1] for x in v])), 4),
+                "ERL": round(float(np.mean([erl(l, s) for l, s in zip(labs, segs)])), 4)}
+
+    lab_A, lab_AB, lab_M, nfrag = [], [], [], []
+    for i, (aff, seg) in enumerate(zip(eval_affs, eval_segs)):
+        frags = _relabel(_oversegment(aff, SHORT, thr_over)); nfrag.append(int(frags.max() + 1))
+        pairs, feats = _rag(frags, aff, SHORT, LONG, eval_lsds[i] if has_lsd else None)
         if len(pairs):
-            prob = clf.predict_proba((feats - mu) / sd)[:, 1]
-            lab_a = _agglomerate(frags, pairs, prob, thr_merge)
+            fs = (feats - mu) / sd
+            pA = clfA.predict_proba(fs[:, A_cols])[:, 1]
+            pB = clfB.predict_proba(fs[:, B_cols])[:, 1]
+            lab_A.append(_agglomerate(frags, pairs, pA, tA))                    # A only
+            keep = pA * (pB < tB)                                              # A AND not-B
+            lab_AB.append(_agglomerate(frags, pairs, keep, tA))
         else:
-            lab_a = frags
-        v, r = seg_metrics(lab_a, seg); vs_a.append(v); rs_a.append(r); es_a.append(erl(lab_a, seg))
-        lab_m = mws(np.clip(aff, 0, 1), OFFS, ns)                # plain MWS baseline
-        v, r = seg_metrics(lab_m, seg); vs_m.append(v); rs_m.append(r); es_m.append(erl(lab_m, seg))
-
-    def mean(a): return round(float(np.mean(a)), 4)
-    return {"method": "split-fixer: learned agglomeration on over-segmented SOTA affinities",
-            "n_train_pairs": int(len(y)), "merge_rate": round(float(y.mean()), 3),
-            "mean_fragments": mean(nfrag),
-            "learned_agglo": {"VOI": mean(vs_a), "adapted_rand_error": mean(rs_a), "ERL": mean(es_a)},
-            "mws_baseline": {"VOI": mean(vs_m), "adapted_rand_error": mean(rs_m), "ERL": mean(es_m)},
-            "dVOI_vs_mws": round(mean(vs_a) - mean(vs_m), 4),
-            "dERL_vs_mws": round(mean(es_a) - mean(es_m), 4),
-            "beats_mws": bool(mean(vs_a) <= mean(vs_m) and mean(es_a) >= mean(es_m))}
+            lab_A.append(frags); lab_AB.append(frags)
+        lab_M.append(mws(np.clip(aff, 0, 1), OFFS, ns))
+    A, AB, M = score_lab(lab_A, eval_segs), score_lab(lab_AB, eval_segs), score_lab(lab_M, eval_segs)
+    return {"method": "two-specialist proofreading (A split-fixer + B merge-fixer) vs MWS",
+            "lsd_features": has_lsd, "n_train_pairs": int(len(ysame)),
+            "same_rate": round(float(ysame.mean()), 3), "mean_fragments": round(float(np.mean(nfrag)), 1),
+            "mws_baseline": M, "splitfix_A_only": A, "splitfix_A_plus_mergefix_B": AB,
+            "AB_dVOI_vs_mws": round(AB["VOI"] - M["VOI"], 4),
+            "AB_dERL_vs_mws": round(AB["ERL"] - M["ERL"], 4),
+            "beats_mws": bool(AB["VOI"] <= M["VOI"] and AB["ERL"] >= M["ERL"])}
