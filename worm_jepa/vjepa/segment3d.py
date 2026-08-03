@@ -263,7 +263,7 @@ def main():
         return smask, val0
 
     def train_dec(source, encoder, pool, sparse_k=None, smask=None, seed=0,
-                  init_state=None, steps=None):
+                  init_state=None, steps=None, boost_dec=None, boost=5.0):
         # pool = fixed labeled (subvol, seg) list. DENSE budget = len(pool) fully
         # labeled subvolumes. SPARSE budget (sparse_k) = ONE subvolume but the loss
         # is restricted to a FIXED set of sparse_k annotated voxel-edges -- the
@@ -271,6 +271,20 @@ def main():
         # smask: a precomputed voxel-edge annotation mask (overrides sparse_k) -- used
         # by active learning to hand in an uncertainty-selected label set.
         # init_state: warm-start from a pretrained model (the SOTA-base transfer test).
+        # boost_dec: a trained SOTA decoder. When given, the loss is UP-WEIGHTED at the
+        # edges SOTA gets wrong (GT-verified) -- hard-example mining / boosting. The
+        # difficult parts ARE SOTA's residual errors (we have GT on the training pool),
+        # so the refiner's capacity goes to SOTA's failures, not the trivial background.
+        # Easy edges keep weight 1 (near-identity there) to control break-rate.
+        boost_w = None
+        if boost_dec is not None:
+            boost_w = []
+            with torch.no_grad():
+                for sub, seg in pool:
+                    aff_i, _ = gt_affinity(seg, OFFS)
+                    sp = torch.sigmoid(run_dec("sota", boost_dec, None, sub)).cpu().numpy()
+                    wrong = (sp > 0.5) != (aff_i > 0.5)          # SOTA's mined error map
+                    boost_w.append(1.0 + boost * wrong.astype(np.float32))
         dec = make_dec(source)
         if init_state is not None:
             dec.load_state_dict(init_state)
@@ -278,10 +292,12 @@ def main():
         if smask is None and sparse_k is not None:        # fixed random sparse annotation
             smask, _ = _rand_sparse_mask(pool, sparse_k, seed)
         for step in range(steps or DEC_STEPS):
-            sub, seg = pool[step % len(pool)]
+            i = step % len(pool); sub, seg = pool[i]
             aff, val = gt_affinity(seg, OFFS)
             if smask is not None:
                 val = val * smask                          # only the annotated labels count
+            if boost_w is not None:
+                val = val * boost_w[i]                      # up-weight SOTA's hard errors
             tgt = torch.tensor(aff, device=DEV); vmask = torch.tensor(val, device=DEV)
             logit = run_dec(source, dec, encoder, sub)
             pos = (tgt * vmask).sum((1, 2, 3)); neg = ((1 - tgt) * vmask).sum((1, 2, 3))
@@ -370,6 +386,9 @@ def main():
     # global-context heads to train + compare (subset of mamba,transformer,gnn)
     CTX_HEADS = [x.strip() for x in os.environ.get("WORM_S3_CTX", "").split(",") if x.strip()]
     CTX_STEPS = int(os.environ.get("WORM_S3_CTX_STEPS", str(DEC_STEPS)))
+    # hard-example-mined refiners: heads boosted on SOTA's GT-verified error set
+    REFINERS = [x.strip() for x in os.environ.get("WORM_S3_REFINER", "").split(",") if x.strip()]
+    BOOST = float(os.environ.get("WORM_S3_BOOST", "5.0"))
     le_acc = {s: {key: [] for key, _, _ in BUDGETS} for s in SOURCES}
     es_acc = {"all_offsets": [], "long_range_merge_edges": []}
     std_finals = []
@@ -416,6 +435,11 @@ def main():
             cm, cpreds = evaluate(ctx, cdec, None)
             full_preds[ctx] = cpreds
             print(f"[s3d] {ctx} dense metrics={cm}", flush=True)
+        for rk in REFINERS:                               # hard-example-mined refiners (boosted on SOTA errors)
+            rdec = train_dec(rk, None, full_pool, steps=CTX_STEPS, boost_dec=sota_base, boost=BOOST)
+            rm, rpreds = evaluate(rk, rdec, None)
+            full_preds[f"{rk}_refiner"] = rpreds
+            print(f"[s3d] {rk}_refiner (boost={BOOST}) dense metrics={rm}", flush=True)
         if BEAT and beat_res is None:                     # failure-targeted strategies vs SOTA
             import beat_sota as BEATM
             ctx = {"mutex_watershed": mutex_watershed, "seg_metrics": seg_metrics,
