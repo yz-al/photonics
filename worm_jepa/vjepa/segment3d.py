@@ -342,7 +342,7 @@ def main():
     def train_lsd(pool, malis=False, lsd_w=1.0,
                   malis_m=float(os.environ.get("WORM_S3_MALIS_M", "3.0")),
                   malis_s=float(os.environ.get("WORM_S3_MALIS_S", "1.0")),
-                  steps=None, init_state=None):
+                  steps=None, init_state=None, lsd_targets=None):
         # SOTA + LSD auxiliary loss (+ optional MALIS-style structured term). LSD makes
         # the affinities shape-aware; the MALIS-style term up-weights edges that would
         # CAUSE a topological error under the current prediction -- a between-object edge
@@ -353,7 +353,8 @@ def main():
         if init_state is not None:
             dec.load_state_dict(init_state, strict=False)
         opt = torch.optim.Adam(dec.parameters(), lr=2e-3)
-        lsd_t = [torch.tensor(local_shape_descriptors(seg), device=DEV) for _, seg in pool]
+        lsd_t = lsd_targets if lsd_targets is not None else \
+            [torch.tensor(local_shape_descriptors(seg), device=DEV) for _, seg in pool]
         for step in range(steps or DEC_STEPS):
             i = step % len(pool); sub, seg = pool[i]
             aff, val = gt_affinity(seg, OFFS)
@@ -563,10 +564,14 @@ def main():
             cm, cpreds = evaluate(ctx, cdec, None)
             full_preds[ctx] = cpreds
             print(f"[s3d] {ctx} dense metrics={cm}", flush=True)
+        lsd_pool = None
+        if LSD_HEADS:                                     # compute GT LSD targets ONCE (shared)
+            lsd_pool = [torch.tensor(local_shape_descriptors(seg), device=DEV) for _, seg in full_pool]
         for lk in LSD_HEADS:                              # LSD (+ optional MALIS) heads, warm-started
             if lk in full_preds:
                 continue
-            ldec = train_lsd(full_pool, malis=("malis" in lk), steps=CTX_STEPS, init_state=sota_init)
+            ldec = train_lsd(full_pool, malis=("malis" in lk), steps=CTX_STEPS,
+                             init_state=sota_init, lsd_targets=lsd_pool)
             lm, lpreds = evaluate("sotalsd", ldec, None)
             full_preds[lk] = lpreds
             print(f"[s3d] {lk} dense metrics={lm}", flush=True)
