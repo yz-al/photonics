@@ -23,19 +23,21 @@ _PASS = {
     "WORM_VOL_DIM": os.environ.get("WORM_VOL_DIM", "256"),
     "WORM_VOL_DEPTH": os.environ.get("WORM_VOL_DEPTH", "6"),
     "WORM_VOL_BATCH": os.environ.get("WORM_VOL_BATCH", "8"),
-    # LEAN BOUND RUN: measure the routing bound (missed-20% composition) on a
-    # well-trained SOTA before any more expensive head-to-head. JEPA minimal (the
-    # bound uses only SOTA confidence), no context heads / beat / dbb, one budget.
-    "WORM_SEG_JEPA_STEPS": os.environ.get("WORM_SEG_JEPA_STEPS", "600"),
-    "WORM_SEG_DEC_STEPS": os.environ.get("WORM_SEG_DEC_STEPS", "600"),
-    "WORM_S3_NEVAL": os.environ.get("WORM_S3_NEVAL", "4"),          # more eval subs -> tighter bound
+    # SOTA + MAMBA RUN: does fusing a Mamba global-context block into SOTA's U-Net beat
+    # SOTA? sotamamba (warm-started from SOTA + fine-tune) vs sota_plus (SOTA + same
+    # fine-tune, no mamba) isolates Mamba's contribution. Global VOI/Rand/ERL + conditional.
+    "WORM_SEG_JEPA_STEPS": os.environ.get("WORM_SEG_JEPA_STEPS", "1000"),
+    "WORM_SEG_DEC_STEPS": os.environ.get("WORM_SEG_DEC_STEPS", "1000"),   # SOTA base training
+    "WORM_S3_CTX_STEPS": os.environ.get("WORM_S3_CTX_STEPS", "800"),      # fine-tune (sotamamba + sota_plus)
+    "WORM_S3_NEVAL": os.environ.get("WORM_S3_NEVAL", "4"),
     "WORM_S3_LABEL_POOL": os.environ.get("WORM_S3_LABEL_POOL", "16"),
     "WORM_S3_SPARSE": os.environ.get("WORM_S3_SPARSE", ""),
     "WORM_S3_ACTIVE": os.environ.get("WORM_S3_ACTIVE", ""),
     "WORM_S3_DBB": os.environ.get("WORM_S3_DBB", "0"),
-    "WORM_S3_EDGE": os.environ.get("WORM_S3_EDGE", "1"),            # includes the routing bound
-    "WORM_S3_BEAT": os.environ.get("WORM_S3_BEAT", "0"),
-    "WORM_S3_CTX": os.environ.get("WORM_S3_CTX", ""),
+    "WORM_S3_EDGE": os.environ.get("WORM_S3_EDGE", "1"),            # composition + routing bound
+    "WORM_S3_BEAT": os.environ.get("WORM_S3_BEAT", "1"),           # global + conditional scoring
+    "WORM_S3_CTX": os.environ.get("WORM_S3_CTX", "sotamamba"),     # the fusion (+ auto sota_plus control)
+    "WORM_S3_REFINER": os.environ.get("WORM_S3_REFINER", ""),
     "WORM_VOL_DENSE": os.environ.get("WORM_VOL_DENSE", "1"),         # V-JEPA-2.1 dense features
     "WORM_VOL_EMA": os.environ.get("WORM_VOL_EMA", "0.998"),        # collapse fix: slower EMA target
     "WORM_EM_VAR": os.environ.get("WORM_EM_VAR", "0.6"),           # collapse fix: stronger variance hinge (0.4 left 1/3 seeds collapsing)
