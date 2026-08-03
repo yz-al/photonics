@@ -23,21 +23,21 @@ _PASS = {
     "WORM_VOL_DIM": os.environ.get("WORM_VOL_DIM", "256"),
     "WORM_VOL_DEPTH": os.environ.get("WORM_VOL_DEPTH", "6"),
     "WORM_VOL_BATCH": os.environ.get("WORM_VOL_BATCH", "8"),
-    # LSD + MALIS RUN: the proven affinity upgrades (Local Shape Descriptors +
-    # structured merge loss), which also produce the shape features for proofreading.
-    # sotalsd / sotalsdmalis vs sota_plus (SOTA + same fine-tune, no LSD) vs baseline SOTA.
-    "WORM_SEG_JEPA_STEPS": os.environ.get("WORM_SEG_JEPA_STEPS", "1000"),
+    # AGGLOMERATION RUN: the real upgrade from MWS. Two-specialist learned MULTICUT (GAEC)
+    # fed learned edge weights + LSD shape features, vs plain MWS, on well-trained SOTA.
+    "WORM_SEG_JEPA_STEPS": os.environ.get("WORM_SEG_JEPA_STEPS", "600"),  # JEPA unused here
     "WORM_SEG_DEC_STEPS": os.environ.get("WORM_SEG_DEC_STEPS", "1000"),   # SOTA base training
-    "WORM_S3_CTX_STEPS": os.environ.get("WORM_S3_CTX_STEPS", "800"),      # fine-tune (lsd heads + sota_plus)
+    "WORM_S3_CTX_STEPS": os.environ.get("WORM_S3_CTX_STEPS", "800"),      # LSD head fine-tune
     "WORM_S3_NEVAL": os.environ.get("WORM_S3_NEVAL", "4"),
     "WORM_S3_LABEL_POOL": os.environ.get("WORM_S3_LABEL_POOL", "16"),
     "WORM_S3_SPARSE": os.environ.get("WORM_S3_SPARSE", ""),
     "WORM_S3_ACTIVE": os.environ.get("WORM_S3_ACTIVE", ""),
     "WORM_S3_DBB": os.environ.get("WORM_S3_DBB", "0"),
-    "WORM_S3_EDGE": os.environ.get("WORM_S3_EDGE", "1"),            # composition + routing bound
-    "WORM_S3_BEAT": os.environ.get("WORM_S3_BEAT", "1"),           # global + conditional scoring
+    "WORM_S3_EDGE": os.environ.get("WORM_S3_EDGE", "0"),
+    "WORM_S3_BEAT": os.environ.get("WORM_S3_BEAT", "0"),
+    "WORM_S3_AGGLO": os.environ.get("WORM_S3_AGGLO", "1"),          # two-specialist multicut vs MWS
     "WORM_S3_CTX": os.environ.get("WORM_S3_CTX", ""),
-    "WORM_S3_LSD": os.environ.get("WORM_S3_LSD", "sotalsd,sotalsdmalis"),  # LSD + MALIS heads (+ sota_plus)
+    "WORM_S3_LSD": os.environ.get("WORM_S3_LSD", ""),
     "WORM_S3_REFINER": os.environ.get("WORM_S3_REFINER", ""),
     "WORM_VOL_DENSE": os.environ.get("WORM_VOL_DENSE", "1"),         # V-JEPA-2.1 dense features
     "WORM_VOL_EMA": os.environ.get("WORM_VOL_EMA", "0.998"),        # collapse fix: slower EMA target
