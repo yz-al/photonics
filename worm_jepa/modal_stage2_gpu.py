@@ -25,7 +25,7 @@ _PASS = {
     "WORM_VOL_BATCH": os.environ.get("WORM_VOL_BATCH", "8"),
     # AGGLOMERATION RUN: the real upgrade from MWS. Two-specialist learned MULTICUT (GAEC)
     # fed learned edge weights + LSD shape features, vs plain MWS, on well-trained SOTA.
-    "WORM_SEG_JEPA_STEPS": os.environ.get("WORM_SEG_JEPA_STEPS", "600"),  # JEPA unused here
+    "WORM_SEG_JEPA_STEPS": os.environ.get("WORM_SEG_JEPA_STEPS", "5000"),  # JEPA now feeds agglo edge features
     "WORM_SEG_DEC_STEPS": os.environ.get("WORM_SEG_DEC_STEPS", "1000"),   # SOTA base training
     "WORM_S3_CTX_STEPS": os.environ.get("WORM_S3_CTX_STEPS", "800"),      # LSD head fine-tune
     "WORM_S3_NEVAL": os.environ.get("WORM_S3_NEVAL", "4"),
