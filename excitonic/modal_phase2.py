@@ -331,10 +331,10 @@ TMDS = {
 
 
 @app.function(image=qe_bgw_image, cpu=N_CORES, timeout=14400)
-def run_dft_2d(formulas=("MoS2", "MoSe2", "WS2", "WSe2")) -> dict:
-    """DFPT (scf + ph epsil+trans) on 2D TMD monolayers; parse ω_LO, Z*, ε∞ and a
-    DFPT-grounded Fröhlich Γ(300 K). Real numbers (tier 'dfpt' for the phonon
-    ingredients); Γ is a model estimate using the DFPT ω_LO, flagged as such."""
+def dft_2d_one(name: str) -> dict:
+    """One TMD monolayer: scf + ph (epsil+trans) -> ω_LO, Z*, ε∞ + DFPT-grounded Γ.
+    Runs in its own container so the sweep parallelizes across materials (Modal
+    .map): wall-clock = slowest single material, not the sum."""
     import subprocess
     import sys
     import time
@@ -447,29 +447,38 @@ K_POINTS automatic
                 "eps_inf": eps.to_dict(), "gamma_300K_model": gamma,
                 "error_tail": err[:400]}
 
-    results = {n: one(n) for n in formulas}
+    return one(name)
+
+
+def _cluster_summary(results: dict) -> dict:
     good = [r["gamma_300K_model"]["value"] for r in results.values()
             if r.get("gamma_300K_model")]
-    cluster = None
-    if good:
-        cluster = {"gamma_values_meV": good,
-                   "mean": round(sum(good) / len(good), 2),
-                   "range": [round(min(good), 2), round(max(good), 2)],
-                   "near_10meV": bool(all(3 <= g <= 25 for g in good))}
-    return {"results": results, "gamma_cluster": cluster,
-            "note": "ω_LO/Z*/ε∞ are real DFPT (tier dfpt); Γ is a DFPT-grounded model "
-                    "estimate (α at anchor value; real linewidth needs 2D-Fröhlich EPW)."}
+    if not good:
+        return None
+    return {"gamma_values_meV": good, "mean": round(sum(good) / len(good), 2),
+            "range": [round(min(good), 2), round(max(good), 2)],
+            "near_10meV": bool(all(3 <= g <= 25 for g in good))}
 
 
 @app.local_entrypoint()
 def gamma2d():
-    """Run the TMD DFPT-Γ sweep on Modal; write the manifest."""
-    res = run_dft_2d.remote(("MoS2", "MoSe2", "WS2", "WSe2"))
+    """Run the TMD DFPT-Γ sweep — all monolayers CONCURRENTLY (Modal .map), so
+    wall-clock ≈ one material's time instead of the sum."""
+    formulas = ["MoS2", "MoSe2", "WS2", "WSe2"]
+    results = {}
+    for name, r in zip(formulas, dft_2d_one.map(formulas)):
+        results[name] = r
+        print(f"[phase2/2d] {name}: omega_LO={r['omega_LO_meV']['value']} "
+              f"Z*={r['Z_born']['value']} Gamma~{(r.get('gamma_300K_model') or {}).get('value')} "
+              f"meV wall={r['wall_s']}s")
+    manifest = {"results": results, "gamma_cluster": _cluster_summary(results),
+                "note": "ω_LO/Z*/ε∞ are real DFPT (tier dfpt); Γ is a DFPT-grounded "
+                        "model estimate (α at anchor; real linewidth needs 2D-Fröhlich EPW)."}
     out = os.path.join(HERE, "data", "manifests", "phase2_tmd_gamma.json")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w") as fh:
-        json.dump(res, fh, indent=2)
-    print(f"[phase2/2d] wrote {out}; cluster={res.get('gamma_cluster')}")
+        json.dump(manifest, fh, indent=2)
+    print(f"[phase2/2d] wrote {out}; cluster={manifest['gamma_cluster']}")
 
 
 # --- Capped GW-BSE cost measurement (Yambo). LAUNCH ONLY ON APPROVAL. ---
