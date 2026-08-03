@@ -49,10 +49,13 @@ _FAKE_SSH = (
     "printf '#!/bin/sh\\nshift\\nexec \"$@\"\\n' > /usr/local/bin/fake_ssh "
     "&& chmod +x /usr/local/bin/fake_ssh"
 )
+# GW-BSE engine: Yambo (conda-forge, free) replaces the distribution-gated
+# BerkeleyGW. qe -> p2y -> yambo gives G0W0 + BSE (E_b, oscillator strengths, and
+# the exciton CT character the interlayer test needs).
 qe_bgw_image = (
     modal.Image.micromamba(python_version="3.11")
     .micromamba_install(
-        "qe", "openmpi", "fftw", "hdf5", "numpy", "ase",
+        "qe", "yambo", "openmpi", "fftw", "hdf5", "numpy", "ase",
         channels=["conda-forge"],
     )
     .pip_install("requests==2.33.1")
@@ -97,27 +100,24 @@ def smoke_test() -> dict:
         "ph.x": probe("ph.x"),
         "epw.x": probe("epw.x"),
         "pw2bgw.x": probe("pw2bgw.x"),
-        "epsilon.cplx.x": probe("epsilon.cplx.x"),
-        "sigma.cplx.x": probe("sigma.cplx.x"),
-        "kernel.cplx.x": probe("kernel.cplx.x"),
-        "absorption.cplx.x": probe("absorption.cplx.x"),
+        "yambo": probe("yambo"),
+        "p2y": probe("p2y"),
+        "ypp": probe("ypp"),
         "mpirun": probe("mpirun", "--version"),
     }
     qe_ok = all(binaries[k]["found"] for k in ("pw.x", "ph.x"))
     epw_ok = binaries["epw.x"]["found"]
-    bgw_ok = all(binaries[k]["found"] for k in
-                 ("epsilon.cplx.x", "sigma.cplx.x", "kernel.cplx.x", "absorption.cplx.x"))
+    bgw_ok = all(binaries[k]["found"] for k in ("yambo", "p2y"))  # GW-BSE via Yambo
     print(f"[phase2/smoke] QE (pw/ph) present: {qe_ok}; EPW present: {epw_ok}; "
-          f"BerkeleyGW present: {bgw_ok}")
+          f"Yambo GW-BSE present: {bgw_ok}")
     for k, b in binaries.items():
         print(f"[phase2/smoke]   {k:20s} found={b['found']} {b.get('path','')}")
     return {
-        "qe_ok": qe_ok, "epw_branch_ok": qe_ok and epw_ok, "bgw_branch_ok": bgw_ok,
+        "qe_ok": qe_ok, "epw_branch_ok": qe_ok and epw_ok, "gwbse_branch_ok": bgw_ok,
         "core_eph_chain_ok": qe_ok and epw_ok,
         "binaries": binaries,
-        "note": ("binary-presence check only; no science computed. BerkeleyGW is "
-                 "not on conda-forge — the GW-BSE branch needs the optional source "
-                 "build (BUILD_BERKELEYGW=True); the QE/EPW Γ branch is complete."),
+        "note": ("binary-presence check only; no science computed. GW-BSE branch "
+                 "now uses Yambo (conda-forge, free) instead of the gated BerkeleyGW."),
     }
 
 
@@ -316,6 +316,86 @@ def dfpt():
         print(f"[phase2/dfpt]   {name}: eps_inf={r['eps_inf']['value']} "
               f"Z*={r['Z_born']['value']} omega={r['omega_max_meV']['value']} meV")
     print(f"[phase2/dfpt] polarity test: {res.get('polarity_test')}")
+
+
+# --- Capped GW-BSE cost measurement (Yambo). LAUNCH ONLY ON APPROVAL. ---
+# Hard caps: cpu=16, timeout=21600 (6 h) -> <=96 core-hours -> <= ~$14. If the run
+# does not converge within the cap, it is REJECTED (no number banked). See
+# reports/phase2_gwbse_cost_harness.md for the pre-declared convergence criteria.
+GWBSE_WALL_CAP_S = 21600
+GWBSE_CORES = 16
+
+
+@app.function(image=qe_bgw_image, cpu=GWBSE_CORES, timeout=GWBSE_WALL_CAP_S)
+def gwbse_cost(material: str = "MoS2") -> dict:
+    """Measure the cost of a G0W0+BSE run (Yambo) on monolayer MoS2, under a hard
+    wall-clock cap. Deliverable = cost + convergence status (not the physics number
+    unless every pre-declared criterion passes). Honest: emits 'not_run' for E_b
+    unless the acceptance gates pass within the cap.
+
+    NOTE: first-run Yambo input tuning is required; this records per-stage wall-clock
+    and applies the convergence gates. It never banks an unconverged/failed number.
+    """
+    import subprocess
+    import sys
+    import time
+    sys.path.insert(0, "/root/excitonic/src")
+    from exciton_fm.provenance import not_run
+    from exciton_fm import acceptance as A
+
+    wd = f"/root/gwbse_{material}"
+    os.makedirs(wd, exist_ok=True)
+    env = os.environ.copy()
+    env["OMPI_ALLOW_RUN_AS_ROOT"] = "1"
+    env["OMPI_ALLOW_RUN_AS_ROOT_CONFIRM"] = "1"
+    env["OMPI_MCA_plm_rsh_agent"] = "/usr/local/bin/fake_ssh"
+    env["PRTE_MCA_plm_ssh_agent"] = "/usr/local/bin/fake_ssh"
+
+    stages = {}   # stage -> wall seconds
+    t_start = time.time()
+
+    def stage(name, cmd):
+        t0 = time.time()
+        rc = subprocess.run(cmd, cwd=wd, env=env,
+                            stdout=subprocess.DEVNULL, stderr=subprocess.STDOUT).returncode
+        stages[name] = round(time.time() - t0, 1)
+        return rc
+
+    # The concrete qe(scf/nscf) -> p2y -> yambo(screening,GW) -> yambo(BSE) commands
+    # + input generation are staged here on the approved launch. Structure only:
+    ran_any = False   # flips true once the real staged chain is wired + launched
+
+    total_s = round(time.time() - t_start, 1)
+    core_hours = round(total_s * GWBSE_CORES / 3600, 3)
+    rate_lo, rate_hi = 0.05, 0.15
+    cost = {"total_wall_s": total_s, "cores": GWBSE_CORES, "core_hours": core_hours,
+            "usd_estimate": [round(core_hours * rate_lo, 2), round(core_hours * rate_hi, 2)],
+            "per_stage_s": stages, "wall_cap_s": GWBSE_WALL_CAP_S,
+            "hit_cap": total_s >= GWBSE_WALL_CAP_S * 0.98}
+
+    if not ran_any:
+        return {"material": material, "cost": cost,
+                "E_b": not_run("E_b", "eV",
+                               "gwbse_cost skeleton: staged qe->p2y->yambo chain not "
+                               "yet wired/launched (awaiting approval + first-run tuning)"
+                               ).to_dict(),
+                "convergence": "not_run",
+                "note": "caps enforced; no number banked without the convergence gates."}
+    # On a real run, apply the pre-declared gates before banking E_b:
+    #   A.vacuum_truncation_plateau(...); A.bse_energy_reference(...);
+    #   anchor 0.4<=E_b<=0.7 ; else reject.
+    return {"material": material, "cost": cost}
+
+
+@app.local_entrypoint()
+def gwbse():
+    """Capped GW-BSE cost measurement on Modal (approval-gated). Writes cost manifest."""
+    res = gwbse_cost.remote("MoS2")
+    out = os.path.join(HERE, "data", "manifests", "phase2_gwbse_cost.json")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    with open(out, "w") as fh:
+        json.dump(res, fh, indent=2)
+    print(f"[phase2/gwbse] wrote {out}; cost={res.get('cost')}")
 
 
 @app.local_entrypoint()
