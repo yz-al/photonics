@@ -83,6 +83,60 @@ def run(sota_dec, jepa_enc, te_subs, te_gt, feature_grid, offs, n_short, dev,
         "interior_frac": round(interior_err / max(1, total_err), 4),
     }
 
+    # ---- 1b. routing bound: split errors by SOTA confidence (the missed-20% question) ----
+    # Flag the LEAST-confident edges to catch a target fraction of errors, then ask two
+    # things that bound the whole confidence-routing program:
+    #  - enrichment: error rate inside the flagged set vs the base rate (the miner's value);
+    #  - composition of the MISSED (confident) errors vs FLAGGED errors. If the missed set
+    #    is merge-heavy, a confidence-routed 2nd stage is ERL-capped no matter the head,
+    #    and the lever is the confidence signal itself, not the architecture.
+    e_conf, e_err, e_merge, e_long = [], [], [], []
+    for p, gt_a, val in zip(sota_p, gt_b, valm):
+        pred = (p > 0.5); g = (gt_a > 0.5); v = val > 0
+        idx = np.argwhere(v)
+        if not len(idx):
+            continue
+        k, z, yy, xx = idx[:, 0], idx[:, 1], idx[:, 2], idx[:, 3]
+        pv = pred[k, z, yy, xx]; gv = g[k, z, yy, xx]
+        e_conf.append(np.abs(p[k, z, yy, xx] - 0.5))
+        e_err.append(pv != gv)
+        e_merge.append(pv & ~gv)                      # said same, truly boundary = MERGE error
+        e_long.append(k >= n_short)
+    conf = np.concatenate(e_conf); err = np.concatenate(e_err)
+    mrg = np.concatenate(e_merge); lng = np.concatenate(e_long)
+    routing_bound = {"note": "no errors"}
+    if err.sum() > 0:
+        ec = np.sort(conf[err])                       # error confidences, ascending
+        tau = ec[min(len(ec) - 1, int(0.8 * len(ec)))]   # 80th pct -> flag conf<=tau catches ~80%
+        flagged = conf <= tau
+        n_flag = int(flagged.sum()); n_tot = len(conf)
+        precision = float((err & flagged).sum() / max(1, n_flag))
+        base_rate = float(err.mean())
+
+        def comp(mask):
+            n = int(mask.sum())
+            return {"n": n,
+                    "merge_frac": round(float((mrg & mask).sum() / max(1, n)), 4),
+                    "split_frac": round(float(((~mrg) & mask).sum() / max(1, n)), 4),
+                    "long_frac": round(float((lng & mask).sum() / max(1, n)), 4)}
+        routing_bound = {
+            "target_recall": 0.8,
+            "flag_fraction": round(n_flag / max(1, n_tot), 4),
+            "precision_in_flagged": round(precision, 4),
+            "base_error_rate": round(base_rate, 4),
+            "enrichment_x": round(precision / max(1e-9, base_rate), 2),
+            "achieved_recall": round(float((err & flagged).sum() / max(1, err.sum())), 4),
+            "flagged_errors": comp(err & flagged),
+            "missed_confident_errors": comp(err & ~flagged),
+            "verdict": None,
+        }
+        mf = routing_bound["missed_confident_errors"]["merge_frac"]
+        routing_bound["verdict"] = (
+            "missed (confident) errors are MERGE-heavy -> confidence-routed 2nd stage is ERL-capped; "
+            "lever is the confidence signal, not the context architecture"
+            if mf >= 0.5 else
+            "missed (confident) errors are split-dominated -> routing a 2nd stage can still improve ERL")
+
     # ---- 2. error detector: build per-edge rows ----
     # pick the top-variance JEPA channels once (deterministic, cheap dim reduction)
     allj = np.concatenate([jf.reshape(jf.shape[0], -1) for jf in jfeat], 1)  # (C, Nvox)
@@ -190,6 +244,7 @@ def run(sota_dec, jepa_enc, te_subs, te_gt, feature_grid, offs, n_short, dev,
         "method": "sota edge-case analysis (composition + detector + mechanistic correction)",
         "n_edges_scored": int(len(Y)),
         "error_composition": composition,
+        "routing_bound": routing_bound,
         "error_detector_auc": det,
         "jepa_auc_uplift_over_conf_raw": jepa_uplift,
         "detector_verdict": ("JEPA features predict SOTA errors beyond confidence+raw -> corrector justified"
