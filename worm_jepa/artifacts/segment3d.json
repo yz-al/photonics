@@ -2,15 +2,14 @@
   "device": "cuda",
   "crop": 160,
   "zc": 8,
-  "n_eval": 3,
+  "n_eval": 4,
   "seeds": [
     0,
     1,
     2
   ],
-  "jepa_steps": 5000,
+  "jepa_steps": 600,
   "label_pool": [
-    1,
     16
   ],
   "offsets": {
@@ -82,369 +81,105 @@
     "coarse_drop": 0.5,
     "target_std": true,
     "embedding_std_final_per_seed": [
-      0.9842,
-      0.9332,
-      0.7934
+      0.5224,
+      0.5581,
+      0.4797
     ]
   },
   "label_efficiency": {
     "jepa": {
-      "1": {
-        "affinity_acc": {
-          "mean": 0.8027,
-          "std": 0.0125
-        },
-        "VOI": {
-          "mean": 4.2271,
-          "std": 0.0312
-        },
-        "adapted_rand_error": {
-          "mean": 0.724,
-          "std": 0.0392
-        },
-        "ERL_proxy": {
-          "mean": 2.0358,
-          "std": 1.1295
-        },
-        "n_segments": {
-          "mean": 725.4445,
-          "std": 382.1275
-        }
-      },
       "16": {
         "affinity_acc": {
-          "mean": 0.787,
-          "std": 0.0181
+          "mean": 0.7897,
+          "std": 0.0064
         },
         "VOI": {
-          "mean": 3.4543,
-          "std": 0.1831
+          "mean": 3.8055,
+          "std": 0.2745
         },
         "adapted_rand_error": {
-          "mean": 0.5006,
-          "std": 0.0609
+          "mean": 0.6067,
+          "std": 0.108
         },
         "ERL_proxy": {
-          "mean": 26.9781,
-          "std": 13.1607
+          "mean": 22.1052,
+          "std": 17.4993
         },
         "n_segments": {
-          "mean": 1733.3333,
-          "std": 305.6807
-        }
-      },
-      "sparse500": {
-        "affinity_acc": {
-          "mean": 0.775,
-          "std": 0.0238
-        },
-        "VOI": {
-          "mean": 5.0929,
-          "std": 0.5719
-        },
-        "adapted_rand_error": {
-          "mean": 0.7911,
-          "std": 0.035
-        },
-        "ERL_proxy": {
-          "mean": 4.2685,
-          "std": 2.0329
-        },
-        "n_segments": {
-          "mean": 83.3333,
-          "std": 31.1555
-        }
-      },
-      "sparse5000": {
-        "affinity_acc": {
-          "mean": 0.8089,
-          "std": 0.01
-        },
-        "VOI": {
-          "mean": 4.7482,
-          "std": 0.1072
-        },
-        "adapted_rand_error": {
-          "mean": 0.759,
-          "std": 0.0124
-        },
-        "ERL_proxy": {
-          "mean": 4.1279,
-          "std": 1.499
-        },
-        "n_segments": {
-          "mean": 159.0,
-          "std": 90.5919
+          "mean": 1142.0833,
+          "std": 805.129
         }
       }
     },
     "random": {
-      "1": {
-        "affinity_acc": {
-          "mean": 0.8015,
-          "std": 0.0053
-        },
-        "VOI": {
-          "mean": 3.2905,
-          "std": 0.5614
-        },
-        "adapted_rand_error": {
-          "mean": 0.4808,
-          "std": 0.1479
-        },
-        "ERL_proxy": {
-          "mean": 24.2533,
-          "std": 19.417
-        },
-        "n_segments": {
-          "mean": 1849.4444,
-          "std": 172.2809
-        }
-      },
       "16": {
         "affinity_acc": {
-          "mean": 0.7744,
-          "std": 0.0073
-        },
-        "VOI": {
-          "mean": 2.9911,
-          "std": 0.0955
-        },
-        "adapted_rand_error": {
-          "mean": 0.3598,
-          "std": 0.0126
-        },
-        "ERL_proxy": {
-          "mean": 44.3462,
-          "std": 9.3002
-        },
-        "n_segments": {
-          "mean": 2105.8889,
-          "std": 24.7122
-        }
-      },
-      "sparse500": {
-        "affinity_acc": {
-          "mean": 0.7859,
-          "std": 0.0117
-        },
-        "VOI": {
-          "mean": 5.0437,
-          "std": 0.2393
-        },
-        "adapted_rand_error": {
-          "mean": 0.7761,
-          "std": 0.0117
-        },
-        "ERL_proxy": {
-          "mean": 5.4018,
-          "std": 1.5918
-        },
-        "n_segments": {
-          "mean": 83.3333,
-          "std": 35.221
-        }
-      },
-      "sparse5000": {
-        "affinity_acc": {
-          "mean": 0.7894,
+          "mean": 0.8188,
           "std": 0.0225
         },
         "VOI": {
-          "mean": 4.0528,
-          "std": 0.345
+          "mean": 3.5898,
+          "std": 0.7816
         },
         "adapted_rand_error": {
-          "mean": 0.6959,
-          "std": 0.0514
+          "mean": 0.5818,
+          "std": 0.2163
         },
         "ERL_proxy": {
-          "mean": 6.5097,
-          "std": 5.3838
+          "mean": 34.4899,
+          "std": 47.0209
         },
         "n_segments": {
-          "mean": 885.8889,
-          "std": 26.3823
+          "mean": 663.4167,
+          "std": 931.849
         }
       }
     },
     "raw": {
-      "1": {
-        "affinity_acc": {
-          "mean": 0.8454,
-          "std": 0.0068
-        },
-        "VOI": {
-          "mean": 3.1511,
-          "std": 0.1958
-        },
-        "adapted_rand_error": {
-          "mean": 0.4973,
-          "std": 0.0454
-        },
-        "ERL_proxy": {
-          "mean": 13.7385,
-          "std": 4.7892
-        },
-        "n_segments": {
-          "mean": 1349.0,
-          "std": 112.6117
-        }
-      },
       "16": {
         "affinity_acc": {
-          "mean": 0.8358,
-          "std": 0.0069
+          "mean": 0.8269,
+          "std": 0.0079
         },
         "VOI": {
-          "mean": 2.4628,
-          "std": 0.0504
+          "mean": 2.4701,
+          "std": 0.1637
         },
         "adapted_rand_error": {
-          "mean": 0.346,
-          "std": 0.0296
+          "mean": 0.3649,
+          "std": 0.0534
         },
         "ERL_proxy": {
-          "mean": 80.4436,
-          "std": 5.8846
+          "mean": 87.9638,
+          "std": 6.6768
         },
         "n_segments": {
-          "mean": 1730.8889,
-          "std": 225.1849
-        }
-      },
-      "sparse500": {
-        "affinity_acc": {
-          "mean": 0.8093,
-          "std": 0.0097
-        },
-        "VOI": {
-          "mean": 5.4061,
-          "std": 0.1325
-        },
-        "adapted_rand_error": {
-          "mean": 0.8031,
-          "std": 0.0063
-        },
-        "ERL_proxy": {
-          "mean": 7.4314,
-          "std": 1.309
-        },
-        "n_segments": {
-          "mean": 137.0,
-          "std": 37.3135
-        }
-      },
-      "sparse5000": {
-        "affinity_acc": {
-          "mean": 0.8275,
-          "std": 0.0048
-        },
-        "VOI": {
-          "mean": 4.8853,
-          "std": 0.2646
-        },
-        "adapted_rand_error": {
-          "mean": 0.7785,
-          "std": 0.0088
-        },
-        "ERL_proxy": {
-          "mean": 6.4271,
-          "std": 1.4134
-        },
-        "n_segments": {
-          "mean": 268.4445,
-          "std": 52.5176
+          "mean": 1677.5,
+          "std": 204.9745
         }
       }
     },
     "sota": {
-      "1": {
-        "affinity_acc": {
-          "mean": 0.8617,
-          "std": 0.0052
-        },
-        "VOI": {
-          "mean": 4.3678,
-          "std": 0.1186
-        },
-        "adapted_rand_error": {
-          "mean": 0.7389,
-          "std": 0.0158
-        },
-        "ERL_proxy": {
-          "mean": 8.0106,
-          "std": 1.849
-        },
-        "n_segments": {
-          "mean": 679.4444,
-          "std": 143.2342
-        }
-      },
       "16": {
         "affinity_acc": {
-          "mean": 0.8571,
-          "std": 0.0075
+          "mean": 0.853,
+          "std": 0.0051
         },
         "VOI": {
-          "mean": 2.6629,
-          "std": 0.0964
+          "mean": 2.5983,
+          "std": 0.1273
         },
         "adapted_rand_error": {
-          "mean": 0.3623,
-          "std": 0.0327
+          "mean": 0.3619,
+          "std": 0.0421
         },
         "ERL_proxy": {
-          "mean": 56.3323,
-          "std": 7.4139
+          "mean": 71.4785,
+          "std": 7.7524
         },
         "n_segments": {
-          "mean": 1830.7778,
-          "std": 89.3459
-        }
-      },
-      "sparse500": {
-        "affinity_acc": {
-          "mean": 0.8468,
-          "std": 0.0016
-        },
-        "VOI": {
-          "mean": 3.3482,
-          "std": 0.0745
-        },
-        "adapted_rand_error": {
-          "mean": 0.7276,
-          "std": 0.0172
-        },
-        "ERL_proxy": {
-          "mean": 1.0144,
-          "std": 0.907
-        },
-        "n_segments": {
-          "mean": 138.7778,
-          "std": 33.1219
-        }
-      },
-      "sparse5000": {
-        "affinity_acc": {
-          "mean": 0.8529,
-          "std": 0.0064
-        },
-        "VOI": {
-          "mean": 3.8368,
-          "std": 0.2386
-        },
-        "adapted_rand_error": {
-          "mean": 0.7062,
-          "std": 0.0276
-        },
-        "ERL_proxy": {
-          "mean": 2.322,
-          "std": 1.2907
-        },
-        "n_segments": {
-          "mean": 525.3333,
-          "std": 200.596
+          "mean": 1723.6667,
+          "std": 71.9958
         }
       }
     }
@@ -452,245 +187,103 @@
   "error_set_analysis": {
     "all_offsets": {
       "raw_error_rate": {
-        "mean": 0.1642,
-        "std": 0.0069
+        "mean": 0.1731,
+        "std": 0.0079
       },
       "jepa_recovers": {
-        "mean": 0.3927,
-        "std": 0.0848
+        "mean": 0.4729,
+        "std": 0.0769
       },
       "random_recovers": {
-        "mean": 0.2672,
-        "std": 0.0649
+        "mean": 0.5862,
+        "std": 0.217
       },
       "sota_recovers": {
-        "mean": 0.507,
-        "std": 0.068
+        "mean": 0.5022,
+        "std": 0.0259
       }
     },
     "long_range_merge_edges": {
       "raw_error_rate": {
-        "mean": 0.1795,
-        "std": 0.0096
+        "mean": 0.1904,
+        "std": 0.0069
       },
       "jepa_recovers": {
-        "mean": 0.3928,
-        "std": 0.0884
+        "mean": 0.4859,
+        "std": 0.1066
       },
       "random_recovers": {
-        "mean": 0.2577,
-        "std": 0.0548
+        "mean": 0.5619,
+        "std": 0.2143
       },
       "sota_recovers": {
-        "mean": 0.4854,
-        "std": 0.0734
+        "mean": 0.4794,
+        "std": 0.0239
       }
-    }
-  },
-  "double_black_box": {
-    "method": "double black box (boundary-ablation -> sparse mechanistic distillation)",
-    "feat_dim": 768,
-    "decoder_boundary_bal_acc": 0.7361,
-    "top_channels": [
-      183,
-      199,
-      455,
-      439,
-      363,
-      582,
-      441,
-      508,
-      681,
-      448
-    ],
-    "top_channel_importance": [
-      0.0043,
-      0.0042,
-      0.0031,
-      0.0019,
-      0.0015,
-      0.0014,
-      0.0014,
-      0.0014,
-      0.0013,
-      0.0013
-    ],
-    "importance_mass_top8_frac": 0.1713,
-    "mechanistic_model": {
-      "k4": {
-        "fidelity_bal_acc": 0.6694,
-        "fidelity_auc": 0.7304,
-        "vs_gt_bal_acc": 0.6152,
-        "nonzero_terms": 5
-      },
-      "k8": {
-        "fidelity_bal_acc": 0.7429,
-        "fidelity_auc": 0.8181,
-        "vs_gt_bal_acc": 0.6503,
-        "nonzero_terms": 9
-      },
-      "k16": {
-        "fidelity_bal_acc": 0.7709,
-        "fidelity_auc": 0.8419,
-        "vs_gt_bal_acc": 0.6613,
-        "nonzero_terms": 17
-      },
-      "decoder_boundary_bal_acc": 0.7361,
-      "best_fidelity_bal_acc": 0.7709
     }
   },
   "sota_edge_cases": {
     "method": "sota edge-case analysis (composition + detector + mechanistic correction)",
     "n_edges_scored": 80000,
     "error_composition": {
-      "sota_error_rate": 0.1601,
-      "merge_frac": 0.2357,
-      "split_frac": 0.7643,
-      "short_frac": 0.208,
-      "long_frac": 0.792,
-      "on_membrane_frac": 0.5473,
-      "interior_frac": 0.4527
+      "sota_error_rate": 0.1566,
+      "merge_frac": 0.1554,
+      "split_frac": 0.8446,
+      "short_frac": 0.2034,
+      "long_frac": 0.7966,
+      "on_membrane_frac": 0.4569,
+      "interior_frac": 0.5431
+    },
+    "routing_bound": {
+      "target_recall": 0.8,
+      "flag_fraction": 0.3324,
+      "precision_in_flagged": 0.377,
+      "base_error_rate": 0.1566,
+      "enrichment_x": 2.41,
+      "achieved_recall": 0.8,
+      "flagged_errors": {
+        "n": 1017797,
+        "merge_frac": 0.1435,
+        "split_frac": 0.8565,
+        "long_frac": 0.7802
+      },
+      "missed_confident_errors": {
+        "n": 254448,
+        "merge_frac": 0.2029,
+        "split_frac": 0.7971,
+        "long_frac": 0.8622
+      },
+      "verdict": "missed (confident) errors are split-dominated -> routing a 2nd stage can still improve ERL"
     },
     "error_detector_auc": {
       "conf": {
-        "auc": 0.8509,
-        "bal_acc": 0.7769
+        "auc": 0.8432,
+        "bal_acc": 0.762
       },
       "conf_raw": {
-        "auc": 0.8511,
-        "bal_acc": 0.7771
+        "auc": 0.8431,
+        "bal_acc": 0.7618
       },
       "conf_raw_jepa": {
-        "auc": 0.8617,
-        "bal_acc": 0.7832
+        "auc": 0.8588,
+        "bal_acc": 0.7826
       }
     },
-    "jepa_auc_uplift_over_conf_raw": 0.0106,
+    "jepa_auc_uplift_over_conf_raw": 0.0157,
     "detector_verdict": "JEPA adds little to error prediction -> corrector not yet justified",
     "mechanistic_correction": {
-      "sota_boundary_bal_acc": 0.7801,
-      "mechanistic_boundary_bal_acc": 0.6892,
-      "gated_correction_bal_acc": 0.8066,
+      "sota_boundary_bal_acc": 0.8465,
+      "mechanistic_boundary_bal_acc": 0.7043,
+      "gated_correction_bal_acc": 0.8231,
       "low_conf_frac": 0.3,
-      "on_low_conf_sota_bal_acc": 0.6379,
-      "on_low_conf_mechanistic_bal_acc": 0.5917,
+      "on_low_conf_sota_bal_acc": 0.7078,
+      "on_low_conf_mechanistic_bal_acc": 0.6214,
       "correction_helps": false
     }
   },
-  "beat_sota": {
-    "method": "beat-sota failure-targeted strategies (real VOI/Rand/ERL)",
-    "n_subs": 2,
-    "baseline_sota": {
-      "VOI": 3.0536,
-      "adapted_rand_error": 0.4308,
-      "ERL": 50.0214,
-      "dVOI_vs_sota": 0.0,
-      "dRand_vs_sota": 0.0,
-      "dERL_vs_sota": 0.0
-    },
-    "strategies": {
-      "baseline_sota": {
-        "VOI": 3.0536,
-        "adapted_rand_error": 0.4308,
-        "ERL": 50.0214,
-        "dVOI_vs_sota": 0.0,
-        "dRand_vs_sota": 0.0,
-        "dERL_vs_sota": 0.0
-      },
-      "merge_bias_0.05": {
-        "VOI": 3.4568,
-        "adapted_rand_error": 0.5119,
-        "ERL": 7.3864,
-        "dVOI_vs_sota": 0.4032,
-        "dRand_vs_sota": 0.0811,
-        "dERL_vs_sota": -42.635
-      },
-      "merge_bias_0.1": {
-        "VOI": 3.9967,
-        "adapted_rand_error": 0.7032,
-        "ERL": 2.2344,
-        "dVOI_vs_sota": 0.9431,
-        "dRand_vs_sota": 0.2724,
-        "dERL_vs_sota": -47.787
-      },
-      "merge_bias_0.2": {
-        "VOI": 4.1632,
-        "adapted_rand_error": 0.7623,
-        "ERL": 1.9727,
-        "dVOI_vs_sota": 1.1096,
-        "dRand_vs_sota": 0.3315,
-        "dERL_vs_sota": -48.0487
-      },
-      "ens_sota_jepa": {
-        "VOI": 2.9853,
-        "adapted_rand_error": 0.4377,
-        "ERL": 50.8895,
-        "dVOI_vs_sota": -0.0683,
-        "dRand_vs_sota": 0.0069,
-        "dERL_vs_sota": 0.8681
-      },
-      "ens_sota_raw": {
-        "VOI": 3.0343,
-        "adapted_rand_error": 0.4267,
-        "ERL": 50.7703,
-        "dVOI_vs_sota": -0.0193,
-        "dRand_vs_sota": -0.0041,
-        "dERL_vs_sota": 0.7489
-      },
-      "longrange_from_jepa": {
-        "VOI": 3.1493,
-        "adapted_rand_error": 0.4906,
-        "ERL": 22.4985,
-        "dVOI_vs_sota": 0.0957,
-        "dRand_vs_sota": 0.0598,
-        "dERL_vs_sota": -27.5229
-      },
-      "mamba_alone": {
-        "VOI": 4.1483,
-        "adapted_rand_error": 0.4527,
-        "ERL": 40.6963,
-        "dVOI_vs_sota": 1.0947,
-        "dRand_vs_sota": 0.0219,
-        "dERL_vs_sota": -9.3251
-      },
-      "longrange_from_mamba": {
-        "VOI": 3.0393,
-        "adapted_rand_error": 0.4631,
-        "ERL": 50.0326,
-        "dVOI_vs_sota": -0.0143,
-        "dRand_vs_sota": 0.0323,
-        "dERL_vs_sota": 0.0112
-      },
-      "ens_sota_mamba": {
-        "VOI": 2.9836,
-        "adapted_rand_error": 0.431,
-        "ERL": 50.2132,
-        "dVOI_vs_sota": -0.07,
-        "dRand_vs_sota": 0.0002,
-        "dERL_vs_sota": 0.1918
-      }
-    },
-    "best_by_voi": {
-      "name": "ens_sota_mamba",
-      "VOI": 2.9836,
-      "ERL": 50.2132
-    },
-    "best_by_erl": {
-      "name": "ens_sota_jepa",
-      "ERL": 50.8895,
-      "VOI": 2.9853
-    },
-    "safe_best": {
-      "name": "ens_sota_raw",
-      "VOI": 3.0343,
-      "adapted_rand_error": 0.4267,
-      "ERL": 50.7703
-    },
-    "verdict": "ens_sota_raw beats SOTA without a merge tradeoff"
-  },
   "jepa_analysis_seed": {
-    "index": 0,
-    "std_final": 0.9842,
-    "seed": 0
+    "index": 1,
+    "std_final": 0.5581,
+    "seed": 1
   }
 }
