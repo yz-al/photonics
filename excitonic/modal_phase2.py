@@ -488,8 +488,12 @@ def gamma2d():
 # generous cap lets it CONVERGE instead of reject-on-cost. See
 # reports/phase2_gwbse_cost_harness.md for the pre-declared convergence criteria.
 GWBSE_CORES = 48
-GWBSE_WALL_CAP_S = 72000                 # 20 h hard wall-clock cap
-GWBSE_SPEND_CEILING_USD = 400            # hard $ ceiling (target ~$300)
+# Pre-committed spend CHECKPOINT = the wall cap: 36 h × 48 cores = 1728 core-hours
+# ≈ $173 (at $0.10) to $259 (at $0.15). If the run hits this without a convergence
+# signal it is KILLED and reviewed, not ridden to the ceiling — the fix for the
+# sunk-cost trap. Expected ACTUAL is ~$50-150 (500-1500 core-hours), well inside it.
+GWBSE_WALL_CAP_S = 129600                # 36 h hard wall-clock cap (~$250 checkpoint)
+GWBSE_SPEND_CEILING_USD = 400            # backstop $ ceiling (rarely binds; wall cap first)
 GWBSE_RATE_USD_PER_CORE_HR = 0.15        # conservative Modal CPU rate for the ceiling
 
 
@@ -502,7 +506,7 @@ GWBSE_PARAMS = {
 
 
 @app.function(image=qe_bgw_image, cpu=GWBSE_CORES, timeout=GWBSE_WALL_CAP_S)
-def gwbse_cost(material: str = "MoS2", mode: str = "debug") -> dict:
+def gwbse_cost(material: str = "MoS2", mode: str = "debug", vacuum: float = 10.0) -> dict:
     """Real G0W0+BSE (Yambo) on monolayer MoS2 with 2D Coulomb truncation, under a
     hard wall-clock cap. Chain: pw.x scf -> pw.x nscf(+bands) -> p2y -> yambo setup
     -> yambo GW -> yambo BSE -> parse E_b. Records per-stage wall-clock + cost.
@@ -520,7 +524,7 @@ def gwbse_cost(material: str = "MoS2", mode: str = "debug") -> dict:
     from exciton_fm.pseudos import stage_pseudos, pseudo_filename, recommended_cutoffs
 
     p = GWBSE_PARAMS[mode]
-    wd = f"/root/gwbse_{material}_{mode}"
+    wd = f"/root/gwbse_{material}_{mode}_v{int(vacuum)}"
     os.makedirs(os.path.join(wd, "pseudo"), exist_ok=True)
     env = os.environ.copy()
     env["OMP_NUM_THREADS"] = "1"
@@ -542,7 +546,7 @@ def gwbse_cost(material: str = "MoS2", mode: str = "debug") -> dict:
 
     # --- structure + QE scf/nscf (MoS2 monolayer, 2D) ---
     m, x, a, th = TMDS["MoS2"]
-    atoms = mx2(formula="MoS2", kind="2H", a=a, thickness=th, vacuum=10.0)
+    atoms = mx2(formula="MoS2", kind="2H", a=a, thickness=th, vacuum=vacuum)
     atoms.pbc = (True, True, True)
     stage_pseudos([m, x], os.path.join(wd, "pseudo"))
     ecw, ecr = recommended_cutoffs([m, x])
@@ -697,14 +701,45 @@ BSENGBlk= {p['ng_x']}    Ry
 
 @app.local_entrypoint()
 def gwbse(mode: str = "debug"):
-    """Capped GW-BSE cost measurement on Modal. mode='debug' (cheap first) then
-    'production' (the ~$300 converged run). Writes cost manifest."""
-    res = gwbse_cost.remote("MoS2", mode)
+    """Capped GW-BSE on Modal.
+
+    debug: run MoS2 at TWO vacuum spacings (10 & 16 Å) with the same (cheap) params
+      and VERIFY 2D Coulomb truncation is actually engaged — E_b must PLATEAU
+      (agree within ~5%), not climb. Also check magnitude (~hundreds of meV) and
+      E_b>0 (lowest exciton below the GW gap). Reading the CUTGeo flag is not
+      verification; this is. Cheap (~$2-4).
+    production: the ~$300 converged run (single converged vacuum), launched ONLY
+      after (a) the TMD sweep gate passes and (b) debug verified truncation.
+    """
+    if mode == "debug":
+        r10, r16 = gwbse_cost.remote("MoS2", "debug", 10.0), None
+        r16 = gwbse_cost.remote("MoS2", "debug", 16.0)
+        eb10 = r10["E_b"]["value"]; eb16 = r16["E_b"]["value"]
+        verdict = {"E_b_vac10_eV": eb10, "E_b_vac16_eV": eb16}
+        if eb10 and eb16:
+            drift = abs(eb16 - eb10) / abs(eb10)
+            verdict.update({
+                "vacuum_drift_frac": round(drift, 4),
+                "truncation_engaged (plateau <5%)": bool(drift < 0.05),
+                "magnitude_sane (0.3-0.8 eV)": bool(all(0.3 <= e <= 0.8 for e in (eb10, eb16))),
+                "E_b_positive (exciton below GW gap)": bool(eb10 > 0 and eb16 > 0),
+            })
+            verdict["debug_pass"] = bool(verdict.get("truncation_engaged (plateau <5%)")
+                                         and verdict["magnitude_sane (0.3-0.8 eV)"]
+                                         and verdict["E_b_positive (exciton below GW gap)"])
+        else:
+            verdict["debug_pass"] = False
+            verdict["reason"] = "Yambo chain did not return E_b at both vacua (needs input tuning)"
+        res = {"mode": "debug", "vac10": r10, "vac16": r16, "verdict": verdict}
+        print(f"[phase2/gwbse] DEBUG verdict: {verdict}")
+    else:
+        res = gwbse_cost.remote("MoS2", "production", 16.0)
+        print(f"[phase2/gwbse] PRODUCTION E_b={res['E_b']['value']} cost={res['cost']['usd_estimate']}")
     out = os.path.join(HERE, "data", "manifests", f"phase2_gwbse_{mode}.json")
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w") as fh:
         json.dump(res, fh, indent=2)
-    print(f"[phase2/gwbse] wrote {out}; E_b={res['E_b']['value']} cost={res['cost']['usd_estimate']}")
+    print(f"[phase2/gwbse] wrote {out}")
 
 
 @app.local_entrypoint()

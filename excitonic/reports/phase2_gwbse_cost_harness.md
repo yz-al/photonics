@@ -62,6 +62,24 @@ energy than both intralayer excitons AND far weaker in oscillator strength.
 - Extrapolation: measured per-atom cost × {heterostructure size, seed-set size} →
   the feasibility verdict for any fan-out (feeds `phase2_cost_plan.md`).
 
+## Truncation verification (not the flag — the plateau)
+
+The single most common way 2D exciton bindings come out wrong is Coulomb truncation
+silently not engaging. Reading `CUTGeo="slab z"` in the input is **not** verification.
+The **debug** run therefore computes MoS₂ E_b at **two vacuum spacings (10 & 16 Å)**
+with identical params and requires the binding to **plateau** (agree within ~5%),
+not climb. It also checks the magnitude is **hundreds of meV** (a debug E_b of 50 meV
+or 3 eV means the chain is wrong in a way more cores won't fix) and that E_b > 0
+(lowest exciton sits below the GW gap). **Production does not launch until debug
+passes all three.**
+
+## Pre-committed spend checkpoint (no sunk-cost ride)
+
+Expected actual is ~$50–150 against a $400 backstop — a wide gap. The **wall-clock
+cap is set to the checkpoint**: 36 h × 48 cores ≈ **$250**. If the run reaches it
+with no convergence signal, it is **killed and reviewed**, not ridden to the
+ceiling. Decided now, in advance, so it isn't decided badly under sunk cost.
+
 ## Gate before launch
 
 - [x] Container MPI fixed (fake-ssh) — QE runs multi-rank.
