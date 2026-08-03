@@ -579,6 +579,28 @@ def gwbse_cost(material: str = "MoS2", mode: str = "debug", vacuum: float = 10.0
         stages[name] = round(time.time() - t0, 1)
         return rc
 
+    def _tail(fn, n=30):
+        try:
+            return "\n".join(open(os.path.join(wd, fn)).read().splitlines()[-n:])
+        except OSError:
+            return "(no file)"
+
+    def _fail(stage, note, extra=None):
+        # Always return the full result shape (E_b not_run) + diagnostics, so the
+        # entrypoint never crashes blind and the ACTUAL error tail lands in the
+        # manifest. The Yambo chain is being debugged; failures must be legible.
+        diag = {"ok": False, "stage_failed": stage, "note": note,
+                "per_stage_s": dict(stages), "vacuum": vacuum,
+                "scf_tail": _tail("scf.out"), "nscf_tail": _tail("nscf.out")}
+        if extra:
+            diag.update(extra)
+        print(f"[phase2/gwbse] ABORT at {stage}: {note} | stages={stages}")
+        return {"material": material, "mode": mode,
+                "cost": {"per_stage_s": dict(stages), "note": f"aborted at {stage}"},
+                "gw_gap_eV": None, "exciton_eV": None,
+                "E_b": not_run("E_b", "eV", f"{stage}: {note}").to_dict(),
+                "report_tail": "", "error": diag}
+
     # --- structure + QE scf/nscf (MoS2 monolayer, 2D) ---
     m, x, a, th = TMDS["MoS2"]
     atoms = mx2(formula="MoS2", kind="2H", a=a, thickness=th, vacuum=vacuum)
@@ -623,17 +645,32 @@ K_POINTS automatic
  {k[0]} {k[1]} {k[2]} 0 0 0
 """
         open(os.path.join(wd, fn), "w").write(body)
-    POOL = ["-nk", str(min(GWBSE_CORES, k[0] * k[1]))]
+    # npool MUST divide nproc (QE aborts otherwise: 48 % 36 ≠ 0 killed the first
+    # debug in 42 s) and be ≤ the #k-points. Pick the largest divisor of the core
+    # count that fits the k-mesh.
+    nk = k[0] * k[1] * k[2]
+    npool = max(d for d in range(1, GWBSE_CORES + 1)
+                if GWBSE_CORES % d == 0 and d <= nk)
+    POOL = ["-nk", str(npool)]
     rc = sh("scf", MPI + ["pw.x"] + POOL, infile="scf.in", outfile="scf.out")
     rc |= sh("nscf", MPI + ["pw.x"] + POOL, infile="nscf.in", outfile="nscf.out")
 
-    # --- p2y (QE -> Yambo SAVE) + yambo setup ---
+    # Guard: QE must have produced the SAVE before p2y (don't blind-cd into a
+    # missing dir). If not, return the scf/nscf tails so we can see WHY.
     save_dir = os.path.join(wd, "out", "mos2.save")
+    if rc != 0 or not os.path.isdir(save_dir):
+        return _fail("qe_scf_nscf",
+                     f"QE rc={rc}, save_exists={os.path.isdir(save_dir)}, npool={npool}")
+
+    # --- p2y (QE -> Yambo SAVE) + yambo setup ---
     rc |= sh("p2y", ["p2y"], cwd=save_dir)
     # move SAVE up to the yambo working dir
     ydir = os.path.join(wd, "yambo")
     os.makedirs(ydir, exist_ok=True)
     subprocess.run(["bash", "-c", f"cp -r {save_dir}/SAVE {ydir}/ 2>/dev/null || true"])
+    if not os.path.isdir(os.path.join(ydir, "SAVE")):
+        return _fail("p2y", "no SAVE in yambo dir after p2y",
+                     {"save_ls": os.listdir(save_dir) if os.path.isdir(save_dir) else []})
     rc |= sh("y_setup", ["yambo"], cwd=ydir)
 
     # --- GW input (2D truncation 'slab z') + run ---
@@ -687,7 +724,7 @@ BSENGBlk= {p['ng_x']}    Ry
         except OSError:
             return ""
     reports = "\n".join(_read(os.path.join(ydir, f)) for f in os.listdir(ydir)
-                        if f.startswith("r-")) if os.path.isdir(ydir) else ""
+                        if f.startswith(("r-", "l-"))) if os.path.isdir(ydir) else ""
     # exciton energies: yambo writes o-BSE.exc_qpt1_E_sorted (col 1 = energy eV)
     exc = ""
     for f in (os.listdir(ydir) if os.path.isdir(ydir) else []):
