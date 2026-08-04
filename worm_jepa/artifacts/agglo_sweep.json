@@ -1,0 +1,438 @@
+{
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "results": [
+    {
+      "seed": 0,
+      "merge_bias_sweep": {
+        "bias_-0.5": {
+          "best": "multicut_affinity",
+          "VOI": 2.3802,
+          "VOI_merge": 0.6895,
+          "VOI_split": 1.6907,
+          "adapted_rand_error": 0.4785,
+          "ERL": 92.4447,
+          "cremi": 1.0672,
+          "error_types": {
+            "mws": {
+              "n_gt_neurons": 65,
+              "split_errors": 25,
+              "merge_errors": 1549,
+              "split_error_rate": 0.385
+            },
+            "multicut_affinity": {
+              "n_gt_neurons": 65,
+              "split_errors": 24,
+              "merge_errors": 19,
+              "split_error_rate": 0.369
+            }
+          }
+        },
+        "bias_0.0": {
+          "best": "multicut_affinity_lsd_jepa",
+          "VOI": 2.3554,
+          "VOI_merge": 0.662,
+          "VOI_split": 1.6934,
+          "adapted_rand_error": 0.4777,
+          "ERL": 91.9446,
+          "cremi": 1.0607,
+          "error_types": {
+            "mws": {
+              "n_gt_neurons": 65,
+              "split_errors": 25,
+              "merge_errors": 1549,
+              "split_error_rate": 0.385
+            },
+            "multicut_affinity_lsd_jepa": {
+              "n_gt_neurons": 65,
+              "split_errors": 24,
+              "merge_errors": 16,
+              "split_error_rate": 0.369
+            }
+          }
+        },
+        "bias_0.5": {
+          "best": "multicut_affinity_lsd_jepa",
+          "VOI": 2.3406,
+          "VOI_merge": 0.6378,
+          "VOI_split": 1.7028,
+          "adapted_rand_error": 0.4751,
+          "ERL": 85.8857,
+          "cremi": 1.0545,
+          "error_types": {
+            "mws": {
+              "n_gt_neurons": 65,
+              "split_errors": 25,
+              "merge_errors": 1549,
+              "split_error_rate": 0.385
+            },
+            "multicut_affinity_lsd_jepa": {
+              "n_gt_neurons": 65,
+              "split_errors": 24,
+              "merge_errors": 14,
+              "split_error_rate": 0.369
+            }
+          }
+        },
+        "bias_1.0": {
+          "best": "multicut_affinity_lsd_jepa",
+          "VOI": 2.346,
+          "VOI_merge": 0.6102,
+          "VOI_split": 1.7358,
+          "adapted_rand_error": 0.4821,
+          "ERL": 85.7216,
+          "cremi": 1.0635,
+          "error_types": {
+            "mws": {
+              "n_gt_neurons": 65,
+              "split_errors": 25,
+              "merge_errors": 1549,
+              "split_error_rate": 0.385
+            },
+            "multicut_affinity_lsd_jepa": {
+              "n_gt_neurons": 65,
+              "split_errors": 23,
+              "merge_errors": 14,
+              "split_error_rate": 0.354
+            }
+          }
+        },
+        "bias_1.5": {
+          "best": "multicut_affinity_lsd_jepa",
+          "VOI": 2.3474,
+          "VOI_merge": 0.5687,
+          "VOI_split": 1.7788,
+          "adapted_rand_error": 0.4809,
+          "ERL": 85.7216,
+          "cremi": 1.0625,
+          "error_types": {
+            "mws": {
+              "n_gt_neurons": 65,
+              "split_errors": 25,
+              "merge_errors": 1549,
+              "split_error_rate": 0.385
+            },
+            "multicut_affinity_lsd_jepa": {
+              "n_gt_neurons": 65,
+              "split_errors": 23,
+              "merge_errors": 12,
+              "split_error_rate": 0.354
+            }
+          }
+        },
+        "bias_2.0": {
+          "best": "multicut_affinity_lsd_jepa",
+          "VOI": 2.3965,
+          "VOI_merge": 0.5093,
+          "VOI_split": 1.8873,
+          "adapted_rand_error": 0.523,
+          "ERL": 74.1698,
+          "cremi": 1.1195,
+          "error_types": {
+            "mws": {
+              "n_gt_neurons": 65,
+              "split_errors": 25,
+              "merge_errors": 1549,
+              "split_error_rate": 0.385
+            },
+            "multicut_affinity_lsd_jepa": {
+              "n_gt_neurons": 65,
+              "split_errors": 20,
+              "merge_errors": 10,
+              "split_error_rate": 0.308
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 1,
+      "merge_bias_sweep": {
+        "bias_-0.5": {
+          "best": "multicut_affinity_lsd_jepa",
+          "VOI": 2.207,
+          "VOI_merge": 1.11,
+          "VOI_split": 1.097,
+          "adapted_rand_error": 0.3697,
+          "ERL": 69.4301,
+          "cremi": 0.9033,
+          "error_types": {
+            "mws": {
+              "n_gt_neurons": 65,
+              "split_errors": 26,
+              "merge_errors": 1835,
+              "split_error_rate": 0.4
+            },
+            "multicut_affinity_lsd_jepa": {
+              "n_gt_neurons": 65,
+              "split_errors": 28,
+              "merge_errors": 35,
+              "split_error_rate": 0.431
+            }
+          }
+        },
+        "bias_0.0": {
+          "best": "multicut_affinity_lsd_jepa",
+          "VOI": 2.1811,
+          "VOI_merge": 1.0526,
+          "VOI_split": 1.1285,
+          "adapted_rand_error": 0.3684,
+          "ERL": 69.5164,
+          "cremi": 0.8964,
+          "error_types": {
+            "mws": {
+              "n_gt_neurons": 65,
+              "split_errors": 26,
+              "merge_errors": 1835,
+              "split_error_rate": 0.4
+            },
+            "multicut_affinity_lsd_jepa": {
+              "n_gt_neurons": 65,
+              "split_errors": 27,
+              "merge_errors": 27,
+              "split_error_rate": 0.415
+            }
+          }
+        },
+        "bias_0.5": {
+          "best": "multicut_affinity_lsd_jepa",
+          "VOI": 2.1426,
+          "VOI_merge": 1.0046,
+          "VOI_split": 1.138,
+          "adapted_rand_error": 0.3672,
+          "ERL": 70.3671,
+          "cremi": 0.887,
+          "error_types": {
+            "mws": {
+              "n_gt_neurons": 65,
+              "split_errors": 26,
+              "merge_errors": 1835,
+              "split_error_rate": 0.4
+            },
+            "multicut_affinity_lsd_jepa": {
+              "n_gt_neurons": 65,
+              "split_errors": 25,
+              "merge_errors": 22,
+              "split_error_rate": 0.385
+            }
+          }
+        },
+        "bias_1.0": {
+          "best": "multicut_affinity_lsd_jepa",
+          "VOI": 2.0949,
+          "VOI_merge": 0.948,
+          "VOI_split": 1.147,
+          "adapted_rand_error": 0.365,
+          "ERL": 66.0716,
+          "cremi": 0.8744,
+          "error_types": {
+            "mws": {
+              "n_gt_neurons": 65,
+              "split_errors": 26,
+              "merge_errors": 1835,
+              "split_error_rate": 0.4
+            },
+            "multicut_affinity_lsd_jepa": {
+              "n_gt_neurons": 65,
+              "split_errors": 25,
+              "merge_errors": 17,
+              "split_error_rate": 0.385
+            }
+          }
+        },
+        "bias_1.5": {
+          "best": "multicut_affinity_lsd_jepa",
+          "VOI": 2.082,
+          "VOI_merge": 0.8924,
+          "VOI_split": 1.1896,
+          "adapted_rand_error": 0.3636,
+          "ERL": 66.6028,
+          "cremi": 0.8701,
+          "error_types": {
+            "mws": {
+              "n_gt_neurons": 65,
+              "split_errors": 26,
+              "merge_errors": 1835,
+              "split_error_rate": 0.4
+            },
+            "multicut_affinity_lsd_jepa": {
+              "n_gt_neurons": 65,
+              "split_errors": 24,
+              "merge_errors": 14,
+              "split_error_rate": 0.369
+            }
+          }
+        },
+        "bias_2.0": {
+          "best": "multicut_affinity_lsd_jepa",
+          "VOI": 2.028,
+          "VOI_merge": 0.8388,
+          "VOI_split": 1.1893,
+          "adapted_rand_error": 0.3561,
+          "ERL": 69.5039,
+          "cremi": 0.8498,
+          "error_types": {
+            "mws": {
+              "n_gt_neurons": 65,
+              "split_errors": 26,
+              "merge_errors": 1835,
+              "split_error_rate": 0.4
+            },
+            "multicut_affinity_lsd_jepa": {
+              "n_gt_neurons": 65,
+              "split_errors": 24,
+              "merge_errors": 14,
+              "split_error_rate": 0.369
+            }
+          }
+        }
+      }
+    },
+    {
+      "seed": 2,
+      "merge_bias_sweep": {
+        "bias_-0.5": {
+          "best": "multicut_affinity",
+          "VOI": 1.8999,
+          "VOI_merge": 0.9996,
+          "VOI_split": 0.9003,
+          "adapted_rand_error": 0.3252,
+          "ERL": 47.947,
+          "cremi": 0.786,
+          "error_types": {
+            "mws": {
+              "n_gt_neurons": 65,
+              "split_errors": 28,
+              "merge_errors": 1720,
+              "split_error_rate": 0.431
+            },
+            "multicut_affinity": {
+              "n_gt_neurons": 65,
+              "split_errors": 29,
+              "merge_errors": 31,
+              "split_error_rate": 0.446
+            }
+          }
+        },
+        "bias_0.0": {
+          "best": "multicut_affinity",
+          "VOI": 1.9015,
+          "VOI_merge": 0.9691,
+          "VOI_split": 0.9323,
+          "adapted_rand_error": 0.3281,
+          "ERL": 48.3005,
+          "cremi": 0.7899,
+          "error_types": {
+            "mws": {
+              "n_gt_neurons": 65,
+              "split_errors": 28,
+              "merge_errors": 1720,
+              "split_error_rate": 0.431
+            },
+            "multicut_affinity": {
+              "n_gt_neurons": 65,
+              "split_errors": 29,
+              "merge_errors": 26,
+              "split_error_rate": 0.446
+            }
+          }
+        },
+        "bias_0.5": {
+          "best": "multicut_affinity",
+          "VOI": 1.8583,
+          "VOI_merge": 0.9236,
+          "VOI_split": 0.9347,
+          "adapted_rand_error": 0.3245,
+          "ERL": 48.809,
+          "cremi": 0.7765,
+          "error_types": {
+            "mws": {
+              "n_gt_neurons": 65,
+              "split_errors": 28,
+              "merge_errors": 1720,
+              "split_error_rate": 0.431
+            },
+            "multicut_affinity": {
+              "n_gt_neurons": 65,
+              "split_errors": 29,
+              "merge_errors": 24,
+              "split_error_rate": 0.446
+            }
+          }
+        },
+        "bias_1.0": {
+          "best": "multicut_affinity_lsd_jepa",
+          "VOI": 1.788,
+          "VOI_merge": 0.8254,
+          "VOI_split": 0.9626,
+          "adapted_rand_error": 0.314,
+          "ERL": 43.834,
+          "cremi": 0.7493,
+          "error_types": {
+            "mws": {
+              "n_gt_neurons": 65,
+              "split_errors": 28,
+              "merge_errors": 1720,
+              "split_error_rate": 0.431
+            },
+            "multicut_affinity_lsd_jepa": {
+              "n_gt_neurons": 65,
+              "split_errors": 26,
+              "merge_errors": 19,
+              "split_error_rate": 0.4
+            }
+          }
+        },
+        "bias_1.5": {
+          "best": "multicut_affinity",
+          "VOI": 1.7855,
+          "VOI_merge": 0.7908,
+          "VOI_split": 0.9947,
+          "adapted_rand_error": 0.3173,
+          "ERL": 28.8363,
+          "cremi": 0.7527,
+          "error_types": {
+            "mws": {
+              "n_gt_neurons": 65,
+              "split_errors": 28,
+              "merge_errors": 1720,
+              "split_error_rate": 0.431
+            },
+            "multicut_affinity": {
+              "n_gt_neurons": 65,
+              "split_errors": 28,
+              "merge_errors": 18,
+              "split_error_rate": 0.431
+            }
+          }
+        },
+        "bias_2.0": {
+          "best": "multicut_affinity_lsd_jepa",
+          "VOI": 1.8287,
+          "VOI_merge": 0.7656,
+          "VOI_split": 1.063,
+          "adapted_rand_error": 0.3274,
+          "ERL": 43.2772,
+          "cremi": 0.7738,
+          "error_types": {
+            "mws": {
+              "n_gt_neurons": 65,
+              "split_errors": 28,
+              "merge_errors": 1720,
+              "split_error_rate": 0.431
+            },
+            "multicut_affinity_lsd_jepa": {
+              "n_gt_neurons": 65,
+              "split_errors": 26,
+              "merge_errors": 14,
+              "split_error_rate": 0.4
+            }
+          }
+        }
+      }
+    }
+  ]
+}
