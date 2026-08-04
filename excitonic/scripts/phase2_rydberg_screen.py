@@ -46,6 +46,11 @@ def main() -> int:
     survivors = [m for m in mats if m["E_n2_eV"] >= RT_THRESHOLD_eV]
     survivors.sort(key=lambda m: -m["E1_eV"])
     nonmag = [m for m in survivors if not m["is_magnetic"]]
+    # Character filter: the hydrogenic (n−½)² series is a WANNIER-Mott result. E_b>1 eV
+    # (esp. magnetic d-electron halides/oxides) is Frenkel/charge-transfer, where E_2=E_1/9
+    # is invalid. Wannier-plausible = E_b<1 eV AND non-magnetic.
+    wannier_surv = [m for m in survivors if m["E1_eV"] < 1.0 and not m["is_magnetic"]]
+    frenkel_like = [m for m in survivors if m["E1_eV"] > 1.5]
 
     manifest = {
         "question": "Is the Rydberg (n≥2) route — which raises U with no spatial-extent "
@@ -53,16 +58,18 @@ def main() -> int:
         "series": "2D hydrogenic E_n=Ry/(n−½)²; E_2=E_1/9",
         "rt_threshold_eV": RT_THRESHOLD_eV,
         "n_total": len(mats),
-        "n_with_n2_above_RT": len(survivors),
-        "n_with_n2_above_RT_nonmagnetic": len(nonmag),
-        "top_candidates": survivors[:12],
-        "top_nonmagnetic": nonmag[:12],
-        "finding": (f"{len(survivors)}/{len(mats)} C2DB materials have an n=2 binding above "
-                    f"{RT_THRESHOLD_eV} eV — the Rydberg escape is NOT empty. But only "
-                    f"{len(nonmag)} are non-magnetic; most high-E_b hits are magnetic "
-                    "d-electron halides/oxides whose lowest exciton may be Frenkel/CT, not "
-                    "hydrogenic-Rydberg. So this is an UPPER BOUND on the route, a follow-up "
-                    "flag (verify Rydberg character + measure U(n) via BSE), not a result."),
+        "n_with_n2_above_RT_naive": len(survivors),
+        "n_frenkel_like_Eb_gt_1p5eV": len(frenkel_like),
+        "n_wannier_plausible_survivors": len(wannier_surv),
+        "top_wannier_survivors": wannier_surv[:12],
+        "finding": (f"NAIVE: {len(survivors)}/{len(mats)} have n=2 (E_1/9) above "
+                    f"{RT_THRESHOLD_eV} eV. But {len(frenkel_like)} of those have E_b>1.5 eV "
+                    "= Frenkel/charge-transfer (d-electron halides/oxides), where the "
+                    "hydrogenic (n−½)² series is INVALID. Restricting to WANNIER-plausible "
+                    f"(E_b<1 eV, non-magnetic) leaves only {len(wannier_surv)} — all at the "
+                    "Wannier/Frenkel edge (E_b≈0.95-1.0 eV → n=2 barely at 0.10-0.11 eV). "
+                    "VERDICT: the Rydberg escape mostly CLOSES on character inspection; it is "
+                    "not a robust open door, just a few marginal cases worth a BSE check."),
     }
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, "w") as fh:

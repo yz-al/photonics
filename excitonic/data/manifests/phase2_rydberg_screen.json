@@ -3,179 +3,94 @@
   "series": "2D hydrogenic E_n=Ry/(n\u2212\u00bd)\u00b2; E_2=E_1/9",
   "rt_threshold_eV": 0.1,
   "n_total": 370,
-  "n_with_n2_above_RT": 158,
-  "n_with_n2_above_RT_nonmagnetic": 143,
-  "top_candidates": [
+  "n_with_n2_above_RT_naive": 158,
+  "n_frenkel_like_Eb_gt_1p5eV": 75,
+  "n_wannier_plausible_survivors": 26,
+  "top_wannier_survivors": [
     {
-      "formula": "VCl2",
-      "E1_eV": 3.827,
-      "E_n2_eV": 0.42522222222222217,
-      "is_magnetic": true,
-      "gap_eV": "1.354"
-    },
-    {
-      "formula": "ScO2",
-      "E1_eV": 3.81,
-      "E_n2_eV": 0.42333333333333334,
-      "is_magnetic": true,
-      "gap_eV": "1.464"
-    },
-    {
-      "formula": "VBrCl",
-      "E1_eV": 3.585,
-      "E_n2_eV": 0.3983333333333333,
-      "is_magnetic": true,
-      "gap_eV": "1.289"
-    },
-    {
-      "formula": "NiCl2",
-      "E1_eV": 3.35,
-      "E_n2_eV": 0.37222222222222223,
-      "is_magnetic": true,
-      "gap_eV": "1.219"
-    },
-    {
-      "formula": "VBr2",
-      "E1_eV": 3.292,
-      "E_n2_eV": 0.36577777777777776,
-      "is_magnetic": true,
-      "gap_eV": "1.252"
-    },
-    {
-      "formula": "VICl",
-      "E1_eV": 3.14,
-      "E_n2_eV": 0.34888888888888886,
-      "is_magnetic": true,
-      "gap_eV": "1.100"
-    },
-    {
-      "formula": "VIBr",
-      "E1_eV": 2.937,
-      "E_n2_eV": 0.3263333333333333,
-      "is_magnetic": true,
-      "gap_eV": "1.188"
-    },
-    {
-      "formula": "SrCl2",
-      "E1_eV": 2.631,
-      "E_n2_eV": 0.2923333333333333,
+      "formula": "RuI2",
+      "E1_eV": 0.994,
+      "E_n2_eV": 0.11044444444444444,
       "is_magnetic": false,
-      "gap_eV": "4.944"
+      "gap_eV": "1.022"
     },
     {
-      "formula": "CaCl2",
-      "E1_eV": 2.603,
-      "E_n2_eV": 0.2892222222222222,
+      "formula": "Pt2S4",
+      "E1_eV": 0.986,
+      "E_n2_eV": 0.10955555555555554,
       "is_magnetic": false,
-      "gap_eV": "4.771"
+      "gap_eV": "1.802"
     },
     {
-      "formula": "BaCl2",
-      "E1_eV": 2.588,
-      "E_n2_eV": 0.28755555555555556,
+      "formula": "HgI2",
+      "E1_eV": 0.98,
+      "E_n2_eV": 0.10888888888888888,
       "is_magnetic": false,
-      "gap_eV": "4.747"
+      "gap_eV": "1.199"
     },
     {
-      "formula": "K2Cl2",
-      "E1_eV": 2.573,
-      "E_n2_eV": 0.28588888888888886,
+      "formula": "TiS2",
+      "E1_eV": 0.977,
+      "E_n2_eV": 0.10855555555555554,
       "is_magnetic": false,
-      "gap_eV": "4.882"
+      "gap_eV": "0.734"
     },
     {
-      "formula": "VI2",
-      "E1_eV": 2.566,
-      "E_n2_eV": 0.2851111111111111,
-      "is_magnetic": true,
-      "gap_eV": "1.202"
+      "formula": "ZrSeS",
+      "E1_eV": 0.977,
+      "E_n2_eV": 0.10855555555555554,
+      "is_magnetic": false,
+      "gap_eV": "0.829"
+    },
+    {
+      "formula": "AlAs",
+      "E1_eV": 0.966,
+      "E_n2_eV": 0.10733333333333332,
+      "is_magnetic": false,
+      "gap_eV": "1.237"
+    },
+    {
+      "formula": "Au2Se2",
+      "E1_eV": 0.965,
+      "E_n2_eV": 0.10722222222222222,
+      "is_magnetic": false,
+      "gap_eV": "0.956"
+    },
+    {
+      "formula": "SbSCl",
+      "E1_eV": 0.964,
+      "E_n2_eV": 0.1071111111111111,
+      "is_magnetic": false,
+      "gap_eV": "1.316"
+    },
+    {
+      "formula": "ZnI2",
+      "E1_eV": 0.961,
+      "E_n2_eV": 0.10677777777777776,
+      "is_magnetic": false,
+      "gap_eV": "1.749"
+    },
+    {
+      "formula": "Cu2S2",
+      "E1_eV": 0.949,
+      "E_n2_eV": 0.10544444444444444,
+      "is_magnetic": false,
+      "gap_eV": "0.624"
+    },
+    {
+      "formula": "ZnI2",
+      "E1_eV": 0.947,
+      "E_n2_eV": 0.10522222222222222,
+      "is_magnetic": false,
+      "gap_eV": "0.898"
+    },
+    {
+      "formula": "AsSCl",
+      "E1_eV": 0.947,
+      "E_n2_eV": 0.10522222222222222,
+      "is_magnetic": false,
+      "gap_eV": "1.535"
     }
   ],
-  "top_nonmagnetic": [
-    {
-      "formula": "SrCl2",
-      "E1_eV": 2.631,
-      "E_n2_eV": 0.2923333333333333,
-      "is_magnetic": false,
-      "gap_eV": "4.944"
-    },
-    {
-      "formula": "CaCl2",
-      "E1_eV": 2.603,
-      "E_n2_eV": 0.2892222222222222,
-      "is_magnetic": false,
-      "gap_eV": "4.771"
-    },
-    {
-      "formula": "BaCl2",
-      "E1_eV": 2.588,
-      "E_n2_eV": 0.28755555555555556,
-      "is_magnetic": false,
-      "gap_eV": "4.747"
-    },
-    {
-      "formula": "K2Cl2",
-      "E1_eV": 2.573,
-      "E_n2_eV": 0.28588888888888886,
-      "is_magnetic": false,
-      "gap_eV": "4.882"
-    },
-    {
-      "formula": "CaCl2",
-      "E1_eV": 2.563,
-      "E_n2_eV": 0.2847777777777778,
-      "is_magnetic": false,
-      "gap_eV": "5.784"
-    },
-    {
-      "formula": "K2F2",
-      "E1_eV": 2.386,
-      "E_n2_eV": 0.26511111111111113,
-      "is_magnetic": false,
-      "gap_eV": "4.964"
-    },
-    {
-      "formula": "Ag2F2",
-      "E1_eV": 2.37,
-      "E_n2_eV": 0.2633333333333333,
-      "is_magnetic": false,
-      "gap_eV": "0.555"
-    },
-    {
-      "formula": "Rb2F2",
-      "E1_eV": 2.344,
-      "E_n2_eV": 0.2604444444444444,
-      "is_magnetic": false,
-      "gap_eV": "4.557"
-    },
-    {
-      "formula": "Rb2Cl2",
-      "E1_eV": 2.318,
-      "E_n2_eV": 0.25755555555555554,
-      "is_magnetic": false,
-      "gap_eV": "4.651"
-    },
-    {
-      "formula": "BaBr2",
-      "E1_eV": 2.239,
-      "E_n2_eV": 0.24877777777777776,
-      "is_magnetic": false,
-      "gap_eV": "4.157"
-    },
-    {
-      "formula": "BaCl2",
-      "E1_eV": 2.236,
-      "E_n2_eV": 0.24844444444444447,
-      "is_magnetic": false,
-      "gap_eV": "5.618"
-    },
-    {
-      "formula": "SrBr2",
-      "E1_eV": 2.208,
-      "E_n2_eV": 0.24533333333333335,
-      "is_magnetic": false,
-      "gap_eV": "4.313"
-    }
-  ],
-  "finding": "158/370 C2DB materials have an n=2 binding above 0.1 eV \u2014 the Rydberg escape is NOT empty. But only 143 are non-magnetic; most high-E_b hits are magnetic d-electron halides/oxides whose lowest exciton may be Frenkel/CT, not hydrogenic-Rydberg. So this is an UPPER BOUND on the route, a follow-up flag (verify Rydberg character + measure U(n) via BSE), not a result."
+  "finding": "NAIVE: 158/370 have n=2 (E_1/9) above 0.1 eV. But 75 of those have E_b>1.5 eV = Frenkel/charge-transfer (d-electron halides/oxides), where the hydrogenic (n\u2212\u00bd)\u00b2 series is INVALID. Restricting to WANNIER-plausible (E_b<1 eV, non-magnetic) leaves only 26 \u2014 all at the Wannier/Frenkel edge (E_b\u22480.95-1.0 eV \u2192 n=2 barely at 0.10-0.11 eV). VERDICT: the Rydberg escape mostly CLOSES on character inspection; it is not a robust open door, just a few marginal cases worth a BSE check."
 }

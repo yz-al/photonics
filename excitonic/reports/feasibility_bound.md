@@ -135,3 +135,29 @@ close, the feasible set is empty and Phase 3 never runs; if either stays open, t
 data; λ_f needs the interlayer flagship once the BSE toolchain is repaired. That is the
 sharpest honest statement the bound supports today — and it is two targeted measurements
 from a decisive answer, not a search.
+
+## Track-C follow-through — both open doors, examined
+
+**q_sat (saturation/moiré leg) — from the moiré-exciton literature.** The decisive
+exponent is *not* >2. Measured moiré inhomogeneous broadening is ~20–30 meV, set by
+twist-angle/strain/electrostatic **disorder**, not by confinement — deeper traps (smaller
+twist) *narrow* the line. So q_sat ≈ 0: the leg does **not** close by the exponent
+(confinement formally wins), and moiré effects survive to room temperature (MoS₂/WSe₂).
+The real obstacle is the **absolute ~20 meV disorder floor** (≫ the ~6 meV phonon floor):
+blockade would need U > 0.71·(Γ_phonon+Γ_disorder) ≈ 18 meV. That reframes the saturation
+leg from "unknown fundamental exponent" to a **disorder-limited fabrication problem** —
+materially different, and improvable with sample quality. (`phase2_qsat_literature.json`.)
+
+**Rydberg escape — mostly closes on character inspection.** Of the 158 naive n=2-RT
+survivors, 75 have E_b > 1.5 eV — Frenkel/charge-transfer d-electron halides/oxides where
+the hydrogenic (n−½)² series is invalid. Restricting to genuine **Wannier** excitons
+(E_b < 1 eV, non-magnetic) leaves only **26**, all at the Wannier/Frenkel edge
+(E_b ≈ 0.95–1.0 eV → n=2 barely at 0.10–0.11 eV). So it is not a robust open door — ~26
+marginal cases worth a BSE check, not a population. (`phase2_rydberg_screen.json`.)
+
+**Updated live picture.** Of the escape routes that raise U without the Γ penalty: the
+**dipolar** leg still awaits λ_f (needs a working BSE); the **moiré** leg is open but
+disorder-gated (an engineering, not fundamental, obstacle); the **Rydberg** door largely
+closes. So the bound has tightened toward "no" on two of three, with the dipolar exponent
+the one genuinely undetermined quantity left — and it is the one that needs the repaired
+GW-BSE toolchain.
