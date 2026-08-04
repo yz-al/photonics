@@ -730,6 +730,79 @@ def main():
             json.dump(out, f, indent=2)
         return
 
+    # ---- PROGRESSIVE TRAIN -> FREEZE -> MEASURE until converged, then RUN (gated) ----
+    # "Did we learn from it?" Train continuously on the full (margined, dense) volume,
+    # FREEZE and measure held-out VOI/ERL every CHECK steps, and keep going UNTIL ERL stops
+    # improving (patience) or a max budget -- so we SEE the learning trajectory and stop
+    # exactly when it's learned. Then DO THE RUN: agglomerate the converged model's
+    # affinities (MWS vs learned multicut, safe_best_by_erl). Multi-seed via modal fan-out.
+    if os.environ.get("WORM_S3_GROW", "0") == "1":
+        seed = SEEDS[0]; torch.manual_seed(seed)
+        CHECK = int(os.environ.get("WORM_S3_GROW_CHECK", "2000"))       # steps between freezes
+        MAX = int(os.environ.get("WORM_S3_GROW_MAX", "40000"))
+        PATIENCE = int(os.environ.get("WORM_S3_GROW_PATIENCE", "3"))    # freezes w/o ERL gain -> stop
+        TOL = float(os.environ.get("WORM_S3_GROW_TOL", "1.0"))          # min ERL gain to count as learning
+        GAP = int(os.environ.get("WORM_S3_AUDIT_ZGAP", str(ZC)))
+        NPOOL = int(os.environ.get("WORM_S3_CURVE_POOL", "64"))
+        NTEST = int(os.environ.get("WORM_S3_AUDIT_NTEST", "8"))
+        trm_raw = tr_raw[:max(ZC + 1, tr_raw.shape[0] - GAP)]; trm_seg = tr_seg[:trm_raw.shape[0]]
+        pool = [sample_sub(trm_raw, trm_seg, CROP, 20000 + i) for i in range(NPOOL)]
+        test = [sample_sub(te_raw, te_seg, ec, 30000 + j) for j in range(NTEST)]
+
+        def g_eval(dec):
+            accs, vois, erls = [], [], []
+            for sub, seg in test:
+                aff = predict("sota", dec, None, sub)
+                ga, val = gt_affinity(seg, OFFS)
+                accs.append(float((((aff > 0.5) == (ga > 0.5))[val > 0]).mean()))
+                lab = mutex_watershed(aff, OFFS, len(SHORT))
+                v, _ = seg_metrics(lab, seg); vois.append(v); erls.append(erl_proxy(lab, seg))
+            return {"affinity_acc": round(float(np.mean(accs)), 4), "VOI": round(float(np.mean(vois)), 4),
+                    "ERL": round(float(np.mean(erls)), 4)}
+
+        dec = SotaUNet3D(base=32).to(DEV); opt = torch.optim.Adam(dec.parameters(), lr=2e-3)
+        rng = np.random.default_rng(1234 + seed)
+        traj = []; best_erl = -1e9; bad = 0; step = 0; converged = False
+        while step < MAX:
+            dec.train()
+            for _ in range(CHECK):                          # train a chunk (optimizer state persists)
+                sub, seg = pool[step % len(pool)]; sub, seg = augment_em(sub, seg, rng)
+                aff, val = gt_affinity(seg, OFFS)
+                tgt = torch.tensor(aff, device=DEV); vmask = torch.tensor(val, device=DEV)
+                logit = dec(torch.tensor(sub, device=DEV)[None, None].float())
+                pos = (tgt * vmask).sum((1, 2, 3)); neg = ((1 - tgt) * vmask).sum((1, 2, 3))
+                pw = (neg / (pos + 1)).clamp(0.1, 10)[:, None, None, None]
+                bce = F.binary_cross_entropy_with_logits(logit, tgt, pos_weight=pw, reduction="none")
+                loss = (bce * vmask).sum() / vmask.sum().clamp(min=1)
+                opt.zero_grad(); loss.backward(); opt.step(); step += 1
+            dec.eval(); m = g_eval(dec)                     # FREEZE + MEASURE
+            traj.append({"steps": step, **m})
+            print(f"[grow] seed{seed} step={step} VOI={m['VOI']} ERL={m['ERL']} acc={m['affinity_acc']}", flush=True)
+            if m["ERL"] > best_erl + TOL:                   # still learning (on the metric we care about)
+                best_erl = m["ERL"]; bad = 0
+            else:
+                bad += 1
+            if bad >= PATIENCE:
+                converged = True; break
+        # THEN DO THE RUN: agglomerate the converged model's affinities (ERL-first).
+        import agglomerate as AG
+        actx = {"SHORT": SHORT, "OFFS": OFFS, "mutex_watershed": mutex_watershed,
+                "seg_metrics": seg_metrics, "erl_proxy": erl_proxy}
+        tr_aff = [predict("sota", dec, None, s) for s, _ in pool]; tr_seg = [g for _, g in pool]
+        ev_aff = [predict("sota", dec, None, s) for s, _ in test]; ev_seg = [g for _, g in test]
+        r = AG.run(tr_aff, tr_seg, ev_aff, ev_seg, actx, merge_bias=0.0)
+        sb = r.get("safe_best_by_erl", "mws")
+        run_res = {"mws": {"VOI": r["mws"]["VOI"], "ERL": r["mws"]["ERL"]},
+                   "safe_best_by_erl": sb, "safe_best": {"VOI": r[sb]["VOI"], "ERL": r[sb]["ERL"]},
+                   "best_by_voi": {"method": r["best_by_voi"], "VOI": r[r["best_by_voi"]]["VOI"]}}
+        out = {"grow_seed": seed, "converged": converged, "final_step": step,
+               "learned": bool(traj[-1]["ERL"] > traj[0]["ERL"]), "trajectory": traj,
+               "converged_metrics": traj[-1], "agglo_run": run_res}
+        print(json.dumps(out, indent=2))
+        with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
+            json.dump(out, f, indent=2)
+        return
+
     # ---- CLEAN LEARNING CURVE (gated): steps scaled to data + multi-seed -----
     # Settles what the audit left confounded: does more data KEEP helping past ~32 crops,
     # or was the flattening just fewer-epochs + single-seed noise? Fixes both: STEPS SCALE

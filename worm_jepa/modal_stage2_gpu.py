@@ -45,6 +45,7 @@ _PASS = {
     "WORM_S3_BEAT": os.environ.get("WORM_S3_BEAT", "0"),
     "WORM_S3_AUDIT": "1" if os.environ.get("WORM_S3_MODE") == "audit" else os.environ.get("WORM_S3_AUDIT", "0"),
     "WORM_S3_CURVE": "1" if os.environ.get("WORM_S3_MODE") == "curve" else os.environ.get("WORM_S3_CURVE", "0"),
+    "WORM_S3_GROW": "1" if os.environ.get("WORM_S3_MODE") == "grow" else os.environ.get("WORM_S3_GROW", "0"),
     "WORM_S3_AGGLO": os.environ.get("WORM_S3_AGGLO", "1"),          # two-specialist multicut vs MWS
     "WORM_S3_CTX": os.environ.get("WORM_S3_CTX", ""),
     "WORM_S3_LSD": os.environ.get("WORM_S3_LSD", ""),
@@ -250,6 +251,34 @@ def main():
             json.dump({"seeds": SEEDS, "results": results}, f, indent=2)
         print(f"[modal] wrote {os.path.join(art, 'debug_errors.json')}", flush=True)
         print(json.dumps(results, indent=2))
+        return
+    if os.environ.get("WORM_S3_MODE") == "grow":               # progressive train->freeze->measure->run, per seed
+        print(f"[modal] progressive grow (freeze+measure until ERL plateaus) seeds {SEEDS} ...", flush=True)
+        print("[modal] cache:", prepare.remote(), flush=True)
+        results = list(run_seed.map(SEEDS))
+        from collections import defaultdict
+        bys = defaultdict(lambda: defaultdict(list))          # aggregate trajectory by checkpoint step
+        for r in results:
+            for p in r.get("trajectory", []):
+                for k in ("VOI", "ERL", "affinity_acc"):
+                    bys[p["steps"]][k].append(p[k])
+        traj = []
+        for s in sorted(bys):
+            row = {"steps": s, "n_seeds": len(bys[s]["ERL"])}
+            for k in ("VOI", "ERL", "affinity_acc"):
+                vs = bys[s][k]
+                row[k] = {"mean": round(statistics.mean(vs), 4), "std": round(statistics.pstdev(vs), 4) if len(vs) > 1 else 0.0}
+            traj.append(row)
+        merged = {"seeds": SEEDS, "trajectory_agg": traj,
+                  "converged_final": [{"seed": r.get("grow_seed"), "converged": r.get("converged"),
+                                       "final_step": r.get("final_step"), "learned": r.get("learned"),
+                                       "converged_metrics": r.get("converged_metrics"),
+                                       "agglo_run": r.get("agglo_run")} for r in results]}
+        art = os.path.join(HERE, "artifacts"); os.makedirs(art, exist_ok=True)
+        for fn in ("grow.json", "segment3d.json"):
+            with open(os.path.join(art, fn), "w") as f:
+                json.dump(merged, f, indent=2)
+        print(json.dumps(merged, indent=2))
         return
     if os.environ.get("WORM_S3_MODE") == "curve":              # clean learning curve: 1 container/seed, aggregate
         print(f"[modal] clean learning curve (steps-scaled, multi-seed {SEEDS}) ...", flush=True)
