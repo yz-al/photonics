@@ -179,3 +179,28 @@ experiment: blockade at one moiré trap at 300 K. (`phase2_moire_disorder.json`.
 BSE hangs even serial at 2×2/KS with OMP_NUM_THREADS=1 (ruling out a thread deadlock), it is
 a version bug — so the image now pins **yambo=5.1.2** (a long-stable BSE series) plus BLAS
 single-thread guards. A debug run tests whether that build's BSE completes and returns λ_f.
+
+## Fork A — CONCLUDED: the conda-forge Yambo BSE is unusable in this environment
+
+Two major versions tested, both fail the BSE stage while every other stage (DFT,
+screening, G₀W₀ — gap 2.66 eV at 5.3.0, 2.87 eV at 5.2.x) runs clean:
+
+| Yambo | GW | BSE |
+|-------|:--:|-----|
+| 5.3.0 (default) | ✅ | **hangs** (serial, even 2×2/KS) / **SIGABRT** (MPI, any rank) |
+| 5.2.x (`yambo<5.3`) | ✅ | **SIGABRT** (serial), no Yambo `[ERROR]` — a library-level abort |
+
+A SIGABRT with no Yambo-level error is a **linked-library abort** (ScaLAPACK/BLAS/HDF5
+ABI), specific to the BSE code path. It is not fixable by a version pin. **Conclusion:
+λ_f cannot be obtained from the conda-forge Yambo in this Modal image.** Getting it needs
+a heavier lift — a Yambo built from source against a controlled MPI/ScaLAPACK/FFTW/HDF5
+stack, or BerkeleyGW (its source is distribution-gated). That is a deliberate
+infrastructure decision, not an autonomous continuation, so it is parked here.
+
+**Deliverable state of the bound.** λ_f (the dipolar leg) is the one genuinely open
+number and it is now blocked on toolchain, not physics. The rest stands: the Γ floor is
+data-derived (binding-dependent), the Rydberg escape mostly closes on character, and the
+moiré/saturation leg is open but single-emitter (a device-architecture question). So the
+room-temperature blockade question is **UNDETERMINED but sharply localized** to (a) λ_f —
+needs a source-built BSE — and (b) whether a single-emitter moiré architecture is
+acceptable under the spec. That is the honest current answer.
