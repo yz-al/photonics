@@ -55,10 +55,11 @@ _FAKE_SSH = (
 qe_bgw_image = (
     modal.Image.micromamba(python_version="3.11")
     .micromamba_install(
-        # Fork A: pin an OLDER yambo — the default (latest) build's BSE hangs even
-        # serial on a 2x2/KS problem (a version bug, since OMP_NUM_THREADS=1 rules out
-        # a threading deadlock). 5.1.x is a long-stable BSE series.
-        "qe", "yambo=5.1.2", "openmpi", "fftw", "hdf5", "numpy", "ase",
+        # Fork A: pin an OLDER yambo — the default (latest, 5.3.0) build's BSE hangs
+        # even serial on a 2x2/KS problem (a version bug; OMP_NUM_THREADS=1 rules out a
+        # thread deadlock). Constrain to the newest available BELOW 5.3 (a range, so it
+        # resolves whatever 5.2.x exists rather than a guessed exact version).
+        "qe", "yambo<5.3", "openmpi", "fftw", "hdf5", "numpy", "ase",
         channels=["conda-forge"],
     )
     .pip_install("requests==2.33.1")
