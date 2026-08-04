@@ -759,8 +759,13 @@ BEnSteps= 100
     # -J "BSE,GW": write to BSE, but READ the GW databases (ndb.QP for KfnQP_E="GW"
     # and the screening) from the GW folder. Without the GW read dir the BSE has no
     # QP correction and exits in seconds (the 3.2 s no-op we saw).
-    rc_bse = sh("bse", MPI_Y + ["yambo", "-F", "bse.in", "-J", "BSE,GW"], cwd=ydir,
-                outfile="bse_run.log")
+    # BSE on the tiny debug problem crashed with SIGABRT (rank 6/8): 8-way MPI
+    # over-decomposes the small eh-transition space. Run BSE SERIAL for debug
+    # (fast, no decomposition — same class of fix as the QE cdiaghg one); full
+    # ranks only for the large production BSE.
+    bse_cmd = (["yambo", "-F", "bse.in", "-J", "BSE,GW"] if mode == "debug"
+               else MPI_Y + ["yambo", "-F", "bse.in", "-J", "BSE,GW"])
+    rc_bse = sh("bse", bse_cmd, cwd=ydir, outfile="bse_run.log")
     if rc_bse == 124:
         return _fail("bse", "yambo BSE (kernel/diagonalization) exceeded its wall cap",
                      {"bse_tail": _tail("yambo/bse_run.log")})
@@ -800,7 +805,7 @@ BEnSteps= 100
     gaps = _re.findall(r"[^a-zA-Z]Direct Gap\s*:\s*([-+]?\d+\.\d+)\s*\[?eV\]?", reports, _re.I)
     gw_gap = float(gaps[-1]) if gaps else None
     ks_gap = float(gaps[0]) if gaps else None
-    bse_log_tail = _tail("yambo/bse_run.log", 40)   # so a BSE no-op is diagnosable
+    bse_log_tail = _tail("yambo/bse_run.log", 90)   # so a BSE no-op/crash is diagnosable
 
     total_s = round(time.time() - t_start, 1)
     core_hours = round(total_s * GWBSE_CORES / 3600, 3)
