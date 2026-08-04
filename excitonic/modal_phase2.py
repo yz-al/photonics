@@ -563,6 +563,9 @@ def gwbse_cost(material: str = "MoS2", mode: str = "debug", vacuum: float = 10.0
     os.makedirs(os.path.join(wd, "pseudo"), exist_ok=True)
     env = os.environ.copy()
     env["OMP_NUM_THREADS"] = "1"
+    # yambo BSE crashed inside libhdf5 (H5Pclose) on database close — the classic
+    # HDF5-in-container failure: file locking on an overlay/ephemeral FS. Disable it.
+    env["HDF5_USE_FILE_LOCKING"] = "FALSE"
     env["OMPI_ALLOW_RUN_AS_ROOT"] = "1"
     env["OMPI_ALLOW_RUN_AS_ROOT_CONFIRM"] = "1"
     env["OMPI_MCA_plm_rsh_agent"] = "/usr/local/bin/fake_ssh"
