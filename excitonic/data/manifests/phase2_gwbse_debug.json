@@ -3,33 +3,19 @@
   "vac10": {
     "material": "MoS2",
     "mode": "debug",
-    "vacuum": 10.0,
     "cost": {
-      "mode": "debug",
-      "total_wall_s": 812.6,
-      "cores": 48,
-      "core_hours": 10.835,
-      "usd_estimate": [
-        0.54,
-        1.63
-      ],
       "per_stage_s": {
-        "scf": 133.2,
-        "nscf": 241.7,
+        "scf": 160.7,
+        "nscf": 376.6,
         "p2y": 1.2,
         "y_setup": 0.7,
-        "gw": 431.9,
-        "bse": 1.8
+        "gw": 60.9,
+        "bse": 1800.0
       },
-      "wall_cap_s": 86400,
-      "spend_ceiling_usd": 400,
-      "hit_wall_cap": false,
-      "over_ceiling": false
+      "note": "aborted at bse"
     },
-    "gw_gap_eV": 2.660267,
-    "ks_gap_eV": 2.660267,
+    "gw_gap_eV": null,
     "exciton_eV": null,
-    "oscillator_strength": null,
     "E_b": {
       "name": "E_b",
       "value": null,
@@ -38,17 +24,33 @@
       "source": "",
       "uncertainty": null,
       "converged": null,
-      "notes": "Yambo chain incomplete (exc_e=None, gw_gap=2.660267); stages={'scf': 133.2, 'nscf': 241.7, 'p2y': 1.2, 'y_setup': 0.7, 'gw': 431.9, 'bse': 1.8}; needs input tuning",
+      "notes": "bse: yambo BSE (kernel/diagonalization) exceeded its wall cap",
       "computed": false,
       "is_model_estimate": false
     },
-    "bse_log_tail": "[modal:05400] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)\n[modal:05401] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)\n[modal:05399] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)\n[modal:05402] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)\nfree(): invalid next size (fast)\n[modal:05399] *** Process received signal ***\n[modal:05399] Signal: Aborted (6)\n[modal:05399] Signal code:  (-6)\n[modal:05399] [ 0] /lib/x86_64-linux-gnu/libc.so.6(+0x3c050)[0x2a728330c050]\n[modal:05399] [ 1] /lib/x86_64-linux-gnu/libc.so.6(+0x8aeec)[0x2a728335aeec]\n[modal:05399] [ 2] /lib/x86_64-linux-gnu/libc.so.6(gsignal+0x12)[0x2a728330bfb2]\n[modal:05399] [ 3] /lib/x86_64-linux-gnu/libc.so.6(abort+0xd3)[0x2a72832f6472]\n[modal:05399] [ 4] /lib/x86_64-linux-gnu/libc.so.6(+0x7f42f)[0x2a728334f42f]\n[modal:05399] [ 5] /lib/x86_64-linux-gnu/libc.so.6(+0x9486a)[0x2a728336486a]\n[modal:05399] [ 6] /lib/x86_64-linux-gnu/libc.so.6(+0x966da)[0x2a72833666da]\n[modal:05399] [ 7] /lib/x86_64-linux-gnu/libc.so.6(__libc_free+0x6f)[0x2a7283368f4f]\n[modal:05399] [ 8] yambo(+0x247988)[0x558958e20988]\n[modal:05399] [ 9] yambo(+0x253ab4)[0x558958e2cab4]\n[modal:05399] [10] yambo(+0x246ea7)[0x558958e1fea7]\n[modal:05399] [11] yambo(+0xeda31)[0x558958cc6a31]\n[modal:05399] [12] yambo(+0x3e254)[0x558958c17254]\n[modal:05399] [13] yambo(+0x2e519c)[0x558958ebe19c]\n[modal:05399] [14] yambo(+0x3bf45)[0x558958c14f45]\n[modal:05399] [15] /lib/x86_64-linux-gnu/libc.so.6(+0x2724a)[0x2a72832f724a]\n[modal:05399] [16] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0x85)[0x2a72832f7305]\n[modal:05399] [17] yambo(+0x3bff5)[0x558958c14ff5]\n[modal:05399] *** End of error message ***\n--------------------------------------------------------------------------\nPrimary job  terminated normally, but 1 process returned\na non-zero exit code. Per user-direction, the job has been aborted.\n--------------------------------------------------------------------------\n--------------------------------------------------------------------------\nmpirun noticed that process rank 0 with PID 0 on node modal exited on signal 6 (Aborted).\n--------------------------------------------------------------------------",
-    "report_tail": "00 [eV K]\n  [X] Bosonic    Temperature                        :  0.000000  0.000000 [eV K]\n  [X] Finite Temperature mode                       : no\n  [X] El. density                                   :  0.12976E+24 [cm-3]\n  [X] Fermi Level                                   : -6.001999 [eV]\n\n  [X] === Gaps and Widths ===\n  [X] Conduction Band Min                           :  2.238757 [eV]\n  [X] Valence Band Max                              :  0.000000 [eV]\n  [X] Filled Bands                                  :  13\n  [X] Empty Bands                                   :   14   60\n  [X] Direct Gap                                    :  2.660267 [eV]\n  [X] Direct Gap localized at k                     :   5\n  [X] Indirect Gap                                  :  2.238757 [eV]\n  [X] Indirect Gap between kpts                     :  1  2\n  [X] Last valence band width                       :  0.633542 [eV]\n  [X] 1st conduction band width                     :  0.711569 [eV]\n   \n   \n\n [03] Transferred momenta grid and indexing\n ==========================================\n\n [RD./SAVE//ndb.kindx]-----------------------------------------------------------\n  Fragmentation                                    : no\n  Polarization last K                              :  10\n  QP states                                        :   1  10\n  X grid is uniform                                : yes\n  Grids                                            : X S\n  *ERR*BS scattering                               : no\n"
+    "report_tail": "",
+    "error": {
+      "ok": false,
+      "stage_failed": "bse",
+      "note": "yambo BSE (kernel/diagonalization) exceeded its wall cap",
+      "per_stage_s": {
+        "scf": 160.7,
+        "nscf": 376.6,
+        "p2y": 1.2,
+        "y_setup": 0.7,
+        "gw": 60.9,
+        "bse": 1800.0
+      },
+      "vacuum": 10.0,
+      "scf_tail": "     cegterg      :     97.19s CPU     76.17s WALL (      33 calls)\n\n     Called by *egterg:\n     cdiaghg      :      2.09s CPU      1.24s WALL (     168 calls)\n     h_psi        :     42.20s CPU     45.29s WALL (     170 calls)\n     s_psi        :      5.86s CPU      3.50s WALL (     170 calls)\n     g_psi        :      0.42s CPU      0.12s WALL (     136 calls)\n\n     Called by h_psi:\n     h_psi:calbec :      7.78s CPU     10.26s WALL (     170 calls)\n     vloc_psi     :     28.27s CPU     31.06s WALL (     170 calls)\n     add_vuspsi   :      4.83s CPU      2.91s WALL (     170 calls)\n\n     General routines\n     calbec       :      8.27s CPU     10.06s WALL (     203 calls)\n     fft          :      2.71s CPU      2.82s WALL (     428 calls)\n     ffts         :      0.82s CPU      1.00s WALL (      66 calls)\n     fftw         :     29.32s CPU     31.71s WALL (    2995 calls)\n     interpolate  :      0.62s CPU      0.61s WALL (      33 calls)\n\n     Parallel routines\n\n     PWSCF        :   2m49.32s CPU   2m37.84s WALL\n\n\n   This run was terminated on:  16:42:33   4Aug2026            \n\n=------------------------------------------------------------------------------=\n   JOB DONE.\n=------------------------------------------------------------------------------=",
+      "nscf_tail": "\n     Called by *egterg:\n     cdiaghg      :    181.45s CPU     47.84s WALL (      72 calls)\n     h_psi        :     53.00s CPU    151.31s WALL (      76 calls)\n     s_psi        :     11.73s CPU      6.53s WALL (      76 calls)\n     g_psi        :      1.35s CPU      0.30s WALL (      71 calls)\n\n     Called by h_psi:\n     h_psi:calbec :     10.59s CPU     16.05s WALL (      76 calls)\n     vloc_psi     :     25.86s CPU    125.90s WALL (      76 calls)\n     add_vuspsi   :     15.45s CPU      8.66s WALL (      76 calls)\n\n     General routines\n     calbec       :     10.48s CPU     15.91s WALL (      76 calls)\n     fft          :      0.56s CPU      0.59s WALL (      13 calls)\n     ffts         :      0.37s CPU      0.40s WALL (       1 calls)\n     fftw         :     23.26s CPU    112.07s WALL (    4182 calls)\n     interpolate  :      0.37s CPU      0.40s WALL (       1 calls)\n     davcio       :      0.00s CPU      0.01s WALL (       2 calls)\n\n     Parallel routines\n\n     PWSCF        :   6m31.60s CPU   6m13.23s WALL\n\n\n   This run was terminated on:  16:48:49   4Aug2026            \n\n=------------------------------------------------------------------------------=\n   JOB DONE.\n=------------------------------------------------------------------------------=",
+      "bse_tail": "[modal:05395] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)\ncorrupted double-linked list\n[modal:05395] *** Process received signal ***\n[modal:05395] Signal: Aborted (6)\n[modal:05395] Signal code:  (-6)"
+    }
   },
   "vac16": null,
   "verdict": {
     "E_b_vac10_eV": null,
     "debug_pass": false,
-    "reason": "vac10 aborted at None: None \u2014 skipped vac16 (no spend)"
+    "reason": "vac10 aborted at bse: yambo BSE (kernel/diagonalization) exceeded its wall cap \u2014 skipped vac16 (no spend)"
   }
 }
