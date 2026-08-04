@@ -105,14 +105,15 @@ class SotaUNet3D(nn.Module):
     predicting affinities from the raw subvolume. Downsamples xy by 4, z by 2.
     Used as the 'sota' base -- pretrained on dense labels, then adapted per budget,
     to test whether supervised-SOTA transfer beats SSL-JEPA / from-scratch."""
-    def __init__(self, in_ch=1, out_ch=NAFF):
+    def __init__(self, in_ch=1, out_ch=NAFF, base=32):
         super().__init__()
-        self.e1 = _Res3d(in_ch, 32); self.d1 = nn.Conv3d(32, 32, 3, stride=(2, 2, 2), padding=1)
-        self.e2 = _Res3d(32, 64); self.d2 = nn.Conv3d(64, 64, 3, stride=(1, 2, 2), padding=1)
-        self.bott = _Res3d(64, 128)
-        self.u2 = nn.ConvTranspose3d(128, 64, (1, 2, 2), stride=(1, 2, 2)); self.dec2 = _Res3d(128, 64)
-        self.u1 = nn.ConvTranspose3d(64, 32, (2, 2, 2), stride=(2, 2, 2)); self.dec1 = _Res3d(64, 32)
-        self.head = nn.Conv3d(32, out_ch, 1)
+        b, b2, b4 = base, base * 2, base * 4               # width knob for the capacity curve
+        self.e1 = _Res3d(in_ch, b); self.d1 = nn.Conv3d(b, b, 3, stride=(2, 2, 2), padding=1)
+        self.e2 = _Res3d(b, b2); self.d2 = nn.Conv3d(b2, b2, 3, stride=(1, 2, 2), padding=1)
+        self.bott = _Res3d(b2, b4)
+        self.u2 = nn.ConvTranspose3d(b4, b2, (1, 2, 2), stride=(1, 2, 2)); self.dec2 = _Res3d(b4, b2)
+        self.u1 = nn.ConvTranspose3d(b2, b, (2, 2, 2), stride=(2, 2, 2)); self.dec1 = _Res3d(b2, b)
+        self.head = nn.Conv3d(b, out_ch, 1)
 
     def forward(self, img):
         s1 = self.e1(img); x = self.d1(s1)
@@ -729,6 +730,173 @@ def main():
             json.dump(out, f, indent=2)
         return
 
+    # ---- LEARNABILITY CEILING AUDIT (gated) ---------------------------------
+    # Establish WHICH ceiling caps us before assuming "train better". Mandated order:
+    # (1) LABEL ceiling, (2) OVERFIT gate [hard STOP if it fails], then INFO ablations,
+    # (3) LEARNING + CAPACITY curves, (4) ERROR stratification. Verdict: information- /
+    # label- / data- / capacity-limited, with evidence.
+    if os.environ.get("WORM_S3_AUDIT", "0") == "1":
+        from scipy.ndimage import binary_erosion, distance_transform_edt
+        A = {"note": "learnability ceiling audit; label ceiling is a PROXY (EM cannot be re-annotated here)"}
+        seed = SEEDS[0]; torch.manual_seed(seed)
+        OV_STEPS = int(os.environ.get("WORM_S3_AUDIT_OVERFIT_STEPS", "5000"))
+        C_STEPS = int(os.environ.get("WORM_S3_AUDIT_STEPS", "2500"))
+
+        def eval_on(dec, subs, source="sota"):             # metrics on GIVEN subvols (train or test)
+            accs, vois, erls = [], [], []
+            for sub, seg in subs:
+                aff = predict(source, dec, None, sub)
+                ga, val = gt_affinity(seg, OFFS)
+                accs.append(float((((aff > 0.5) == (ga > 0.5))[val > 0]).mean()))
+                lab = mutex_watershed(aff, OFFS, len(SHORT))
+                v, _ = seg_metrics(lab, seg); vois.append(v); erls.append(erl_proxy(lab, seg))
+            return {"affinity_acc": round(float(np.mean(accs)), 4), "VOI": round(float(np.mean(vois)), 4),
+                    "ERL": round(float(np.mean(erls)), 4)}
+
+        def train_unet(pool, steps, base=32, shuffle_labels=False, augment=False, sd=0):
+            dec = SotaUNet3D(base=base).to(DEV); opt = torch.optim.Adam(dec.parameters(), lr=2e-3)
+            rng = np.random.default_rng(1234 + sd)
+            for step in range(steps):
+                i = step % len(pool); sub, seg = pool[i]
+                if augment:
+                    sub, seg = augment_em(sub, seg, rng)
+                aff, val = gt_affinity(seg, OFFS)
+                if shuffle_labels:                          # destroy structure -> leakage check
+                    fl = aff.reshape(aff.shape[0], -1); aff = fl[:, rng.permutation(fl.shape[1])].reshape(aff.shape)
+                tgt = torch.tensor(aff, device=DEV); vmask = torch.tensor(val, device=DEV)
+                logit = dec(torch.tensor(sub, device=DEV)[None, None].float())
+                pos = (tgt * vmask).sum((1, 2, 3)); neg = ((1 - tgt) * vmask).sum((1, 2, 3))
+                pw = (neg / (pos + 1)).clamp(0.1, 10)[:, None, None, None]
+                bce = F.binary_cross_entropy_with_logits(logit, tgt, pos_weight=pw, reduction="none")
+                loss = (bce * vmask).sum() / vmask.sum().clamp(min=1)
+                opt.zero_grad(); loss.backward(); opt.step()
+            dec.eval(); return dec
+
+        # (1) LABEL CEILING (proxy): a perfect model still can't beat annotator boundary noise.
+        # Simulate ~1-voxel boundary disagreement: erode each object, reassign freed voxels to
+        # the nearest object, then score the perturbed GT against the original with OUR metrics.
+        def perturb(seg):
+            er = np.zeros_like(seg)
+            for L in np.unique(seg):
+                if L == 0:
+                    continue
+                er[binary_erosion(seg == L)] = L
+            m = er == 0
+            if m.all() or not m.any():
+                return seg
+            idx = distance_transform_edt(m, return_distances=False, return_indices=True)
+            return er[tuple(idx)]
+        lc_voi, lc_erl = [], []
+        for _, seg in te_subs:
+            p = perturb(seg); v, _ = seg_metrics(p, seg); lc_voi.append(v); lc_erl.append(erl_proxy(p, seg))
+        A["label_ceiling_proxy"] = {"VOI_floor": round(float(np.mean(lc_voi)), 4),
+                                    "ERL_ceiling": round(float(np.mean(lc_erl)), 4),
+                                    "meaning": "best VOI a model can reach ~ this floor; best ERL ~ this ceiling"}
+
+        # (2) OVERFIT GATE -- HARD STOP if a big net can't fit a few subvols. Distinguishes
+        # 'cannot learn' (info/label problem) from 'cannot generalise' (capacity/data).
+        small = full_pool[:4]
+        ov = train_unet(small, OV_STEPS, base=48)
+        ov_train = eval_on(ov, small); ov_test = eval_on(ov, te_subs)
+        gate_pass = ov_train["affinity_acc"] >= 0.95
+        A["overfit_gate"] = {"train": ov_train, "test": ov_test, "pass": bool(gate_pass),
+                             "verdict": ("info present + labels fittable -> proceed" if gate_pass else
+                                         "CANNOT FIT a few subvols -> input lacks signal OR labels inconsistent; STOP")}
+        if not gate_pass:
+            A["FINAL_VERDICT"] = "information- or label-limited (overfit gate FAILED); modelling changes will not help"
+            out = {"device": DEV, "seeds": [seed], "audit": A}
+            print(json.dumps(out, indent=2))
+            with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
+                json.dump(out, f, indent=2)
+            return
+
+        # LABEL SHUFFLE (leakage): structure destroyed -> eval must collapse to ~chance.
+        sh = train_unet(full_pool[:8], C_STEPS, base=32, shuffle_labels=True)
+        A["label_shuffle"] = {"test": eval_on(sh, te_subs),
+                              "meaning": "should be ~chance; near-normal test perf here would indicate leakage"}
+
+        # (3) LEARNING CURVE: eval vs #labelled subvols (log-log slope at the largest size).
+        sizes = sorted({max(1, int(round(len(full_pool) * f))) for f in (0.125, 0.25, 0.5, 1.0)})
+        lc = []
+        for n in sizes:
+            dec = train_unet(full_pool[:n], C_STEPS, base=32, augment=True)
+            m = eval_on(dec, te_subs); mtr = eval_on(dec, full_pool[:n])
+            lc.append({"n_labels": n, "test": m, "train": mtr,
+                       "train_test_gap_VOI": round(m["VOI"] - mtr["VOI"], 4)})
+            print(f"[audit] learning-curve n={n} testVOI={m['VOI']} trainVOI={mtr['VOI']} ERL={m['ERL']}", flush=True)
+        # slope of log(VOI) vs log(n) over the top two points (VOI lower=better -> negative slope = still improving)
+        if len(lc) >= 2:
+            (n0, v0), (n1, v1) = (lc[-2]["n_labels"], lc[-2]["test"]["VOI"]), (lc[-1]["n_labels"], lc[-1]["test"]["VOI"])
+            slope = float(np.log(v1 / max(v0, 1e-6)) / np.log(n1 / max(n0, 1)))
+        else:
+            slope = None
+        A["learning_curve"] = {"points": lc, "loglog_slope_top": (round(slope, 3) if slope is not None else None),
+                               "reading": "steep negative slope at 100% => DATA-limited (more labels help); "
+                                          "flat => data will NOT help"}
+
+        # (3b) CAPACITY CURVE: fixed data, vary width. Flat => capacity is NOT the constraint.
+        cap = []
+        for base in (16, 32, 64):
+            dec = train_unet(full_pool, C_STEPS, base=base, augment=True)
+            m = eval_on(dec, te_subs)
+            cap.append({"base_width": base, "test": m}); print(f"[audit] capacity base={base} testVOI={m['VOI']}", flush=True)
+        A["capacity_curve"] = {"points": cap, "reading": "flat across widths => capacity NOT limiting"}
+
+        # 100%-data model, reused by the ablation / agglo / stratification checks below.
+        import agglomerate as AG
+        actx = {"SHORT": SHORT, "OFFS": OFFS, "mutex_watershed": mutex_watershed,
+                "seg_metrics": seg_metrics, "erl_proxy": erl_proxy}
+        big = train_unet(full_pool, C_STEPS, base=32, augment=True)
+        tr_aff = [predict("sota", big, None, s) for s, _ in full_pool]; tr_seg = [g for _, g in full_pool]
+        ev_aff = [predict("sota", big, None, s) for s, _ in te_subs]; ev_seg = [g for _, g in te_subs]
+
+        # INPUT-RESTRICTION ablation: the affinity net's only input is raw EM, so ablate its
+        # RESOLUTION -- eval on progressively blurred/downsampled raw. Flat degradation => the
+        # net relies on coarse info; steep => it needs the high-res local membrane signal.
+        from scipy.ndimage import gaussian_filter as _gf
+        restr = {}
+        for sig in (0.0, 1.0, 2.0):
+            subs_b = [((s if sig == 0 else _gf(s.astype(np.float32), (0, sig, sig))), g) for s, g in te_subs]
+            restr[f"blur_sigma_{sig}"] = eval_on(big, subs_b)["VOI"]
+        A["input_restriction"] = {"VOI_by_blur": restr,
+                                  "reading": "big VOI jump with blur => membrane signal is LOCAL/high-res"}
+
+        # AGGLO contribution: does the learned multicut proofreading beat standard MWS on the
+        # SAME affinities? (our-pipeline vs baseline-agglo, the fair-gate comparison in miniature)
+        r = AG.run(tr_aff, tr_seg, ev_aff, ev_seg, actx, merge_bias=0.0)
+        A["agglo_vs_mws"] = {"mws": {"VOI": r["mws"]["VOI"], "ERL": r["mws"]["ERL"]},
+                             "learned_multicut": {"method": r["best_by_voi"],
+                                                  "VOI": r[r["best_by_voi"]]["VOI"], "ERL": r[r["best_by_voi"]]["ERL"]},
+                             "safe_best_by_erl": r.get("safe_best_by_erl")}
+
+        # (4) ERROR STRATIFICATION on the 100%-data model (merge vs split, by fragment size).
+        import debug_errors as DBG
+        de = DBG.run(tr_aff, tr_seg, ev_aff, ev_seg, actx, merge_bias=0.0)
+        A["error_stratification"] = {"dominant_error": de.get("dominant_error"),
+                                     "confidence": de.get("confidence", {}).get("interpretation"),
+                                     "structure_auc": de.get("structure", {}).get("cv_auc_mean"),
+                                     "clusters": de.get("clusters", {}).get("verdict")}
+
+        # VERDICT from the evidence.
+        lim = []
+        if slope is not None and slope <= -0.15:
+            lim.append("DATA-limited (learning curve still steep at 100%)")
+        capv = [c["test"]["VOI"] for c in cap]
+        if max(capv) - min(capv) < 0.1:
+            lim.append("capacity NOT limiting (flat capacity curve)")
+        near_label = A["label_ceiling_proxy"]["VOI_floor"] > 0 and lc and \
+            lc[-1]["test"]["VOI"] <= A["label_ceiling_proxy"]["VOI_floor"] * 1.3
+        if near_label:
+            lim.append("approaching LABEL ceiling (proxy)")
+        A["FINAL_VERDICT"] = {"limits": lim or ["inconclusive -- inspect curves"],
+                              "recommendation": "follow the verdict: data-limited -> label more; capacity-flat -> "
+                              "don't grow the net; near label ceiling -> modelling has little headroom"}
+        out = {"device": DEV, "crop": CROP, "zc": ZC, "seeds": [seed], "audit": A}
+        print(json.dumps(out, indent=2))
+        with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
+            json.dump(out, f, indent=2)
+        return
+
     # ---- multi-seed loop (mean +- std) ----
     # Focusable source set: a heavy-training (big DEC_STEPS) run only needs "sota" trained
     # -- training jepa/random/raw at the same step count too would 4x the cost and time out.
@@ -760,6 +928,9 @@ def main():
         # (from scratch) and jepa (SSL). Answers "should we use SOTA on base?".
         sota_base = train_dec("sota", None, full_pool)
         sota_init = sota_base.state_dict()
+        agglo_src = ("sota", sota_base)                   # affinity source the agglomeration proofreads
+        #   -> upgraded to the SOTA-recipe autocontext net below if WORM_S3_ACRLSD=1, so the
+        #      FAIR gate is (recipe affinities + our learned multicut) vs (same + standard MWS).
         if EDGE and edge_res is None:                     # failure analysis of the SOTA base
             import sota_edge_cases as EDGEM
             edge_res = EDGEM.run(sota_base, enc, te_subs, te_gt, V.feature_grid, OFFS, len(SHORT), DEV)
@@ -812,6 +983,7 @@ def main():
             adec = train_acrlsd(full_pool, steps=DEC_STEPS, seed=seed)
             am, apreds = evaluate("sotaacrlsd", adec, None)
             full_preds["sotaacrlsd"] = apreds
+            agglo_src = ("sotaacrlsd", adec)              # proofread the SOTA-recipe affinities
             print(f"[s3d] sotaacrlsd (autocontext+MALIS+aug) dense metrics={am}", flush=True)
         if (CTX_HEADS or LSD_HEADS) and "sota_plus" not in full_preds:
             # fair control: SOTA warm-started + SAME extra fine-tune steps, NO mamba.
@@ -829,10 +1001,12 @@ def main():
             import agglomerate as AG
             actx = {"SHORT": SHORT, "OFFS": OFFS, "mutex_watershed": mutex_watershed,
                     "seg_metrics": seg_metrics, "erl_proxy": erl_proxy}
-            tr_aff = [predict("sota", sota_base, None, sub) for sub, _ in full_pool]
+            asrc_name, asrc_dec = agglo_src               # SOTA-recipe affinities if trained, else plain sota
+            tr_aff = [predict(asrc_name, asrc_dec, None, sub) for sub, _ in full_pool]
             tr_seg = [seg for _, seg in full_pool]
-            ev_aff = full_preds.get("sota", [predict("sota", sota_base, None, sub) for sub, _ in te_subs])
+            ev_aff = full_preds.get(asrc_name, [predict(asrc_name, asrc_dec, None, sub) for sub, _ in te_subs])
             ev_seg = [seg for _, seg in te_subs]
+            print(f"[s3d] agglomeration proofreads '{asrc_name}' affinities", flush=True)
             tr_lsd = ev_lsd = None
             if os.environ.get("WORM_S3_AGGLO_LSD", "1") == "1":   # LSD shape features (the MWS-lacking signal)
                 ldec = train_lsd(full_pool, malis=False, steps=CTX_STEPS, init_state=sota_init)
@@ -867,10 +1041,10 @@ def main():
                     sv.update(tr_jepa=np.stack(tr_jepa).astype(np.float16), ev_jepa=np.stack(ev_jepa).astype(np.float16))
                 np.savez_compressed(save_p, **sv)
                 print(f"[s3d] saved agglo inputs -> {save_p} (re-run agglomeration/error-analysis for free)", flush=True)
-            # merge_bias +1.25 is the swept operating point: the winning multicut is
-            # split-dominated (over-segments), and +bias makes GAEC merge slightly more
-            # to clean the leftover fragments (VOI 2.15->2.07, CREMI 0.916->0.895).
-            mbias = float(os.environ.get("WORM_S3_MERGE_BIAS", "1.25"))
+            # merge_bias defaults to 0.0 (neutral) now that we're ERL-FIRST / merge-averse:
+            # the earlier +1.25 minimized VOI by merging MORE, which trades away merge-safety.
+            # Selection is handled by safe_best_by_erl (ERL-max s.t. merge_errors<=cap).
+            mbias = float(os.environ.get("WORM_S3_MERGE_BIAS", "0.0"))
             agglo_res = AG.run(tr_aff, tr_seg, ev_aff, ev_seg, actx, merge_bias=mbias,
                                train_lsds=tr_lsd, eval_lsds=ev_lsd,
                                train_jepas=tr_jepa, eval_jepas=ev_jepa)

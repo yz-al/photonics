@@ -259,7 +259,7 @@ REPEL = {"mean_long", "log_min_size", "lsd_dist", "jepa_dist"}     # boundary-fa
 
 def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9, seed_q=0.6,
         train_lsds=None, eval_lsds=None, train_jepas=None, eval_jepas=None, merge_bias=0.0,
-        merge_w=3.0):
+        merge_w=3.0, merge_cap=40, frag_floor=8):
     """Learned MULTICUT (GAEC) agglomeration with two-specialist signed edge weights,
     vs plain MWS. Runs multiple FEATURE VARIANTS so we can isolate each signal's value:
     affinity-only, +LSD shape, +JEPA context. Fed to GAEC as logit(P_A*(1-P_B))."""
@@ -382,6 +382,16 @@ def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9, seed_q=
     # error types for EVERY method -> pick the merge-MINIMIZING operating point, not just VOI
     err_all = {k: error_types(labs) for k, labs in labels.items()}
     merge_errs = {k: err_all[k]["merge_errors"] for k in err_all}
+    # SAFE ERL selection: pure best-ERL is DEGENERATE -- it rewards under-seg (one giant
+    # blob = infinite run length). So pick the ERL-max method SUBJECT TO a merge-error cap
+    # (and a non-degenerate fragment floor). This is the honest merge-averse operating point.
+    frag = float(np.mean([r[0].max() + 1 for r in ev]))
+    safe = {k: v for k, v in allm.items() if merge_errs.get(k, 1e9) <= merge_cap}
+    degenerate = frag < frag_floor
+    if safe and not degenerate:
+        safe_best = max(safe.items(), key=lambda kv: kv[1]["ERL"])
+    else:
+        safe_best = best                                       # fall back to VOI winner if all merge-unsafe/degenerate
     # CREMI-style score proxy = geomean(VOI, adapted-Rand); lower better (NOT official protocol)
     cremi = {k: round(float((v["VOI"] * v["adapted_rand_error"]) ** 0.5), 4) for k, v in allm.items()}
     return {"method": "learned multicut (GAEC) feature-variants vs MWS + ERL-first error analysis",
@@ -390,7 +400,9 @@ def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9, seed_q=
             "mean_fragments": round(float(np.mean([r[0].max() + 1 for r in ev])), 1),
             "mws_baseline": M, "mws": M, **variants,   # "mws" alias so r[name] works for every method
             "best_by_voi": best[0],
-            "best_by_erl": best_erl[0],                          # ERL-first (merge-averse) winner
+            "best_by_erl": best_erl[0],                          # RAW ERL-max (can be degenerate)
+            "safe_best_by_erl": safe_best[0],                    # ERL-max s.t. merge_errors<=cap (honest pick)
+            "degenerate": bool(degenerate), "merge_cap": merge_cap,
             "best_by_merge_weighted_voi": best_mw[0], "merge_w": merge_w,
             "best_beats_mws": bool(best[0] != "mws" and best[1]["VOI"] <= M["VOI"]),
             "VOI_split_merge_note": "VOI_merge = under-seg (merges), VOI_split = over-seg (splits)",

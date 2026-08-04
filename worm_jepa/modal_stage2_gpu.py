@@ -23,13 +23,18 @@ _PASS = {
     "WORM_VOL_DIM": os.environ.get("WORM_VOL_DIM", "256"),
     "WORM_VOL_DEPTH": os.environ.get("WORM_VOL_DEPTH", "6"),
     "WORM_VOL_BATCH": os.environ.get("WORM_VOL_BATCH", "8"),
-    # HEAVY-SOTA RUN: the error debug said the residual errors are diffuse/low-confidence
-    # and driven by AFFINITY QUALITY (not a targetable head), so the honest lever is heavier
-    # affinity training. Train ONLY the sota affinity net (WORM_S3_SOURCES=sota) at ~30k
-    # steps (base) + a warm-started continuation, then agglomerate + re-run the analysis.
+    # FAIR-GATE RUN: the credibility gate for the double-black-box plan. Head-to-head on the
+    # SAME held-out data: BASELINE = SOTA-recipe affinities + standard agglomeration (MWS);
+    # OURS = the SAME SOTA-recipe affinities + our learned multicut+JEPA proofreading. The
+    # SOTA-recipe affinity net = autocontext (acrlsd) + merge-averse MALIS + EM augmentation.
+    # Scored on VOI AND merge-capped ERL. Both nets trained at equal budget for fairness.
     "WORM_SEG_JEPA_STEPS": os.environ.get("WORM_SEG_JEPA_STEPS", "5000"),  # JEPA feeds agglo edge features
-    "WORM_SEG_DEC_STEPS": os.environ.get("WORM_SEG_DEC_STEPS", "30000"),  # heavy SOTA affinity training
-    "WORM_S3_SOURCES": os.environ.get("WORM_S3_SOURCES", "sota"),         # focus: only train sota heavily
+    "WORM_SEG_DEC_STEPS": os.environ.get("WORM_SEG_DEC_STEPS", "8000"),   # real affinity training, both nets equal
+    "WORM_S3_SOURCES": os.environ.get("WORM_S3_SOURCES", "sota"),         # plain-sota baseline affinity net
+    "WORM_S3_ACRLSD": os.environ.get("WORM_S3_ACRLSD", "1"),              # SOTA-recipe net: autocontext+MALIS+aug
+    "WORM_S3_AUGMENT": os.environ.get("WORM_S3_AUGMENT", "1"),            # EM augmentation (elastic/intensity/etc.)
+    "WORM_S3_MALIS_M": os.environ.get("WORM_S3_MALIS_M", "5.0"),          # merge-averse structured loss weight
+    "WORM_S3_MERGE_BIAS": os.environ.get("WORM_S3_MERGE_BIAS", "0.0"),    # neutral; safe_best_by_erl selects
     "WORM_S3_CTX_STEPS": os.environ.get("WORM_S3_CTX_STEPS", "800"),      # LSD head fine-tune (agglo feature)
     "WORM_S3_NEVAL": os.environ.get("WORM_S3_NEVAL", "4"),
     "WORM_S3_LABEL_POOL": os.environ.get("WORM_S3_LABEL_POOL", "16"),
@@ -38,6 +43,7 @@ _PASS = {
     "WORM_S3_DBB": os.environ.get("WORM_S3_DBB", "0"),
     "WORM_S3_EDGE": os.environ.get("WORM_S3_EDGE", "0"),
     "WORM_S3_BEAT": os.environ.get("WORM_S3_BEAT", "0"),
+    "WORM_S3_AUDIT": "1" if os.environ.get("WORM_S3_MODE") == "audit" else os.environ.get("WORM_S3_AUDIT", "0"),
     "WORM_S3_AGGLO": os.environ.get("WORM_S3_AGGLO", "1"),          # two-specialist multicut vs MWS
     "WORM_S3_CTX": os.environ.get("WORM_S3_CTX", ""),
     "WORM_S3_LSD": os.environ.get("WORM_S3_LSD", ""),
@@ -243,6 +249,15 @@ def main():
             json.dump({"seeds": SEEDS, "results": results}, f, indent=2)
         print(f"[modal] wrote {os.path.join(art, 'debug_errors.json')}", flush=True)
         print(json.dumps(results, indent=2))
+        return
+    if os.environ.get("WORM_S3_MODE") == "audit":              # learnability-ceiling audit on ONE GPU (no _merge)
+        print("[modal] learnability ceiling audit (single seed, GPU) ...", flush=True)
+        print("[modal] cache:", prepare.remote(), flush=True)
+        result = run_seed.remote(0)
+        art = os.path.join(HERE, "artifacts"); os.makedirs(art, exist_ok=True)
+        with open(os.path.join(art, "segment3d.json"), "w") as f:
+            json.dump(result, f, indent=2)
+        print(json.dumps(result.get("audit", result), indent=2))
         return
     print("[modal] preparing CREMI cache (once) ...", flush=True)
     print("[modal] cache:", prepare.remote(), flush=True)      # populate Volume before fan-out
