@@ -732,6 +732,45 @@ def main():
             json.dump(out, f, indent=2)
         return
 
+    # ---- DOUBLE BLACK BOX STAGES 3-7 on the mechinterp-pulled compact model (gated) ----
+    if os.environ.get("WORM_S3_DBB_STAGES", "0") == "1":
+        from scipy.ndimage import distance_transform_edt
+        import dbb_stages as DBBS
+        seed = SEEDS[0]; torch.manual_seed(seed)
+        DSTEPS = int(os.environ.get("WORM_S3_DBB_STEPS", "6000"))
+        K = int(os.environ.get("WORM_S3_STAGE0A_K", "6"))
+        GAP = int(os.environ.get("WORM_S3_AUDIT_ZGAP", str(ZC)))
+        NPOOL = int(os.environ.get("WORM_S3_CURVE_POOL", "64"))
+        NTEST = int(os.environ.get("WORM_S3_AUDIT_NTEST", "8"))
+        trm_raw = tr_raw[:max(ZC + 1, tr_raw.shape[0] - GAP)]; trm_seg = tr_seg[:trm_raw.shape[0]]
+        pool = [sample_sub(trm_raw, trm_seg, CROP, 20000 + i) for i in range(NPOOL)]
+        test = [sample_sub(te_raw, te_seg, ec, 30000 + j) for j in range(NTEST)]
+        best = train_dec("sota", None, pool, steps=DSTEPS, augment=True, seed=seed)
+        C = best.head.in_channels; rng = np.random.default_rng(seed)
+
+        def extract(subs, want_dist=False, cap=6000):
+            Xs, ys, ds = [], [], []
+            for sub, seg in subs:
+                with torch.no_grad():
+                    f = best.features(torch.tensor(sub, device=DEV)[None, None].float())[0].reshape(C, -1).T.cpu().numpy()
+                ga, val = gt_affinity(seg, OFFS)
+                bnd = (ga[:ns] < 0.5).any(0)                        # membrane voxels
+                y = bnd.reshape(-1).astype(np.float64); m = (val[:ns] > 0).all(0).reshape(-1)
+                dist = distance_transform_edt(~bnd).reshape(-1) if want_dist else np.zeros_like(y)
+                f = f[m]; y = y[m]; dist = dist[m]
+                idx = rng.choice(len(f), min(cap, len(f)), replace=False)
+                Xs.append(f[idx]); ys.append(y[idx]); ds.append(dist[idx])
+            return np.concatenate(Xs), np.concatenate(ys), np.concatenate(ds)
+        Xtr, ytr, _ = extract(pool[:8])
+        Xte, yte, dte = extract(test, want_dist=True)
+        mu, sdv = Xtr.mean(0), Xtr.std(0) + 1e-6                     # standardize on train stats
+        res = DBBS.run((Xtr - mu) / sdv, ytr, (Xte - mu) / sdv, yte, dte, K=K)
+        out = {"dbb_seed": seed, "stages_3_7": res}
+        print(json.dumps(out, indent=2))
+        with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
+            json.dump(out, f, indent=2)
+        return
+
     # ---- STAGE 0a IDENTIFIABILITY (profile likelihood) on the mechinterp-pulled model ----
     # The mechanistic model = a compact top-K-channel logistic readout of the membrane
     # (short-range boundary) decision -- the parametric instantiation of what mechinterp

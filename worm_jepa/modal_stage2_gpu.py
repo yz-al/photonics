@@ -49,6 +49,7 @@ _PASS = {
     "WORM_S3_RECIPE": "1" if os.environ.get("WORM_S3_MODE") == "recipe" else os.environ.get("WORM_S3_RECIPE", "0"),
     "WORM_S3_MECHINTERP": "1" if os.environ.get("WORM_S3_MODE") == "mechinterp" else os.environ.get("WORM_S3_MECHINTERP", "0"),
     "WORM_S3_STAGE0A": "1" if os.environ.get("WORM_S3_MODE") == "stage0a" else os.environ.get("WORM_S3_STAGE0A", "0"),
+    "WORM_S3_DBB_STAGES": "1" if os.environ.get("WORM_S3_MODE") == "dbb" else os.environ.get("WORM_S3_DBB_STAGES", "0"),
     "WORM_S3_AUG_BANK": os.environ.get("WORM_S3_AUG_BANK", "2"),     # autocontext aug-bank size (GPU mem)
     "WORM_S3_AGGLO": os.environ.get("WORM_S3_AGGLO", "1"),          # two-specialist multicut vs MWS
     "WORM_S3_CTX": os.environ.get("WORM_S3_CTX", ""),
@@ -330,6 +331,15 @@ def main():
             with open(os.path.join(art, fn), "w") as f:
                 json.dump(merged, f, indent=2)
         print(json.dumps(agg, indent=2))
+        return
+    if os.environ.get("WORM_S3_MODE") == "dbb":                # double-black-box stages 3-7, single GPU
+        print("[modal] DBB stages 3-7 on mechinterp-pulled compact model ...", flush=True)
+        print("[modal] cache:", prepare.remote(), flush=True)
+        result = run_seed.remote(0)
+        art = os.path.join(HERE, "artifacts"); os.makedirs(art, exist_ok=True)
+        with open(os.path.join(art, "segment3d.json"), "w") as f:
+            json.dump(result, f, indent=2)
+        print(json.dumps(result.get("stages_3_7", result), indent=2))
         return
     if os.environ.get("WORM_S3_MODE") == "stage0a":            # feasibility gate: identifiability, single GPU
         print("[modal] STAGE 0a: identifiability (profile likelihood) on mechinterp-pulled model ...", flush=True)
