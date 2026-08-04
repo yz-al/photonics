@@ -119,6 +119,32 @@ def run_seed(seed: int) -> dict:
 
 
 @app.function(image=image, volumes={"/cache": cremi_vol}, timeout=3600)
+def connectome_fn(sample: str = "A") -> dict:
+    """FREE (CPU) end-to-end skeleton: build the GT fly connectome from a CREMI sample
+    (neuron_ids + synaptic clefts) and measure how segmentation merges corrupt the wiring.
+    Outputs the connectome graph for stage-2 mechanistic extraction."""
+    import sys
+    import numpy as np
+    import h5py
+    os.chdir("/root/worm_jepa")
+    for p in ("/root/worm_jepa", "/root/worm_jepa/vjepa"):
+        if p not in sys.path:
+            sys.path.insert(0, p)
+    import connectome as C
+    z0, z1 = [int(x) for x in os.environ.get("WORM_S3_CONN_Z", "30,90").split(",")]
+    c0, c1 = [int(x) for x in os.environ.get("WORM_S3_CONN_XY", "300,940").split(",")]
+    with h5py.File(os.path.join(CACHE, f"sample_{sample}.hdf"), "r") as f:
+        nid = f["volumes/labels/neuron_ids"][z0:z1, c0:c1, c0:c1]
+        cl = f["volumes/labels/clefts"][z0:z1, c0:c1, c0:c1]
+    print(f"[connectome] sample {sample} chunk {nid.shape} neurons={len(np.unique(nid))} "
+          f"clefts={len(np.unique(cl)) - 1}", flush=True)
+    r = C.run(nid.astype(np.int64), cl.astype(np.int64))
+    print(json.dumps({k: r[k] for k in ("n_neurons", "n_synaptic_clefts", "gt_connectome",
+                                        "merge_corruption_curve")}, indent=2))
+    return {"sample": sample, "chunk": [z0, z1, c0, c1], **r}
+
+
+@app.function(image=image, volumes={"/cache": cremi_vol}, timeout=3600)
 def rerun_agglo(seed: int = 0) -> dict:
     """FREE (CPU-only) re-run of agglomeration + error analysis from saved inputs -- no
     GPU, no retraining. Use to tune the multicut / lifted weights / features / error
@@ -242,6 +268,15 @@ def _merge(dicts):
 
 @app.local_entrypoint()
 def main():
+    if os.environ.get("WORM_S3_MODE") == "connectome":         # FREE end-to-end skeleton: seg -> connectome (CPU)
+        print("[modal] building GT fly connectome + merge-corruption curve ...", flush=True)
+        print("[modal] cache:", prepare.remote(), flush=True)
+        result = connectome_fn.remote(os.environ.get("WORM_CREMI_SAMPLE", "A"))
+        art = os.path.join(HERE, "artifacts"); os.makedirs(art, exist_ok=True)
+        with open(os.path.join(art, "connectome.json"), "w") as f:
+            json.dump(result, f, indent=2)
+        print(f"[modal] wrote {os.path.join(art, 'connectome.json')}", flush=True)
+        return
     if os.environ.get("WORM_S3_MODE") == "rerun":              # FREE agglo sweep from saved checkpoint (CPU)
         print("[modal] rerun_agglo merge_bias x seed_q sweep (no training) ...", flush=True)
         results = list(rerun_agglo.map(SEEDS))
