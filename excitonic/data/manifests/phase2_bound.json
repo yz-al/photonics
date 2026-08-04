@@ -1,0 +1,61 @@
+{
+  "structure": "close the question with a bound, not a search: max(U_sat_max, U_dip_max) < 0.71\u00b7\u0393_floor \u21d2 feasible set EMPTY.",
+  "analogy": "Kramers-Kronig closed the Kerr route by bounding the ratio, not by failing to find a material. Same shape here.",
+  "assumptions": {
+    "E_b_thermal_stable_eV": 0.1,
+    "mu_min": 0.2,
+    "eps_eff": 5.0,
+    "alpha_floor": 0.3,
+    "f_min_frac": 0.1
+  },
+  "gamma_floor": {
+    "per_material": {
+      "MoS2": {
+        "omega_LO_meV": 56.428,
+        "Z_born": 0.6903,
+        "eps_inf": 3.7991,
+        "n_LO_300K": 0.12706,
+        "gamma_floor_meV": 6.237
+      },
+      "MoSe2": {
+        "omega_LO_meV": 43.631,
+        "Z_born": 1.2263,
+        "eps_inf": 4.2018,
+        "n_LO_300K": 0.2269,
+        "gamma_floor_meV": 8.613
+      },
+      "WS2": {
+        "omega_LO_meV": 54.152,
+        "Z_born": 0.3631,
+        "eps_inf": 3.5275,
+        "n_LO_300K": 0.14039,
+        "gamma_floor_meV": 6.614
+      },
+      "WSe2": {
+        "omega_LO_meV": 38.011,
+        "Z_born": 0.8192,
+        "eps_inf": 3.9178,
+        "n_LO_300K": 0.29845,
+        "gamma_floor_meV": 9.87
+      }
+    },
+    "gamma_floor_min_meV": 6.237,
+    "note": "\u0393_LO(300 K)=C\u00b7\u03b1_min\u00b7\u0127\u03c9_LO\u00b7n_LO. Real LOWER bound GIVEN \u03b1\u2265\u03b1_min; proving stability\u27f9\u03b1\u2265\u03b1_min tightly (via Z*/LO-TO ionicity) is the theory crux \u2014 the DFPT screen supplies Z*, \u03c9_LO to test it densely."
+  },
+  "u_saturation_leg": {
+    "g_xx_single_exciton_meV": 1050.107,
+    "u_sat_delocalized_10nm_mode_meV": 10.501,
+    "status": "confinement-dependent \u2014 usable U_sat = g_xx\u00b7(a_B\u00b2/A_mode); rises toward g_xx as you localize (moir\u00e9 traps) but pays in inhomogeneous broadening. NOT a single number, NOT closed by 1/\u03bc alone; the confinement\u2194broadening slope is a second theory input."
+  },
+  "u_dipolar_ceiling_eV": null,
+  "lambda_f_nm": null,
+  "feasibility": {
+    "verdict": "undetermined",
+    "reason": "dipolar U ceiling needs \u03bb_f from GW-BSE at \u22652 separations (the flagship). Saturation cap alone cannot close the bound.",
+    "gamma_floor_meV": 6.237,
+    "need_U_gt_meV": 4.428,
+    "u_sat_max_meV": null
+  },
+  "empirical_link_evidence": "Across regimes the floor argument's monotonicity holds: GaAs (E_b~4 meV, weakly ionic) has a tiny RT \u0393; TMDs (E_b~0.5 eV, ionic, Z*~0.4-1.2) sit at \u0393~10-15 meV. Binding\u2191 tracks ionicity\u2191 tracks \u0393\u2191 \u2014 the DFPT screen can fill this curve at cents/material to pin \u03b1_min.",
+  "gap_to_close": "The DIPOLAR U ceiling is the one open leg: it needs the oscillator-strength decay length \u03bb_f from GW-BSE at \u22652 interlayer separations (the flagship). Until then the verdict is `undetermined` \u2014 NOT closed. This is precisely why the flagship run matters: it supplies the exponent that closes inequality #3."
+}
