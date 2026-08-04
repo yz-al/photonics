@@ -534,7 +534,7 @@ GWBSE_RATE_USD_PER_CORE_HR = 0.15        # conservative Modal CPU rate for the c
 GWBSE_PARAMS = {
     # mode -> (nbnd for nscf, bands for screening, screening cutoff [Ry],
     #          bands for GW self-energy, k-grid, BSE bands v/c)
-    "debug":      dict(nbnd=60,  bnd_x=60,  ng_x=4,  bnd_gw=60,  kgrid=(6, 6, 1),  bse_v=2, bse_c=2),
+    "debug":      dict(nbnd=60,  bnd_x=60,  ng_x=4,  bnd_gw=60,  kgrid=(4, 4, 1),  bse_v=2, bse_c=2),
     "production": dict(nbnd=300, bnd_x=300, ng_x=10, bnd_gw=300, kgrid=(18, 18, 1), bse_v=6, bse_c=6),
 }
 
@@ -575,7 +575,7 @@ def gwbse_cost(material: str = "MoS2", mode: str = "debug", vacuum: float = 10.0
     # Per-stage wall caps so NO single stage can ride the 6 h GitHub limit. A stage
     # that exceeds its cap is SIGKILLed and reported as a timeout (rc=124) with its
     # output tail — a hang becomes a legible, minutes-long failure, not a 6 h burn.
-    TMO = ({"scf": 600, "nscf": 600, "p2y": 180, "y_setup": 300, "gw": 1500, "bse": 1500}
+    TMO = ({"scf": 1500, "nscf": 1500, "p2y": 180, "y_setup": 300, "gw": 1500, "bse": 1500}
            if mode == "debug"
            else {"scf": 3600, "nscf": 3600, "p2y": 600, "y_setup": 900, "gw": 9000, "bse": 9000})
     stages, t_start = {}, time.time()
