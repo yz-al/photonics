@@ -3,33 +3,19 @@
   "vac10": {
     "material": "MoS2",
     "mode": "debug",
-    "vacuum": 10.0,
     "cost": {
-      "mode": "debug",
-      "total_wall_s": 829.8,
-      "cores": 48,
-      "core_hours": 11.064,
-      "usd_estimate": [
-        0.55,
-        1.66
-      ],
       "per_stage_s": {
-        "scf": 136.7,
-        "nscf": 249.0,
-        "p2y": 1.2,
+        "scf": 145.1,
+        "nscf": 266.7,
+        "p2y": 2.9,
         "y_setup": 0.7,
-        "gw": 439.4,
-        "bse": 0.6
+        "gw": 444.0,
+        "bse": 1500.0
       },
-      "wall_cap_s": 86400,
-      "spend_ceiling_usd": 400,
-      "hit_wall_cap": false,
-      "over_ceiling": false
+      "note": "aborted at bse"
     },
-    "gw_gap_eV": 2.660267,
-    "ks_gap_eV": 2.660267,
+    "gw_gap_eV": null,
     "exciton_eV": null,
-    "oscillator_strength": null,
     "E_b": {
       "name": "E_b",
       "value": null,
@@ -38,17 +24,33 @@
       "source": "",
       "uncertainty": null,
       "converged": null,
-      "notes": "Yambo chain incomplete (exc_e=None, gw_gap=2.660267); stages={'scf': 136.7, 'nscf': 249.0, 'p2y': 1.2, 'y_setup': 0.7, 'gw': 439.4, 'bse': 0.6}; needs input tuning",
+      "notes": "bse: yambo BSE (kernel/diagonalization) exceeded its wall cap",
       "computed": false,
       "is_model_estimate": false
     },
-    "bse_log_tail": "[modal:05395] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)\nfree(): invalid next size (fast)\n[modal:05395] *** Process received signal ***\n[modal:05395] Signal: Aborted (6)\n[modal:05395] Signal code:  (-6)\n[modal:05395] [ 0] /lib/x86_64-linux-gnu/libc.so.6(+0x3c050)[0x2b2310bb8050]\n[modal:05395] [ 1] /lib/x86_64-linux-gnu/libc.so.6(+0x8aeec)[0x2b2310c06eec]\n[modal:05395] [ 2] /lib/x86_64-linux-gnu/libc.so.6(gsignal+0x12)[0x2b2310bb7fb2]\n[modal:05395] [ 3] /lib/x86_64-linux-gnu/libc.so.6(abort+0xd3)[0x2b2310ba2472]\n[modal:05395] [ 4] /lib/x86_64-linux-gnu/libc.so.6(+0x7f42f)[0x2b2310bfb42f]\n[modal:05395] [ 5] /lib/x86_64-linux-gnu/libc.so.6(+0x9486a)[0x2b2310c1086a]\n[modal:05395] [ 6] /lib/x86_64-linux-gnu/libc.so.6(+0x966da)[0x2b2310c126da]\n[modal:05395] [ 7] /lib/x86_64-linux-gnu/libc.so.6(__libc_free+0x6f)[0x2b2310c14f4f]\n[modal:05395] [ 8] /opt/conda/bin/../lib/libhdf5.so.310(H5MM_xfree+0xa)[0x2b230fab0bfa]\n[modal:05395] [ 9] /opt/conda/bin/../lib/libhdf5.so.310(+0x24d13e)[0x2b230fb5513e]\n[modal:05395] [10] /opt/conda/bin/../lib/libhdf5.so.310(H5SL_destroy+0x9)[0x2b230fb5faa9]\n[modal:05395] [11] /opt/conda/bin/../lib/libhdf5.so.310(H5P_close+0x2c5)[0x2b230fb18c35]\n[modal:05395] [12] /opt/conda/bin/../lib/libhdf5.so.310(+0x210d9a)[0x2b230fb18d9a]\n[modal:05395] [13] /opt/conda/bin/../lib/libhdf5.so.310(+0x1950fb)[0x2b230fa9d0fb]\n[modal:05395] [14] /opt/conda/bin/../lib/libhdf5.so.310(+0x195209)[0x2b230fa9d209]\n[modal:05395] [15] /opt/conda/bin/../lib/libhdf5.so.310(H5I_dec_app_ref+0xb)[0x2b230fa9d2bb]\n[modal:05395] [16] /opt/conda/bin/../lib/libhdf5.so.310(H5Pclose+0xfb)[0x2b230faee2fb]\n[modal:05395] [17] yambo(+0x3b9ab7)[0x55843f30bab7]\n[modal:05395] [18] yambo(+0x38672c)[0x55843f2d872c]\n[modal:05395] [19] yambo(+0x3868d5)[0x55843f2d88d5]\n[modal:05395] [20] yambo(+0x3746d8)[0x55843f2c66d8]\n[modal:05395] [21] yambo(+0x373126)[0x55843f2c5126]\n[modal:05395] [22] yambo(+0x1cbd27)[0x55843f11dd27]\n[modal:05395] [23] yambo(+0x1c5fc4)[0x55843f117fc4]\n[modal:05395] [24] yambo(+0xecdca)[0x55843f03edca]\n[modal:05395] [25] yambo(+0xeda70)[0x55843f03fa70]\n[modal:05395] [26] yambo(+0x3e254)[0x55843ef90254]\n[modal:05395] [27] yambo(+0x2e519c)[0x55843f23719c]\n[modal:05395] [28] yambo(+0x3bf45)[0x55843ef8df45]\n[modal:05395] [29] /lib/x86_64-linux-gnu/libc.so.6(+0x2724a)[0x2b2310ba324a]\n[modal:05395] *** End of error message ***",
-    "report_tail": "ead from the database\n\n\n\n __   __  _______  __   __  _______  _______\n|  | |  ||   _   ||  |_|  ||  _    ||       |\n|  |_|  ||  |_|  ||       || |_|   ||   _   |\n|       ||       ||       ||       ||  | |  |\n|_     _||       ||       ||  _   | |  |_|  |\n  |   |  |   _   || ||_|| || |_|   ||       |\n  |___|  |__| |__||_|   |_||_______||_______|\n\n\n <---> [01] MPI/OPENMP structure, Files & I/O Directories\n <---> [02] CORE Variables Setup\n <---> [02.01] Unit cells\n <---> [02.02] Symmetries\n <---> [02.03] Reciprocal space\n <---> [02.04] K-grid lattice\n <---> Grid dimensions      :   4   4\n <---> [02.05] Energies & Occupations\n <---> [03] Transferred momenta grid and indexing\n <---> [BZ sampling] Q-grid is User defined and/or read from the database\n <---> [03.01] X + BSE indexes\n <---> X + BSE [eval] |                                        | [000%] --(E) --(X)\n <---> X + BSE [eval] |########################################| [100%] --(E) --(X)\n <---> X + BSE[REDUX] |                                        | [000%] --(E) --(X)\n <---> X + BSE[REDUX] |########################################| [100%] --(E) --(X)\n <---> [03.01.01] Sigma indexes\n <---> Sigma [eval] |                                        | [000%] --(E) --(X)\n <---> Sigma [eval] |########################################| [100%] --(E) --(X)\n <---> Sigma[REDUX] |                                        | [000%] --(E) --(X)\n <---> Sigma[REDUX] |########################################| [100%] --(E) --(X)\n <---> [04] Dipoles\n"
+    "report_tail": "",
+    "error": {
+      "ok": false,
+      "stage_failed": "bse",
+      "note": "yambo BSE (kernel/diagonalization) exceeded its wall cap",
+      "per_stage_s": {
+        "scf": 145.1,
+        "nscf": 266.7,
+        "p2y": 2.9,
+        "y_setup": 0.7,
+        "gw": 444.0,
+        "bse": 1500.0
+      },
+      "vacuum": 10.0,
+      "scf_tail": "     cegterg      :    182.28s CPU     78.19s WALL (      31 calls)\n\n     Called by *egterg:\n     cdiaghg      :      4.18s CPU      1.73s WALL (     167 calls)\n     h_psi        :     73.75s CPU     45.40s WALL (     169 calls)\n     s_psi        :     15.68s CPU      3.81s WALL (     169 calls)\n     g_psi        :      0.83s CPU      0.15s WALL (     137 calls)\n\n     Called by h_psi:\n     h_psi:calbec :      3.27s CPU      6.83s WALL (     169 calls)\n     vloc_psi     :     41.85s CPU     28.70s WALL (     169 calls)\n     add_vuspsi   :     26.02s CPU      8.35s WALL (     169 calls)\n\n     General routines\n     calbec       :      3.06s CPU      6.27s WALL (     200 calls)\n     fft          :      3.08s CPU      3.51s WALL (     402 calls)\n     ffts         :      0.37s CPU      0.43s WALL (      62 calls)\n     fftw         :     38.55s CPU     25.92s WALL (    2927 calls)\n     interpolate  :      0.63s CPU      0.66s WALL (      31 calls)\n\n     Parallel routines\n\n     PWSCF        :   4m 7.46s CPU   2m21.90s WALL\n\n\n   This run was terminated on:   4:51:26   4Aug2026            \n\n=------------------------------------------------------------------------------=\n   JOB DONE.\n=------------------------------------------------------------------------------=",
+      "nscf_tail": "\n     Called by *egterg:\n     cdiaghg      :    154.09s CPU     54.09s WALL (      63 calls)\n     h_psi        :     42.28s CPU    128.02s WALL (      67 calls)\n     s_psi        :     11.54s CPU      5.26s WALL (      67 calls)\n     g_psi        :      1.29s CPU      0.15s WALL (      62 calls)\n\n     Called by h_psi:\n     h_psi:calbec :      1.20s CPU      4.36s WALL (      67 calls)\n     vloc_psi     :     22.32s CPU    116.85s WALL (      67 calls)\n     add_vuspsi   :     17.32s CPU      6.38s WALL (      67 calls)\n\n     General routines\n     calbec       :      1.16s CPU      4.25s WALL (      67 calls)\n     fft          :      0.47s CPU      0.52s WALL (      13 calls)\n     ffts         :      0.28s CPU      0.29s WALL (       1 calls)\n     fftw         :     18.54s CPU     99.28s WALL (    4114 calls)\n     interpolate  :      0.30s CPU      0.31s WALL (       1 calls)\n     davcio       :      0.00s CPU      0.01s WALL (       2 calls)\n\n     Parallel routines\n\n     PWSCF        :   5m16.37s CPU   4m23.22s WALL\n\n\n   This run was terminated on:   4:55:53   4Aug2026            \n\n=------------------------------------------------------------------------------=\n   JOB DONE.\n=------------------------------------------------------------------------------=",
+      "bse_tail": "[modal:05395] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)\ncorrupted size vs. prev_size\n[modal:05395] *** Process received signal ***\n[modal:05395] Signal: Aborted (6)\n[modal:05395] Signal code:  (-6)"
+    }
   },
   "vac16": null,
   "verdict": {
     "E_b_vac10_eV": null,
     "debug_pass": false,
-    "reason": "vac10 aborted at None: None \u2014 skipped vac16 (no spend)"
+    "reason": "vac10 aborted at bse: yambo BSE (kernel/diagonalization) exceeded its wall cap \u2014 skipped vac16 (no spend)"
   }
 }
