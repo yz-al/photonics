@@ -502,6 +502,105 @@ def main():
                 "random_recovers": rand_ok / max(1, raw_errs),
                 "sota_recovers": sota_ok / max(1, raw_errs)}
 
+    # ---- progressive active-learning curriculum (gated) ---------------------
+    # "Train, freeze, test; train MORE, freeze, test" while GROWING the labeled
+    # pool one round at a time -- exactly the progressive check the user asked
+    # for ("train, freeze, tests, to see if it's going in the right direction").
+    # Two arms share an IDENTICAL random bootstrap (round 0), then diverge:
+    #   RANDOM  -- each later round adds K_step random candidate subvolumes.
+    #   ACTIVE  -- each later round adds the K_step MOST-UNCERTAIN candidates
+    #              (margin sampling: forward-pass the current frozen model, pick
+    #              the subvols whose affinities sit closest to the 0.5 decision
+    #              boundary). No GT used to select -- only model uncertainty.
+    # Active learning engages ONLY from round 1 -- the data-limited regime --
+    # never on the round-0 bootstrap, per "Once it's data limited, not at the
+    # beginning." Both arms warm-start each round from their own previous model
+    # (that's the "train MORE"), so wall-clock is one growing curriculum, not N
+    # from-scratch runs. We read the AL-vs-random gap with error bars across
+    # seeds (per METHODOLOGY: structure shows in divergence, not raw accuracy).
+    CURRICULUM = os.environ.get("WORM_S3_CURRICULUM", "0") == "1"
+    if CURRICULUM:
+        C_ROUNDS = int(os.environ.get("WORM_S3_CURR_ROUNDS", "4"))
+        C_K0 = int(os.environ.get("WORM_S3_CURR_K0", "2"))       # bootstrap subvols
+        C_KSTEP = int(os.environ.get("WORM_S3_CURR_KSTEP", "2")) # added per round
+        C_CAND = int(os.environ.get("WORM_S3_CURR_CAND", "24"))  # unlabeled candidate pool
+        C_STEPS = int(os.environ.get("WORM_S3_CURR_STEPS", str(DEC_STEPS)))
+
+        def _uncertainty(dec, sub):
+            # margin sampling: mean proximity of predicted affinities to the 0.5
+            # decision boundary. Higher = the model is LESS sure on this subvol.
+            # Label-free -- uses only the model's own output, never GT.
+            aff = predict("sota", dec, None, sub)
+            return float(np.mean(0.5 - np.abs(aff - 0.5)))
+
+        def _point(rd, n, dec):
+            m, _ = evaluate("sota", dec, None)               # FREEZE + TEST
+            m["cremi_proxy"] = float(np.sqrt(max(m["VOI"], 0) * max(m["adapted_rand_error"], 0)))
+            return {"round": rd, "n_labels": n, **m}
+
+        # ONE fixed candidate pool, shared across arms AND seeds, so the only
+        # thing that differs between arms is WHICH subvols get labeled (selection),
+        # not the underlying data.
+        cand_subs = [sample_sub(tr_raw, tr_seg, CROP, 7000 + i) for i in range(C_CAND)]
+        curric = {"rounds": C_ROUNDS, "k0": C_K0, "k_step": C_KSTEP,
+                  "n_candidates": C_CAND, "steps_per_round": C_STEPS,
+                  "acquisition": "margin/uncertainty; AL engages from round 1 (data-limited)",
+                  "arms": {"random": [], "active": []}}
+        for seed in SEEDS:
+            r = np.random.default_rng(90000 + seed)
+            boot = list(r.choice(C_CAND, C_K0, replace=False))   # identical bootstrap set
+            torch.manual_seed(seed)
+            dec0 = train_dec("sota", None, [cand_subs[i] for i in boot], steps=C_STEPS, seed=seed)
+            boot_pt = _point(0, C_K0, dec0)
+            state0 = dec0.state_dict()
+            print(f"[s3d] curriculum seed{seed} bootstrap n={C_K0} "
+                  f"VOI={boot_pt['VOI']:.3f} acc={boot_pt['affinity_acc']:.3f}", flush=True)
+            for arm in ("random", "active"):
+                chosen = list(boot); remaining = [i for i in range(C_CAND) if i not in chosen]
+                state = state0; dec = dec0
+                traj = [dict(boot_pt)]
+                ra = np.random.default_rng(91000 + seed)         # per-arm rng for random picks
+                for rd in range(1, C_ROUNDS):                    # rounds 1.. : data-limited growth
+                    if not remaining:
+                        break
+                    if arm == "active":                          # margin sampling on frozen model
+                        scored = sorted(((_uncertainty(dec, cand_subs[i]), i) for i in remaining),
+                                        reverse=True)
+                        add = [i for _, i in scored[:C_KSTEP]]
+                    else:                                        # random control
+                        add = list(ra.choice(remaining, min(C_KSTEP, len(remaining)), replace=False))
+                    for i in add:
+                        chosen.append(i); remaining.remove(i)
+                    torch.manual_seed(seed)
+                    dec = train_dec("sota", None, [cand_subs[i] for i in chosen],
+                                    init_state=state, steps=C_STEPS, seed=seed)  # warm-start = train MORE
+                    state = dec.state_dict()
+                    pt = _point(rd, len(chosen), dec)
+                    traj.append(pt)
+                    print(f"[s3d] curriculum seed{seed} {arm} round{rd} n={len(chosen)} "
+                          f"VOI={pt['VOI']:.3f} rand={pt['adapted_rand_error']:.3f} "
+                          f"acc={pt['affinity_acc']:.3f}", flush=True)
+                curric["arms"][arm].append(traj)
+        # aggregate: mean +- std at each round across seeds, per arm
+        agg_arms = {}
+        for arm in ("random", "active"):
+            trajs = curric["arms"][arm]
+            nr = min(len(t) for t in trajs)
+            agg_arms[arm] = []
+            for rd in range(nr):
+                pts = [t[rd] for t in trajs]
+                keys = [k for k in pts[0] if k != "round"]
+                agg_arms[arm].append({"round": rd,
+                    **{k: {"mean": round(float(np.mean([p[k] for p in pts])), 4),
+                           "std": round(float(np.std([p[k] for p in pts])), 4)} for k in keys}})
+        curric["aggregate"] = agg_arms
+        out = {"device": DEV, "crop": CROP, "zc": ZC, "seeds": SEEDS,
+               "offsets": {"short": SHORT, "long": LONG}, "curriculum": curric}
+        print(json.dumps(out, indent=2))
+        with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
+            json.dump(out, f, indent=2)
+        return
+
     # ---- multi-seed loop (mean +- std) ----
     SOURCES = ["jepa", "random", "raw", "sota"]
     DBB = os.environ.get("WORM_S3_DBB", "0") == "1"       # double black box analysis
