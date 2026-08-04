@@ -8,92 +8,106 @@
   "audit": {
     "note": "learnability ceiling audit; label ceiling is a PROXY (EM cannot be re-annotated here)",
     "label_ceiling_proxy": {
-      "VOI_floor": 1.6348,
-      "ERL_ceiling": 21.9887,
+      "VOI_floor": 0.1989,
+      "ERL_ceiling": 154.904,
       "meaning": "best VOI a model can reach ~ this floor; best ERL ~ this ceiling"
     },
     "overfit_gate": {
       "train": {
-        "affinity_acc": 0.9881,
-        "VOI": 0.2493,
-        "ERL": 178.1318
+        "affinity_acc": 0.9944,
+        "VOI": 0.1374,
+        "ERL": 216.7429
       },
       "test": {
-        "affinity_acc": 0.8644,
-        "VOI": 3.3357,
-        "ERL": 33.5448
+        "affinity_acc": 0.8872,
+        "VOI": 2.5005,
+        "ERL": 49.9798
       },
       "pass": true,
       "verdict": "info present + labels fittable -> proceed"
     },
     "label_shuffle": {
       "test": {
-        "affinity_acc": 0.7197,
-        "VOI": 3.786,
-        "ERL": 4.0796
+        "affinity_acc": 0.6386,
+        "VOI": 4.0384,
+        "ERL": 0.4408
       },
       "meaning": "should be ~chance; near-normal test perf here would indicate leakage"
     },
     "learning_curve": {
       "points": [
         {
-          "n_labels": 2,
+          "n_labels": 3,
           "test": {
-            "affinity_acc": 0.8567,
-            "VOI": 2.5781,
-            "ERL": 69.4829
+            "affinity_acc": 0.8859,
+            "VOI": 2.1617,
+            "ERL": 54.3454
           },
           "train": {
-            "affinity_acc": 0.9473,
-            "VOI": 0.8254,
-            "ERL": 148.5312
+            "affinity_acc": 0.9568,
+            "VOI": 0.7996,
+            "ERL": 217.4793
           },
-          "train_test_gap_VOI": 1.7527
-        },
-        {
-          "n_labels": 4,
-          "test": {
-            "affinity_acc": 0.8515,
-            "VOI": 2.5542,
-            "ERL": 57.443
-          },
-          "train": {
-            "affinity_acc": 0.9281,
-            "VOI": 1.1579,
-            "ERL": 148.6138
-          },
-          "train_test_gap_VOI": 1.3963
+          "train_test_gap_VOI": 1.3621
         },
         {
           "n_labels": 8,
           "test": {
-            "affinity_acc": 0.8634,
-            "VOI": 2.116,
-            "ERL": 77.8941
+            "affinity_acc": 0.8668,
+            "VOI": 2.4423,
+            "ERL": 53.996
           },
           "train": {
-            "affinity_acc": 0.9185,
-            "VOI": 1.3758,
-            "ERL": 153.7627
+            "affinity_acc": 0.9349,
+            "VOI": 1.1052,
+            "ERL": 176.2033
           },
-          "train_test_gap_VOI": 0.7402
+          "train_test_gap_VOI": 1.3371
         },
         {
           "n_labels": 16,
           "test": {
-            "affinity_acc": 0.8662,
-            "VOI": 2.0703,
-            "ERL": 82.3084
+            "affinity_acc": 0.8653,
+            "VOI": 2.1832,
+            "ERL": 80.3853
           },
           "train": {
-            "affinity_acc": 0.912,
-            "VOI": 1.4885,
-            "ERL": 138.5116
+            "affinity_acc": 0.9067,
+            "VOI": 1.5098,
+            "ERL": 153.4415
           },
-          "train_test_gap_VOI": 0.5818
+          "train_test_gap_VOI": 0.6734
+        },
+        {
+          "n_labels": 32,
+          "test": {
+            "affinity_acc": 0.8853,
+            "VOI": 1.5262,
+            "ERL": 97.1011
+          },
+          "train": {
+            "affinity_acc": 0.8781,
+            "VOI": 1.7249,
+            "ERL": 129.8233
+          },
+          "train_test_gap_VOI": -0.1987
+        },
+        {
+          "n_labels": 64,
+          "test": {
+            "affinity_acc": 0.8819,
+            "VOI": 1.6494,
+            "ERL": 95.3501
+          },
+          "train": {
+            "affinity_acc": 0.8737,
+            "VOI": 1.8583,
+            "ERL": 141.9801
+          },
+          "train_test_gap_VOI": -0.2089
         }
       ],
-      "loglog_slope_top": -0.031,
+      "loglog_slope_top": 0.112,
       "reading": "steep negative slope at 100% => DATA-limited (more labels help); flat => data will NOT help"
     },
     "capacity_curve": {
@@ -101,25 +115,25 @@
         {
           "base_width": 16,
           "test": {
-            "affinity_acc": 0.8588,
-            "VOI": 2.2878,
-            "ERL": 83.1846
+            "affinity_acc": 0.8895,
+            "VOI": 1.8246,
+            "ERL": 68.8395
           }
         },
         {
           "base_width": 32,
           "test": {
-            "affinity_acc": 0.8649,
-            "VOI": 2.1464,
-            "ERL": 76.6379
+            "affinity_acc": 0.8831,
+            "VOI": 1.8121,
+            "ERL": 57.2448
           }
         },
         {
           "base_width": 64,
           "test": {
-            "affinity_acc": 0.8585,
-            "VOI": 2.1519,
-            "ERL": 87.2529
+            "affinity_acc": 0.8812,
+            "VOI": 1.6622,
+            "ERL": 96.6096
           }
         }
       ],
@@ -127,33 +141,33 @@
     },
     "input_restriction": {
       "VOI_by_blur": {
-        "blur_sigma_0.0": 2.0508,
-        "blur_sigma_1.0": 1.9933,
-        "blur_sigma_2.0": 1.937
+        "blur_sigma_0.0": 1.7742,
+        "blur_sigma_1.0": 1.7596,
+        "blur_sigma_2.0": 1.7813
       },
       "reading": "big VOI jump with blur => membrane signal is LOCAL/high-res"
     },
     "agglo_vs_mws": {
       "mws": {
-        "VOI": 2.0508,
-        "ERL": 85.3788
+        "VOI": 1.7742,
+        "ERL": 65.605
       },
       "learned_multicut": {
-        "method": "multicut_affinity",
-        "VOI": 1.7352,
-        "ERL": 67.385
+        "method": "mws",
+        "VOI": 1.7742,
+        "ERL": 65.605
       },
-      "safe_best_by_erl": "multicut_affinity"
+      "safe_best_by_erl": "mws"
     },
     "error_stratification": {
       "dominant_error": "split-dominated (over-seg): more false_split -> improve over-seg / attraction",
       "confidence": "errors sit CLOSER to the decision boundary than correct edges -> mostly low-confidence (calibration/more training helps)",
-      "structure_auc": 0.72,
-      "clusters": "errors do not cluster tightly -> no single dominant failure mode"
+      "structure_auc": 0.7469,
+      "clusters": "clustered failure modes present (silhouette high) -> the largest cluster's merge/split mix + centroid names the next fix"
     },
     "FINAL_VERDICT": {
       "limits": [
-        "approaching LABEL ceiling (proxy)"
+        "inconclusive -- inspect curves"
       ],
       "recommendation": "follow the verdict: data-limited -> label more; capacity-flat -> don't grow the net; near label ceiling -> modelling has little headroom"
     }
