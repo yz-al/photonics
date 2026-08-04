@@ -732,6 +732,29 @@ def main():
             json.dump(out, f, indent=2)
         return
 
+    # ---- NON-ODE PIPELINE THEORY (percolation / EVT / spectral / scale-space / discrete) ----
+    if os.environ.get("WORM_S3_THEORY", "0") == "1":
+        import pipeline_theory as PT
+        import agglomerate as AG
+        seed = SEEDS[0]; torch.manual_seed(seed)
+        TSTEPS = int(os.environ.get("WORM_S3_THEORY_STEPS", "6000"))
+        GAP = int(os.environ.get("WORM_S3_AUDIT_ZGAP", str(ZC)))
+        NPOOL = int(os.environ.get("WORM_S3_CURVE_POOL", "64"))
+        NTEST = int(os.environ.get("WORM_S3_THEORY_NTEST", "12"))
+        trm_raw = tr_raw[:max(ZC + 1, tr_raw.shape[0] - GAP)]; trm_seg = tr_seg[:trm_raw.shape[0]]
+        pool = [sample_sub(trm_raw, trm_seg, CROP, 20000 + i) for i in range(NPOOL)]
+        test = [sample_sub(te_raw, te_seg, ec, 40000 + j) for j in range(NTEST)]
+        net = train_dec("sota", None, pool, steps=TSTEPS, augment=True, seed=seed)
+        subs = [(predict("sota", net, None, sub), seg) for sub, seg in test]     # real affinities on held-out
+        ctx = {"AG": AG, "SHORT": SHORT, "OFFS": OFFS, "mutex_watershed": mutex_watershed,
+               "seg_metrics": seg_metrics, "erl_proxy": erl_proxy, "gt_affinity": gt_affinity}
+        res = PT.run(subs, ctx)
+        out = {"theory_seed": seed, "n_test": NTEST, "pipeline_theory": res}
+        print(json.dumps(out, indent=2))
+        with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
+            json.dump(out, f, indent=2)
+        return
+
     # ---- DOUBLE BLACK BOX STAGES 3-7 on the mechinterp-pulled compact model (gated) ----
     if os.environ.get("WORM_S3_DBB_STAGES", "0") == "1":
         from scipy.ndimage import distance_transform_edt
