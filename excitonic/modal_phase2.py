@@ -55,7 +55,10 @@ _FAKE_SSH = (
 qe_bgw_image = (
     modal.Image.micromamba(python_version="3.11")
     .micromamba_install(
-        "qe", "yambo", "openmpi", "fftw", "hdf5", "numpy", "ase",
+        # Fork A: pin an OLDER yambo — the default (latest) build's BSE hangs even
+        # serial on a 2x2/KS problem (a version bug, since OMP_NUM_THREADS=1 rules out
+        # a threading deadlock). 5.1.x is a long-stable BSE series.
+        "qe", "yambo=5.1.2", "openmpi", "fftw", "hdf5", "numpy", "ase",
         channels=["conda-forge"],
     )
     .pip_install("requests==2.33.1")
@@ -563,6 +566,8 @@ def gwbse_cost(material: str = "MoS2", mode: str = "debug", vacuum: float = 10.0
     os.makedirs(os.path.join(wd, "pseudo"), exist_ok=True)
     env = os.environ.copy()
     env["OMP_NUM_THREADS"] = "1"
+    env["OPENBLAS_NUM_THREADS"] = "1"   # belt-and-suspenders vs a BLAS-thread deadlock
+    env["MKL_NUM_THREADS"] = "1"
     # yambo BSE crashed inside libhdf5 (H5Pclose) on database close — the classic
     # HDF5-in-container failure: file locking on an overlay/ephemeral FS. Disable it.
     env["HDF5_USE_FILE_LOCKING"] = "FALSE"
@@ -786,7 +791,7 @@ BEnSteps= 100
     # GW ndb.QP via -J GW. Run debug BSE at KS level (-J BSE only). Completes ⟹ the
     # GW-db read was the hang (and we get a KS-level exciton = the pipeline milestone);
     # still hangs ⟹ the yambo BSE build is broken (hard fork).
-    bse_cmd = (["yambo", "-F", "bse.in", "-J", "BSE"] if mode == "debug"
+    bse_cmd = (["yambo", "-F", "bse.in", "-J", "BSE,GW"] if mode == "debug"
                else MPI_Y + ["yambo", "-F", "bse.in", "-J", "BSE,GW"])
     rc_bse = sh("bse", bse_cmd, cwd=ydir, outfile="bse_run.log")
     if rc_bse == 124:

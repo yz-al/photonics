@@ -161,3 +161,21 @@ disorder-gated (an engineering, not fundamental, obstacle); the **Rydberg** door
 closes. So the bound has tightened toward "no" on two of three, with the dipolar exponent
 the one genuinely undetermined quantity left — and it is the one that needs the repaired
 GW-BSE toolchain.
+
+## Track-C follow-through (2) — moiré disorder is not fundamental; fork A launched
+
+**Moiré disorder can be pushed below the U scale — at the single-trap level.** Individual
+moiré-trapped interlayer excitons show <1 meV linewidth (low T), and hBN encapsulation
+reaches the homogeneous limit (~2–5 meV). So the ~20 meV floor is *ensemble* (trap-to-trap)
+broadening, not a single-trap limit. Blockade needs a **single emitter** (one trap), where
+the inhomogeneous disorder is removed and the RT linewidth reverts to the **phonon floor**
+(the same Γ ~6–15 meV the bound already rests on) — which tight moiré confinement's U can
+plausibly beat. So the moiré/saturation leg is **genuinely open**. The real catch is that
+this is a **single-emitter architecture** (quantum-dot-like), trading against the spec's
+scalability/CMOS conditions — a device-integration question, not a materials cap. Concrete
+experiment: blockade at one moiré trap at 300 K. (`phase2_moire_disorder.json`.)
+
+**Fork A (toolchain) launched.** The λ_f leg needs a working BSE. Since the default Yambo's
+BSE hangs even serial at 2×2/KS with OMP_NUM_THREADS=1 (ruling out a thread deadlock), it is
+a version bug — so the image now pins **yambo=5.1.2** (a long-stable BSE series) plus BLAS
+single-thread guards. A debug run tests whether that build's BSE completes and returns λ_f.
