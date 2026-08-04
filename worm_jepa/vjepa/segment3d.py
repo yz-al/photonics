@@ -740,7 +740,21 @@ def main():
         A = {"note": "learnability ceiling audit; label ceiling is a PROXY (EM cannot be re-annotated here)"}
         seed = SEEDS[0]; torch.manual_seed(seed)
         OV_STEPS = int(os.environ.get("WORM_S3_AUDIT_OVERFIT_STEPS", "5000"))
-        C_STEPS = int(os.environ.get("WORM_S3_AUDIT_STEPS", "2500"))
+        C_STEPS = int(os.environ.get("WORM_S3_AUDIT_STEPS", "4000"))   # real per-point training length
+        # CLEAN HELD-OUT TEST with a Z-MARGIN. EM neurons run through z, so a training crop
+        # adjacent to the test region leaks structure. Carve a GAP (>= one crop depth) of z
+        # off the END of the training region; the test region (te_raw) is already the last
+        # 25% of z. Train crops densely TILE the (margined) training volume -- this measures
+        # whether more DATA DIVERSITY helps, not just repeats of 16 crops.
+        GAP = int(os.environ.get("WORM_S3_AUDIT_ZGAP", str(ZC)))
+        NPOOL = int(os.environ.get("WORM_S3_AUDIT_POOL", "64"))       # dense training-volume coverage
+        NTEST = int(os.environ.get("WORM_S3_AUDIT_NTEST", "8"))
+        trm_raw = tr_raw[:max(ZC + 1, tr_raw.shape[0] - GAP)]        # margined training region
+        trm_seg = tr_seg[:trm_raw.shape[0]]
+        audit_pool = [sample_sub(trm_raw, trm_seg, CROP, 20000 + i) for i in range(NPOOL)]
+        audit_test = [sample_sub(te_raw, te_seg, ec, 30000 + j) for j in range(NTEST)]
+        print(f"[audit] train region z={trm_raw.shape[0]} (gap {GAP}) pool={NPOOL} | "
+              f"held-out test z={te_raw.shape[0]} crops={NTEST}", flush=True)
 
         def eval_on(dec, subs, source="sota"):             # metrics on GIVEN subvols (train or test)
             accs, vois, erls = [], [], []
@@ -791,7 +805,7 @@ def main():
             idx = distance_transform_edt(m, return_distances=False, return_indices=True)
             return er[tuple(idx)]
         lc_voi, lc_erl = [], []
-        for _, seg in te_subs:
+        for _, seg in audit_test:
             p = perturb(seg); v, _ = seg_metrics(p, seg); lc_voi.append(v); lc_erl.append(erl_proxy(p, seg))
         A["label_ceiling_proxy"] = {"VOI_floor": round(float(np.mean(lc_voi)), 4),
                                     "ERL_ceiling": round(float(np.mean(lc_erl)), 4),
@@ -799,9 +813,9 @@ def main():
 
         # (2) OVERFIT GATE -- HARD STOP if a big net can't fit a few subvols. Distinguishes
         # 'cannot learn' (info/label problem) from 'cannot generalise' (capacity/data).
-        small = full_pool[:4]
+        small = audit_pool[:4]
         ov = train_unet(small, OV_STEPS, base=48)
-        ov_train = eval_on(ov, small); ov_test = eval_on(ov, te_subs)
+        ov_train = eval_on(ov, small); ov_test = eval_on(ov, audit_test)
         gate_pass = ov_train["affinity_acc"] >= 0.95
         A["overfit_gate"] = {"train": ov_train, "test": ov_test, "pass": bool(gate_pass),
                              "verdict": ("info present + labels fittable -> proceed" if gate_pass else
@@ -815,16 +829,17 @@ def main():
             return
 
         # LABEL SHUFFLE (leakage): structure destroyed -> eval must collapse to ~chance.
-        sh = train_unet(full_pool[:8], C_STEPS, base=32, shuffle_labels=True)
-        A["label_shuffle"] = {"test": eval_on(sh, te_subs),
+        sh = train_unet(audit_pool[:8], C_STEPS, base=32, shuffle_labels=True)
+        A["label_shuffle"] = {"test": eval_on(sh, audit_test),
                               "meaning": "should be ~chance; near-normal test perf here would indicate leakage"}
 
-        # (3) LEARNING CURVE: eval vs #labelled subvols (log-log slope at the largest size).
-        sizes = sorted({max(1, int(round(len(full_pool) * f))) for f in (0.125, 0.25, 0.5, 1.0)})
+        # (3) LEARNING CURVE over the DENSE training-volume pool: eval vs #crops (more crops =
+        # more volume coverage/diversity, not repeats). log-log slope at the largest size.
+        sizes = sorted({max(1, int(round(len(audit_pool) * f))) for f in (0.05, 0.125, 0.25, 0.5, 1.0)})
         lc = []
         for n in sizes:
-            dec = train_unet(full_pool[:n], C_STEPS, base=32, augment=True)
-            m = eval_on(dec, te_subs); mtr = eval_on(dec, full_pool[:n])
+            dec = train_unet(audit_pool[:n], C_STEPS, base=32, augment=True)
+            m = eval_on(dec, audit_test); mtr = eval_on(dec, audit_pool[:min(4, n)])   # cap train MWS cost
             lc.append({"n_labels": n, "test": m, "train": mtr,
                        "train_test_gap_VOI": round(m["VOI"] - mtr["VOI"], 4)})
             print(f"[audit] learning-curve n={n} testVOI={m['VOI']} trainVOI={mtr['VOI']} ERL={m['ERL']}", flush=True)
@@ -841,18 +856,18 @@ def main():
         # (3b) CAPACITY CURVE: fixed data, vary width. Flat => capacity is NOT the constraint.
         cap = []
         for base in (16, 32, 64):
-            dec = train_unet(full_pool, C_STEPS, base=base, augment=True)
-            m = eval_on(dec, te_subs)
+            dec = train_unet(audit_pool, C_STEPS, base=base, augment=True)
+            m = eval_on(dec, audit_test)
             cap.append({"base_width": base, "test": m}); print(f"[audit] capacity base={base} testVOI={m['VOI']}", flush=True)
         A["capacity_curve"] = {"points": cap, "reading": "flat across widths => capacity NOT limiting"}
 
-        # 100%-data model, reused by the ablation / agglo / stratification checks below.
+        # 100%-data model (full training volume), reused by the ablation / agglo / strat checks.
         import agglomerate as AG
         actx = {"SHORT": SHORT, "OFFS": OFFS, "mutex_watershed": mutex_watershed,
                 "seg_metrics": seg_metrics, "erl_proxy": erl_proxy}
-        big = train_unet(full_pool, C_STEPS, base=32, augment=True)
-        tr_aff = [predict("sota", big, None, s) for s, _ in full_pool]; tr_seg = [g for _, g in full_pool]
-        ev_aff = [predict("sota", big, None, s) for s, _ in te_subs]; ev_seg = [g for _, g in te_subs]
+        big = train_unet(audit_pool, C_STEPS, base=32, augment=True)
+        tr_aff = [predict("sota", big, None, s) for s, _ in audit_pool]; tr_seg = [g for _, g in audit_pool]
+        ev_aff = [predict("sota", big, None, s) for s, _ in audit_test]; ev_seg = [g for _, g in audit_test]
 
         # INPUT-RESTRICTION ablation: the affinity net's only input is raw EM, so ablate its
         # RESOLUTION -- eval on progressively blurred/downsampled raw. Flat degradation => the
@@ -860,7 +875,7 @@ def main():
         from scipy.ndimage import gaussian_filter as _gf
         restr = {}
         for sig in (0.0, 1.0, 2.0):
-            subs_b = [((s if sig == 0 else _gf(s.astype(np.float32), (0, sig, sig))), g) for s, g in te_subs]
+            subs_b = [((s if sig == 0 else _gf(s.astype(np.float32), (0, sig, sig))), g) for s, g in audit_test]
             restr[f"blur_sigma_{sig}"] = eval_on(big, subs_b)["VOI"]
         A["input_restriction"] = {"VOI_by_blur": restr,
                                   "reading": "big VOI jump with blur => membrane signal is LOCAL/high-res"}
