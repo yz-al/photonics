@@ -1,0 +1,103 @@
+{
+  "sample": "A",
+  "chunk": [
+    30,
+    90,
+    300,
+    940
+  ],
+  "n_neurons": 4834,
+  "n_synaptic_clefts": 7,
+  "gt_connectome": {
+    "n_edges": 6,
+    "structure": {
+      "n_nodes": 4834,
+      "n_edges": 6,
+      "mean_degree": 0.0,
+      "max_degree": 2,
+      "spectral_gap_fiedler": 0.0,
+      "hub_nodes_top5": [
+        7491,
+        4944,
+        5079,
+        9868,
+        11715
+      ],
+      "note": "adjacency of the connectome; spectral gap ~ modular separability (stage-2 input)"
+    }
+  },
+  "merge_corruption_curve": [
+    {
+      "merge_rate": 0.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 6,
+      "n_pred_edges": 6,
+      "n_gt_edges": 6
+    },
+    {
+      "merge_rate": 0.05,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 6,
+      "n_pred_edges": 6,
+      "n_gt_edges": 6
+    },
+    {
+      "merge_rate": 0.1,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "tp": 6,
+      "n_pred_edges": 6,
+      "n_gt_edges": 6
+    },
+    {
+      "merge_rate": 0.2,
+      "precision": 0.8333,
+      "recall": 0.8333,
+      "f1": 0.8333,
+      "tp": 5,
+      "n_pred_edges": 6,
+      "n_gt_edges": 6
+    },
+    {
+      "merge_rate": 0.4,
+      "precision": 0.8333,
+      "recall": 0.8333,
+      "f1": 0.8333,
+      "tp": 5,
+      "n_pred_edges": 6,
+      "n_gt_edges": 6
+    }
+  ],
+  "reading": "connectome edge-F1 vs segmentation merge rate: this is the wiring-level cost of merges -> sets how merge-safe the labeling must be for the mechanistic model to be correct. The gt_connectome adjacency is the stage-2 input.",
+  "edges_sample": [
+    [
+      7491,
+      9868
+    ],
+    [
+      7491,
+      30445
+    ],
+    [
+      12735,
+      20474
+    ],
+    [
+      5079,
+      14953
+    ],
+    [
+      3307,
+      11715
+    ],
+    [
+      4944,
+      24745
+    ]
+  ]
+}
