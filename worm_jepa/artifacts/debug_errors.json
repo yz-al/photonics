@@ -1,0 +1,383 @@
+{
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "results": [
+    {
+      "seed": 0,
+      "method": "edge-decision error debug (confidence + structure + clustering) on saved checkpoints",
+      "features": [
+        "mean_short",
+        "mean_long",
+        "log_contact",
+        "log_min_size",
+        "lsd_dist",
+        "lsd_cos",
+        "jepa_dist",
+        "jepa_cos"
+      ],
+      "merge_bias": 1.25,
+      "thr_over": 0.9,
+      "seed_q": 0.6,
+      "dominant_error": "merge-dominated (under-seg): more false_merge -> stronger repulsion / specialist B",
+      "confidence": {
+        "eval_edges": 1265,
+        "error_rate": 0.2206,
+        "correct": {
+          "n": 986,
+          "mean_margin": 4.7565,
+          "median_margin": 4.9856
+        },
+        "all_errors": {
+          "n": 279,
+          "mean_margin": 3.5931,
+          "median_margin": 3.3486
+        },
+        "false_merge": {
+          "n": 155,
+          "mean_margin": 2.9466,
+          "median_margin": 2.8518
+        },
+        "false_split": {
+          "n": 124,
+          "mean_margin": 4.4012,
+          "median_margin": 4.0644
+        },
+        "frac_errors_high_confidence": 0.319,
+        "interpretation": "errors sit CLOSER to the decision boundary than correct edges -> mostly low-confidence (calibration/more training helps)"
+      },
+      "structure": {
+        "note": "AUC of predicting is-error from edge features; >~0.65 => targetable structure",
+        "cv_auc_mean": 0.5989,
+        "cv_auc_std": 0.0671,
+        "per_feature_auc": {
+          "mean_long": 0.612,
+          "mean_short": 0.5746,
+          "lsd_cos": 0.5656,
+          "jepa_dist": 0.5625,
+          "lsd_dist": 0.5609,
+          "jepa_cos": 0.5463,
+          "log_min_size": 0.5385,
+          "log_contact": 0.5013
+        },
+        "verdict": "DIFFUSE errors (not feature-separable) -> the honest lever is heavier SOTA training"
+      },
+      "clusters": {
+        "note": "KMeans on error-edge features; silhouette>~0.3 => genuine grouping",
+        "best_k": 4,
+        "silhouette": 0.229,
+        "clusters": [
+          {
+            "cluster": 1,
+            "size": 100,
+            "false_merge": 60,
+            "false_split": 40,
+            "median_small_frag_vox": 533,
+            "centroid": {
+              "mean_short": 0.621,
+              "mean_long": 0.528,
+              "log_contact": 6.517,
+              "log_min_size": 6.352,
+              "lsd_dist": 0.112,
+              "lsd_cos": 0.998,
+              "jepa_dist": 2.228,
+              "jepa_cos": 0.661
+            }
+          },
+          {
+            "cluster": 0,
+            "size": 96,
+            "false_merge": 91,
+            "false_split": 5,
+            "median_small_frag_vox": 34,
+            "centroid": {
+              "mean_short": 0.863,
+              "mean_long": 0.656,
+              "log_contact": 4.784,
+              "log_min_size": 3.725,
+              "lsd_dist": 0.157,
+              "lsd_cos": 0.996,
+              "jepa_dist": 3.404,
+              "jepa_cos": 0.321
+            }
+          },
+          {
+            "cluster": 3,
+            "size": 55,
+            "false_merge": 0,
+            "false_split": 55,
+            "median_small_frag_vox": 170,
+            "centroid": {
+              "mean_short": 0.255,
+              "mean_long": 0.173,
+              "log_contact": 4.954,
+              "log_min_size": 4.918,
+              "lsd_dist": 0.146,
+              "lsd_cos": 0.997,
+              "jepa_dist": 3.502,
+              "jepa_cos": 0.297
+            }
+          },
+          {
+            "cluster": 2,
+            "size": 28,
+            "false_merge": 4,
+            "false_split": 24,
+            "median_small_frag_vox": 271,
+            "centroid": {
+              "mean_short": 0.487,
+              "mean_long": 0.311,
+              "log_contact": 6.138,
+              "log_min_size": 5.437,
+              "lsd_dist": 0.34,
+              "lsd_cos": 0.984,
+              "jepa_dist": 2.603,
+              "jepa_cos": 0.454
+            }
+          }
+        ],
+        "verdict": "errors do not cluster tightly -> no single dominant failure mode"
+      }
+    },
+    {
+      "seed": 1,
+      "method": "edge-decision error debug (confidence + structure + clustering) on saved checkpoints",
+      "features": [
+        "mean_short",
+        "mean_long",
+        "log_contact",
+        "log_min_size",
+        "lsd_dist",
+        "lsd_cos",
+        "jepa_dist",
+        "jepa_cos"
+      ],
+      "merge_bias": 1.25,
+      "thr_over": 0.9,
+      "seed_q": 0.6,
+      "dominant_error": "split-dominated (over-seg): more false_split -> improve over-seg / attraction",
+      "confidence": {
+        "eval_edges": 1908,
+        "error_rate": 0.1882,
+        "correct": {
+          "n": 1549,
+          "mean_margin": 4.4779,
+          "median_margin": 4.3846
+        },
+        "all_errors": {
+          "n": 359,
+          "mean_margin": 3.5301,
+          "median_margin": 3.1781
+        },
+        "false_merge": {
+          "n": 172,
+          "mean_margin": 2.56,
+          "median_margin": 2.4279
+        },
+        "false_split": {
+          "n": 187,
+          "mean_margin": 4.4223,
+          "median_margin": 4.3407
+        },
+        "frac_errors_high_confidence": 0.3454,
+        "interpretation": "errors sit CLOSER to the decision boundary than correct edges -> mostly low-confidence (calibration/more training helps)"
+      },
+      "structure": {
+        "note": "AUC of predicting is-error from edge features; >~0.65 => targetable structure",
+        "cv_auc_mean": 0.5449,
+        "cv_auc_std": 0.0909,
+        "per_feature_auc": {
+          "mean_short": 0.5887,
+          "log_min_size": 0.5876,
+          "mean_long": 0.579,
+          "jepa_dist": 0.5451,
+          "log_contact": 0.5359,
+          "jepa_cos": 0.5093,
+          "lsd_dist": 0.5074,
+          "lsd_cos": 0.5062
+        },
+        "verdict": "DIFFUSE errors (not feature-separable) -> the honest lever is heavier SOTA training"
+      },
+      "clusters": {
+        "note": "KMeans on error-edge features; silhouette>~0.3 => genuine grouping",
+        "best_k": 2,
+        "silhouette": 0.2224,
+        "clusters": [
+          {
+            "cluster": 1,
+            "size": 223,
+            "false_merge": 163,
+            "false_split": 60,
+            "median_small_frag_vox": 190,
+            "centroid": {
+              "mean_short": 0.707,
+              "mean_long": 0.588,
+              "log_contact": 5.773,
+              "log_min_size": 5.262,
+              "lsd_dist": 0.1,
+              "lsd_cos": 0.998,
+              "jepa_dist": 2.24,
+              "jepa_cos": 0.61
+            }
+          },
+          {
+            "cluster": 0,
+            "size": 136,
+            "false_merge": 9,
+            "false_split": 127,
+            "median_small_frag_vox": 192,
+            "centroid": {
+              "mean_short": 0.324,
+              "mean_long": 0.243,
+              "log_contact": 5.524,
+              "log_min_size": 5.205,
+              "lsd_dist": 0.202,
+              "lsd_cos": 0.993,
+              "jepa_dist": 3.097,
+              "jepa_cos": 0.437
+            }
+          }
+        ],
+        "verdict": "errors do not cluster tightly -> no single dominant failure mode"
+      }
+    },
+    {
+      "seed": 2,
+      "method": "edge-decision error debug (confidence + structure + clustering) on saved checkpoints",
+      "features": [
+        "mean_short",
+        "mean_long",
+        "log_contact",
+        "log_min_size",
+        "lsd_dist",
+        "lsd_cos",
+        "jepa_dist",
+        "jepa_cos"
+      ],
+      "merge_bias": 1.25,
+      "thr_over": 0.9,
+      "seed_q": 0.6,
+      "dominant_error": "split-dominated (over-seg): more false_split -> improve over-seg / attraction",
+      "confidence": {
+        "eval_edges": 1318,
+        "error_rate": 0.17,
+        "correct": {
+          "n": 1094,
+          "mean_margin": 4.5474,
+          "median_margin": 4.6927
+        },
+        "all_errors": {
+          "n": 224,
+          "mean_margin": 3.7553,
+          "median_margin": 3.3477
+        },
+        "false_merge": {
+          "n": 85,
+          "mean_margin": 2.8033,
+          "median_margin": 2.9679
+        },
+        "false_split": {
+          "n": 139,
+          "mean_margin": 4.3375,
+          "median_margin": 3.9236
+        },
+        "frac_errors_high_confidence": 0.3795,
+        "interpretation": "errors sit CLOSER to the decision boundary than correct edges -> mostly low-confidence (calibration/more training helps)"
+      },
+      "structure": {
+        "note": "AUC of predicting is-error from edge features; >~0.65 => targetable structure",
+        "cv_auc_mean": 0.5476,
+        "cv_auc_std": 0.093,
+        "per_feature_auc": {
+          "mean_short": 0.6094,
+          "mean_long": 0.5976,
+          "log_min_size": 0.5661,
+          "jepa_dist": 0.5608,
+          "jepa_cos": 0.5441,
+          "log_contact": 0.5381,
+          "lsd_cos": 0.5162,
+          "lsd_dist": 0.5145
+        },
+        "verdict": "DIFFUSE errors (not feature-separable) -> the honest lever is heavier SOTA training"
+      },
+      "clusters": {
+        "note": "KMeans on error-edge features; silhouette>~0.3 => genuine grouping",
+        "best_k": 4,
+        "silhouette": 0.2187,
+        "clusters": [
+          {
+            "cluster": 2,
+            "size": 72,
+            "false_merge": 3,
+            "false_split": 69,
+            "median_small_frag_vox": 129,
+            "centroid": {
+              "mean_short": 0.337,
+              "mean_long": 0.249,
+              "log_contact": 4.873,
+              "log_min_size": 4.746,
+              "lsd_dist": 0.15,
+              "lsd_cos": 0.996,
+              "jepa_dist": 3.368,
+              "jepa_cos": 0.129
+            }
+          },
+          {
+            "cluster": 1,
+            "size": 64,
+            "false_merge": 60,
+            "false_split": 4,
+            "median_small_frag_vox": 79,
+            "centroid": {
+              "mean_short": 0.845,
+              "mean_long": 0.739,
+              "log_contact": 5.507,
+              "log_min_size": 4.13,
+              "lsd_dist": 0.136,
+              "lsd_cos": 0.997,
+              "jepa_dist": 3.055,
+              "jepa_cos": 0.467
+            }
+          },
+          {
+            "cluster": 0,
+            "size": 57,
+            "false_merge": 19,
+            "false_split": 38,
+            "median_small_frag_vox": 705,
+            "centroid": {
+              "mean_short": 0.478,
+              "mean_long": 0.381,
+              "log_contact": 7.189,
+              "log_min_size": 6.764,
+              "lsd_dist": 0.126,
+              "lsd_cos": 0.997,
+              "jepa_dist": 2.047,
+              "jepa_cos": 0.458
+            }
+          },
+          {
+            "cluster": 3,
+            "size": 31,
+            "false_merge": 3,
+            "false_split": 28,
+            "median_small_frag_vox": 191,
+            "centroid": {
+              "mean_short": 0.428,
+              "mean_long": 0.318,
+              "log_contact": 6.262,
+              "log_min_size": 5.131,
+              "lsd_dist": 0.345,
+              "lsd_cos": 0.983,
+              "jepa_dist": 3.312,
+              "jepa_cos": 0.062
+            }
+          }
+        ],
+        "verdict": "errors do not cluster tightly -> no single dominant failure mode"
+      }
+    }
+  ]
+}
