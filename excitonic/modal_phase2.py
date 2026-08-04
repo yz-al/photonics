@@ -583,7 +583,7 @@ def gwbse_cost(material: str = "MoS2", mode: str = "debug", vacuum: float = 10.0
     # Per-stage wall caps so NO single stage can ride the 6 h GitHub limit. A stage
     # that exceeds its cap is SIGKILLed and reported as a timeout (rc=124) with its
     # output tail — a hang becomes a legible, minutes-long failure, not a 6 h burn.
-    TMO = ({"scf": 1500, "nscf": 1500, "p2y": 180, "y_setup": 300, "gw": 1500, "bse": 1800}
+    TMO = ({"scf": 1500, "nscf": 1500, "p2y": 180, "y_setup": 300, "gw": 1500, "bse": 600}
            if mode == "debug"
            else {"scf": 3600, "nscf": 3600, "p2y": 600, "y_setup": 900, "gw": 9000, "bse": 9000})
     stages, t_start = {}, time.time()
@@ -781,7 +781,12 @@ BEnSteps= 100
     # auto-decomposed the tiny eh-transition space. Fix: run 4 ranks but force the
     # parallel role onto k-points (16 of them) via BS_CPU/BS_ROLEs (set in bse.in),
     # not eh — plus the CMA-free transport (env above). Full ranks for production.
-    bse_cmd = (["yambo", "-F", "bse.in", "-J", "BSE,GW"] if mode == "debug"
+    # DECISIVE isolation: a 2x2 (4-kpt) serial BSE hung for 30 min — impossible for
+    # the diagonalization itself, so the hang is UPSTREAM. Prime suspect: reading the
+    # GW ndb.QP via -J GW. Run debug BSE at KS level (-J BSE only). Completes ⟹ the
+    # GW-db read was the hang (and we get a KS-level exciton = the pipeline milestone);
+    # still hangs ⟹ the yambo BSE build is broken (hard fork).
+    bse_cmd = (["yambo", "-F", "bse.in", "-J", "BSE"] if mode == "debug"
                else MPI_Y + ["yambo", "-F", "bse.in", "-J", "BSE,GW"])
     rc_bse = sh("bse", bse_cmd, cwd=ydir, outfile="bse_run.log")
     if rc_bse == 124:
