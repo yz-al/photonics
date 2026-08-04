@@ -708,7 +708,7 @@ K_POINTS automatic
     # Cheap sampling for debug (this DB is reused by the BSE via -J GW); production
     # raises them for convergence.
     rim = "RandQpts=  1000000\nRandGvec= 100          RL\n" if mode == "production" \
-          else "RandQpts=  100000\nRandGvec=  50          RL\n"
+          else "RandQpts=  10000\nRandGvec=  20          RL\n"
     gw_in = f"""gw
 rim_cut
 gw0
@@ -825,6 +825,25 @@ BEnSteps= 100
     ks_gap = float(gaps[0]) if gaps else None
     bse_log_tail = _tail("yambo/bse_run.log", 90)   # so a BSE no-op/crash is diagnosable
 
+    # The stack-trace tail never shows yambo's actual [ERROR] — grep the BSE run
+    # log AND the yambo report/log files (r-*/l-*) for the real message.
+    def _bse_errors():
+        out, paths = [], [os.path.join(ydir, "bse_run.log")]
+        if os.path.isdir(ydir):
+            paths += [os.path.join(ydir, f) for f in sorted(os.listdir(ydir))
+                      if f.startswith(("l-", "r-"))]
+        for pth in paths:
+            try:
+                with open(pth) as fh:
+                    for ln in fh:
+                        if _re.search(r"\[ERROR\]|<ERROR>|error|abort|not enough|too many|"
+                                      r"segmentation|allocat", ln, _re.I):
+                            out.append(f"{os.path.basename(pth)}: {ln.strip()[:200]}")
+            except OSError:
+                pass
+        return out[-30:]
+    bse_errors = _bse_errors()
+
     total_s = round(time.time() - t_start, 1)
     core_hours = round(total_s * GWBSE_CORES / 3600, 3)
     cost = {"mode": mode, "total_wall_s": total_s, "cores": GWBSE_CORES,
@@ -855,7 +874,7 @@ BEnSteps= 100
     return {"material": material, "mode": mode, "vacuum": vacuum, "cost": cost,
             "gw_gap_eV": gw_gap, "ks_gap_eV": ks_gap, "exciton_eV": exc_e,
             "oscillator_strength": exc_f, "E_b": lab.to_dict(),
-            "bse_log_tail": bse_log_tail,
+            "bse_log_tail": bse_log_tail, "bse_errors": bse_errors,
             "report_tail": reports[-1500:] if reports else ""}
 
 
