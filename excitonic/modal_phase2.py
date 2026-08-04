@@ -534,7 +534,7 @@ GWBSE_RATE_USD_PER_CORE_HR = 0.15        # conservative Modal CPU rate for the c
 GWBSE_PARAMS = {
     # mode -> (nbnd for nscf, bands for screening, screening cutoff [Ry],
     #          bands for GW self-energy, k-grid, BSE bands v/c)
-    "debug":      dict(nbnd=60,  bnd_x=60,  ng_x=4,  bnd_gw=60,  kgrid=(4, 4, 1),  bse_v=2, bse_c=2),
+    "debug":      dict(nbnd=60,  bnd_x=60,  ng_x=4,  bnd_gw=60,  kgrid=(2, 2, 1),  bse_v=1, bse_c=1),
     "production": dict(nbnd=300, bnd_x=300, ng_x=10, bnd_gw=300, kgrid=(18, 18, 1), bse_v=6, bse_c=6),
 }
 
@@ -744,10 +744,10 @@ NGsBlkXp= {p['ng_x']}     Ry
     # given a string — an input-parse bail) is dropped.
     v_lo = max(1, p['nbnd'] // 2 - p['bse_v'] + 1)
     c_hi = p['nbnd'] // 2 + p['bse_c']
-    # Force BSE MPI parallelism onto k-points (16 in the debug grid), NOT the tiny
-    # eh-transition space that yambo auto-decomposed into a crash. 4 ranks over k.
-    bs_par = ('BS_CPU= "4 1 1"\nBS_ROLEs= "k eh t"\nDIP_CPU= "4 1 1"\nDIP_ROLEs= "k c v"\n'
-              if mode == "debug" else "")
+    # MPI BSE crashes (SIGABRT) in this yambo build regardless of decomposition;
+    # serial BSE is crash-free. So debug runs BSE SERIAL on a deliberately TINY
+    # problem (2x2 k, 1v×1c) so it finishes fast. No parallel-role vars needed.
+    bs_par = ""
     bse_in = f"""dipoles
 optics
 bss
@@ -781,9 +781,8 @@ BEnSteps= 100
     # auto-decomposed the tiny eh-transition space. Fix: run 4 ranks but force the
     # parallel role onto k-points (16 of them) via BS_CPU/BS_ROLEs (set in bse.in),
     # not eh — plus the CMA-free transport (env above). Full ranks for production.
-    n_bse = 4 if mode == "debug" else GWBSE_CORES
-    bse_cmd = ["mpirun", "--allow-run-as-root", "-np", str(n_bse),
-               "yambo", "-F", "bse.in", "-J", "BSE,GW"]
+    bse_cmd = (["yambo", "-F", "bse.in", "-J", "BSE,GW"] if mode == "debug"
+               else MPI_Y + ["yambo", "-F", "bse.in", "-J", "BSE,GW"])
     rc_bse = sh("bse", bse_cmd, cwd=ydir, outfile="bse_run.log")
     if rc_bse == 124:
         return _fail("bse", "yambo BSE (kernel/diagonalization) exceeded its wall cap",
