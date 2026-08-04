@@ -163,7 +163,7 @@
             "mws": {
               "n_gt_neurons": 65,
               "split_errors": 26,
-              "merge_errors": 1835,
+              "merge_errors": 1809,
               "split_error_rate": 0.4
             },
             "multicut_affinity_lsd_jepa": {
@@ -186,7 +186,7 @@
             "mws": {
               "n_gt_neurons": 65,
               "split_errors": 26,
-              "merge_errors": 1835,
+              "merge_errors": 1809,
               "split_error_rate": 0.4
             },
             "multicut_affinity_lsd_jepa": {
@@ -209,7 +209,7 @@
             "mws": {
               "n_gt_neurons": 65,
               "split_errors": 26,
-              "merge_errors": 1835,
+              "merge_errors": 1809,
               "split_error_rate": 0.4
             },
             "multicut_affinity_lsd_jepa": {
@@ -232,7 +232,7 @@
             "mws": {
               "n_gt_neurons": 65,
               "split_errors": 26,
-              "merge_errors": 1835,
+              "merge_errors": 1809,
               "split_error_rate": 0.4
             },
             "multicut_affinity_lsd_jepa": {
@@ -255,7 +255,7 @@
             "mws": {
               "n_gt_neurons": 65,
               "split_errors": 26,
-              "merge_errors": 1835,
+              "merge_errors": 1809,
               "split_error_rate": 0.4
             },
             "multicut_affinity_lsd_jepa": {
@@ -278,7 +278,7 @@
             "mws": {
               "n_gt_neurons": 65,
               "split_errors": 26,
-              "merge_errors": 1835,
+              "merge_errors": 1809,
               "split_error_rate": 0.4
             },
             "multicut_affinity_lsd_jepa": {
