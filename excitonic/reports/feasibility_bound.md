@@ -204,3 +204,38 @@ moiré/saturation leg is open but single-emitter (a device-architecture question
 room-temperature blockade question is **UNDETERMINED but sharply localized** to (a) λ_f —
 needs a source-built BSE — and (b) whether a single-emitter moiré architecture is
 acceptable under the spec. That is the honest current answer.
+
+## Another algo: the dipolar-leg EXPONENTS don't need a BSE (λ_f proxy)
+
+Before rebuilding the BSE, I checked whether λ_f is really a BSE-only number. It is not —
+and this reframes the leg. The two slopes it turns on are **ground-state / electrostatic**:
+
+- **U(d) rise** is electrostatics. An interlayer exciton is a permanent dipole `p = e·d`;
+  the on-site (blockade) dipole–dipole energy goes as **U ∝ d²**. No BSE for the exponent.
+- **λ_f (f decay)** is a **tunneling/overlap** problem: the spatially-indirect optical
+  matrix element decays as the electron/hole Bloch tails overlap across the vdW gap,
+  `f ∝ exp(−2κd)`, `κ = √(2m*Φ)/ħ` — Φ (band offset) and m* are **DFT ground-state**
+  quantities. Two independent routes agree:
+
+| route | inputs | λ_f |
+|-------|--------|-----|
+| DFT tunneling | Φ≈1.0–2.0 eV, m*≈0.4–0.6 | 0.09–0.15 nm |
+| measured hBN-spacer decay | ~1 decade of f per inserted hBN monolayer (Rivera 2015, Nagler 2017, Jauregui 2019) | 0.11–0.15 nm |
+
+They land on **λ_f ≈ 0.14 nm** — a ~30 % cross-check, no BSE required.
+
+**Consequence (the reframe).** Because an exponential always beats a power law, the net
+figure `N(d)=U·f^α` (α=0.5) has a finite optimum — and with λ_f≈0.14 nm it sits **at native
+contact** (`2λ_f/α ≈ 0.56 nm < d₀`): adding any spacer only darkens f. At contact the
+dipolar `U ≈ 100 meV` is **~15× above** the `0.71·Γ_floor ≈ 7 meV` target, and it is largest
+exactly where f is largest. **So U was never the dipolar bottleneck, and the exponents do
+not close the leg.** The one remaining unknown collapses from "two exponents" to **one
+absolute number: the oscillator strength of the *native* interlayer exciton** — is it above
+the strong-coupling floor `f_min`? Interlayer excitons run ~10–100× darker than intralayer,
+so *that* is the real gate. It is a single BSE number, not an exponent — which is exactly
+what a source-built BSE should be pointed at. (`phase2_lambda_f_proxy.json`; tier is
+`dft_proxy + measured`, reported as illustrative, not a GW-BSE verdict.)
+
+**Alternative engines** if the absolute f is wanted rigorously: Yambo-from-source (pinned
+MPI/ScaLAPACK/FFTW/HDF5 — in progress), BerkeleyGW (gated source, layer wired), or **ABINIT
+BSE** (conda-forge, an independent second engine).

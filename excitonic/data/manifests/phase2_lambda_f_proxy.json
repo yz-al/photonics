@@ -1,0 +1,106 @@
+{
+  "question": "Is there another algo for the dipolar-leg exponents (\u03bb_f, U-slope) that does NOT need the broken GW-BSE toolchain?",
+  "answer": "YES. Both slopes are ground-state/electrostatic, not BSE: U(d) \u221d d\u00b2 (electrostatics) and \u03bb_f from DFT tunneling (barrier+mass) AND from measured hBN-spacer decay. Only the ABSOLUTE f prefactor is a genuine BSE number.",
+  "provenance_tier": "dft_proxy + measured_anchor (NOT gw_bse)",
+  "lambda_f_nm": {
+    "consensus": 0.14,
+    "dft_tunneling": {
+      "phi1.0eV_m0.4": 0.1543,
+      "phi1.5eV_m0.5": 0.1127,
+      "phi2.0eV_m0.6": 0.0891
+    },
+    "measured_hBN_spacer": {
+      "1_decade_per_hBN": 0.1446,
+      "1.3_decade_per_hBN": 0.1112
+    },
+    "cross_check": "DFT-tunneling (0.10\u20130.14 nm) and measured hBN decay (0.11\u20130.14 nm) agree to ~30% \u2014 a real independent check."
+  },
+  "U_rise": {
+    "model": "U \u221d d\u00b2 (on-site dipolar blockade)",
+    "prefactor_tier": "order-of-magnitude (a_exc, eps_r flagged)",
+    "a_exc_nm": 1.0,
+    "eps_r": 5.0
+  },
+  "sweep": {
+    "d_nm": [
+      0.6,
+      0.65,
+      0.75,
+      0.93,
+      1.26,
+      1.59
+    ],
+    "U_meV": [
+      103.68,
+      121.68,
+      162.0,
+      249.08,
+      457.22,
+      728.07
+    ],
+    "f_over_f0": [
+      1.0,
+      0.6997,
+      0.3425,
+      0.0947,
+      0.009,
+      0.0008
+    ]
+  },
+  "window_verdict_proxy": {
+    "verdict": "window_closed",
+    "provenance": "dft_proxy",
+    "alpha_coupling_weight": 0.5,
+    "U_rise_exponent_p": 2.0,
+    "f_decay_length_lambda": 0.14,
+    "net_figure_U_times_f_alpha": [
+      [
+        0.6,
+        0.103677
+      ],
+      [
+        0.65,
+        0.101778
+      ],
+      [
+        0.75,
+        0.094808
+      ],
+      [
+        0.93,
+        0.076648
+      ],
+      [
+        1.26,
+        0.043294
+      ],
+      [
+        1.59,
+        0.021215
+      ]
+    ],
+    "net_loglog_slope": -1.628,
+    "d_star": 0.6,
+    "interpretation": "f loss dominates U gain \u2192 dipolar window CLOSED (branch shuts)",
+    "caveat": "Inputs are tier 'dft_proxy', NOT GW-BSE \u2014 illustrative, not a verdict.",
+    "n_points": 6
+  },
+  "optimum": {
+    "d_star_nm": 0.6,
+    "d_unconstrained_2lam_over_alpha_nm": 0.56,
+    "note": "d* = max(d0, 2\u03bb_f/\u03b1) = d0 (native contact): 2\u03bb_f/\u03b1\u22480.56 nm < d0 so N(d) peaks at contact and FALLS with every added spacer \u2014 extra separation only darkens f without meaningful U gain.",
+    "U_at_dstar_meV": 103.68,
+    "f_at_dstar_over_f0": 1.0,
+    "U_over_gamma_floor_at_dstar": 10.37,
+    "clears_0p71_gamma_floor": true
+  },
+  "reframing": "Because exp beats any power law, N(d)=U\u00b7f^\u03b1 has a finite optimum \u2014 and here it sits AT native contact (d*\u22480.60 nm): adding spacer only darkens f. At contact the dipolar U (~104 meV) is FAR above 0.71\u00b7\u0393_floor (~7 meV) \u2014 U is not the problem, and it is largest exactly where f is largest. The one remaining unknown is the ABSOLUTE f of the native interlayer exciton: is it above the strong-coupling floor f_min? Interlayer excitons run ~10\u2013100\u00d7 darker than intralayer, so THIS is the real gate \u2014 a single number, not an exponent, and all the BSE is still needed for.",
+  "alternative_bse_engines_if_absolute_f_needed": {
+    "yambo_from_source": "Yambo source is on GitHub (freely cloneable); build against pinned MPI/ScaLAPACK/FFTW/HDF5 \u2014 avoids the conda-forge ABI abort. IN PROGRESS.",
+    "berkeleygw": "Distribution-gated (registration); opt-in via BGW_TARBALL_URL + berkeleygw_arch.mk already wired.",
+    "abinit_bse": "ABINIT has a native BSE (Haydock/diago); conda-forge package exists \u2014 an independent second engine.",
+    "exciting_code": "all-electron LAPW BSE; heavy but a clean-room cross-check.",
+    "west_wbse": "WEST/WBSE (no empty states) \u2014 good for large cells, needs build."
+  },
+  "rigor": "\u03bb_f is DFT-tunneling + measured tier; U prefactor is order-of-magnitude. window_verdict is tier='dft_proxy' \u21d2 reported as illustrative, not a GW-BSE verdict. Claim made: the EXPONENTS no longer gate the leg; the absolute f at d* does. That is a weaker, honest, and decision-shaped statement \u2014 and it points the (source-built) BSE at ONE number."
+}
