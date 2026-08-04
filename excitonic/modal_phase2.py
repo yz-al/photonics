@@ -79,9 +79,12 @@ if YAMBO_SRC:
             f"curl -L -o /opt/yambo.tar.gz "
             f"https://github.com/yambo-code/yambo/archive/refs/tags/{YAMBO_SRC}.tar.gz",
             "mkdir -p /opt/yambo && tar xzf /opt/yambo.tar.gz -C /opt/yambo --strip-components=1",
-            # configure against the conda prefix (robustly derived from the mpif90 path)
+            # configure against the conda prefix (robustly derived from the mpif90 path).
+            # FPP: Yambo's default Fortran-preprocessor guess is `cpp -E -P -ansi`, whose
+            # -ansi flag mangles Fortran (comments/continuations) so FPP detection fails.
+            # Hand it gfortran's own preprocessor, which understands Fortran source.
             "cd /opt/yambo && P=$(dirname $(dirname $(which mpif90))) && "
-            "FC=mpif90 F77=mpif90 CC=mpicc CPP='cpp -E' "
+            "FC=mpif90 F77=mpif90 CC=mpicc CPP='cpp -E -P' FPP='gfortran -E -P -cpp' "
             "./configure --enable-mpi --enable-open-mp --enable-hdf5-par-io "
             "--with-blas-libs=\"-L$P/lib -lopenblas\" "
             "--with-lapack-libs=\"-L$P/lib -lopenblas\" "
