@@ -756,16 +756,23 @@ BSENGBlk= {p['ng_x']}    Ry
             return ""
     reports = "\n".join(_read(os.path.join(ydir, f)) for f in os.listdir(ydir)
                         if f.startswith(("r-", "l-"))) if os.path.isdir(ydir) else ""
-    # exciton energies: yambo writes o-BSE.exc_qpt1_E_sorted (col 1 = energy eV)
+    # yambo writes o-*.exc_qpt1_E_sorted: col1 = energy [eV], col2 = STRENGTH
+    # (the exciton oscillator strength / residue). The strength is the whole point
+    # of the dipolar branch: it sets g ∝ √f and hence whether U survives the
+    # Hopfield weighting |X|²U/Γ. Parse BOTH for the lowest (interlayer) exciton.
     exc = ""
     for f in (os.listdir(ydir) if os.path.isdir(ydir) else []):
         if "exc" in f.lower() and ("sorted" in f.lower() or f.startswith("o-")):
             exc = _read(os.path.join(ydir, f))
-    exc_e = None
+    _NUMSCI = r"[-+]?\d+\.\d+(?:[eEdD][-+]?\d+)?"
+    exc_e, exc_f = None, None
     for line in exc.splitlines():
-        nums = _re.findall(r"[-+]?\d+\.\d+", line)
+        nums = _re.findall(_NUMSCI, line)
         if nums and not line.strip().startswith("#"):
-            exc_e = float(nums[0]); break
+            exc_e = float(nums[0].replace("D", "E").replace("d", "e"))
+            if len(nums) >= 2:
+                exc_f = float(nums[1].replace("D", "E").replace("d", "e"))
+            break
     gw_gap = None
     mgw = _re.search(r"GW.*?gap.*?([-+]?\d+\.\d+)\s*eV", reports, _re.I | _re.S)
     if mgw:
@@ -797,9 +804,10 @@ BSENGBlk= {p['ng_x']}    Ry
                       f"Yambo chain incomplete (exc_e={exc_e}, gw_gap={gw_gap}); "
                       f"stages={stages}; needs input tuning")
     print(f"[phase2/gwbse] mode={mode} E_b={lab.value} gw_gap={gw_gap} exc={exc_e} "
-          f"cost={cost['usd_estimate']} stages={stages}")
-    return {"material": material, "mode": mode, "cost": cost,
-            "gw_gap_eV": gw_gap, "exciton_eV": exc_e, "E_b": lab.to_dict(),
+          f"f_osc={exc_f} cost={cost['usd_estimate']} stages={stages}")
+    return {"material": material, "mode": mode, "vacuum": vacuum, "cost": cost,
+            "gw_gap_eV": gw_gap, "exciton_eV": exc_e,
+            "oscillator_strength": exc_f, "E_b": lab.to_dict(),
             "report_tail": reports[-1500:] if reports else ""}
 
 

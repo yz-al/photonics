@@ -6,6 +6,14 @@ live HetDB, ranked by a geometric dipolar prior for which ones deserve the
 expensive GW-BSE + EPW. Reproducible: `scripts/phase2_dipolar_screen.py` →
 `data/manifests/phase2_dipolar_candidates.json`.
 
+> ⚠️ **Untested assumption in this ranking.** The prior g_dip ∝ d²/ε_eff rewards
+> larger interlayer separation because U rises with the static dipole — but
+> separation also collapses the oscillator strength f (~exp(−d/λ_f)), and f sets
+> the light-matter coupling g ∝ √f. Whether a usable window exists is one exponent
+> (how fast f falls vs how fast U rises) that **this ranking does not check**. It is
+> the branch-deciding quantity — see `dipolar_exponent.md`; the flagship GW-BSE run
+> must return U and f at ≥2 separations, consumed by `exciton_fm.dipolar_window`.
+
 ## Method (ranking only)
 
 - **Candidate set:** HetDB heterostructures whose C2DB monolayer band edges give a
