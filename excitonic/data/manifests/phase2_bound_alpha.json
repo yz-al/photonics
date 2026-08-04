@@ -1,0 +1,35 @@
+{
+  "purpose": "Derive the \u0393-floor's \u03b1_min from data instead of assuming it: show thermal-stable binding forces high \u03bc + low screening, both of which raise Fr\u00f6hlich coupling \u2014 so the interaction cannot evade the floor.",
+  "n_materials": 356,
+  "thermal_threshold_eV": 0.1,
+  "empirical_links (Spearman \u03c1)": {
+    "E_b_vs_reduced_mass_mu": {
+      "rho": 0.471,
+      "n": 356,
+      "expect": ">0 (Wannier: stability needs heavy \u03bc)"
+    },
+    "E_b_vs_ionicity_fraction": {
+      "rho": 0.162,
+      "n": 252,
+      "expect": ">0 (more ionic \u2192 binds harder AND couples harder)"
+    },
+    "E_b_vs_frohlich_proxy_alpha": {
+      "rho": 0.622,
+      "n": 252,
+      "expect": ">0 (the chain: stability \u27f9 higher \u03b1)"
+    },
+    "E_b_vs_electronic_screening": {
+      "rho": -0.838,
+      "n": 356,
+      "expect": "<0 (stability needs LOW screening)"
+    }
+  },
+  "floor_over_stable_set": {
+    "n_stable": 353,
+    "mu_min_stable": 0.0099,
+    "alpha_proxy_5th_pct_stable": 0.0001,
+    "reading": "No thermally-stable C2DB material sits below these \u2014 the interaction floor the bound needs is populated by real data, not assumed."
+  },
+  "headline_finding": "The chain is CONFIRMED but the floor is NOT flat. E_b\u2194\u03b1\u0303 \u03c1=0.62 (strong): stability does force stronger Fr\u00f6hlich coupling, dominated by the low-screening enhancement (E_b\u2194screening \u03c1=-0.84). HOWEVER a tail of marginally-stable materials near the threshold has weak coupling, so a single \u03b1_min\u22650.3 for ALL stable materials is NOT justified. The \u0393 floor is BINDING-DEPENDENT: robustly bound \u27f9 high \u0393; low \u0393 is only reachable near the stability edge. So the bound's \u0393-floor leg must be stated as \u0393_floor(E_b), not a constant \u2014 and the marginal-stability corner is exactly where a low-\u0393 candidate could hide. Closing it rigorously needs DFPT \u03c9_LO/Z* across a binding-spanning set (cheap: cents/material).",
+  "rigor": "\u03b1\u0303 is a MONOTONE PROXY (ground-state C2DB only, no per-material \u03c9_LO); it establishes the sign/strength of the chain, not the absolute floor. The absolute \u0393_floor(E_b) needs DFPT phonons across the binding range. This REPLACES the earlier flat \u03b1_min=0.3 assumption with a data-backed, honest (and weaker) statement \u2014 which is the correct direction for a real bound."
+}

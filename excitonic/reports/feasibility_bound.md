@@ -83,3 +83,27 @@ than spatial extent**:
 - **Moiré confinement** — localizes excitons → larger effective U, closer to the single-
   emitter limit blockade needs, sidesteps 1/N; pays in inhomogeneous broadening. This *is*
   the U_sat confinement leg above.
+
+## Track-C update — the Γ-floor leg, now data-derived (not assumed)
+
+`scripts/phase2_bound_alpha.py` tests the floor's crux against the 356-material C2DB
+excitonic set instead of asserting α_min. Findings (Spearman ρ):
+
+| Link | ρ | Expectation | Verdict |
+|------|:--:|-------------|:------:|
+| E_b vs reduced mass μ | **+0.47** | >0 (Wannier) | ✅ |
+| E_b vs electronic screening | **−0.84** | <0 (bind ⟹ low screening) | ✅ strong |
+| E_b vs Fröhlich proxy α̃ = √μ·(1/ε∞−1/ε0) | **+0.62** | >0 (bind ⟹ couple) | ✅ strong |
+| E_b vs ionicity fraction | +0.16 | >0 | weak |
+
+**The chain is real**: thermal-stable binding forces stronger Fröhlich coupling, dominated
+by the low-screening (small ε∞ ⟹ large 1/ε∞) enhancement. **But the floor is NOT flat.**
+A tail of *marginally*-stable materials (E_b just above threshold) has weak coupling, so a
+constant α_min ≥ 0.3 for all stable materials is not justified by the data. The honest
+statement is a **binding-dependent floor Γ_floor(E_b)**: robustly bound ⟹ high Γ; a low Γ is
+reachable only near the stability edge — which is exactly the corner a low-Γ candidate would
+hide in. This **replaces** the earlier flat-α_min assumption with a weaker, data-backed one —
+the correct direction for a real proof. Closing it rigorously needs DFPT ω_LO/Z* across a
+binding-spanning set (cheap: cents/material via the existing DFPT screen), not the flat
+TMD-analogy value. Net: the bound's most-provable leg is now honestly characterized, and it
+is *looser* than first assumed — the question is not yet closed on the Γ side either.
