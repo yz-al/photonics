@@ -121,11 +121,18 @@ def rerun_agglo(seed: int = 0) -> dict:
         return [d[k][i].astype(dt) for i in range(len(d[k]))]
     ctx = {"SHORT": S.SHORT, "OFFS": S.OFFS, "mutex_watershed": S.mutex_watershed,
            "seg_metrics": S.seg_metrics, "erl_proxy": S.erl_proxy}
-    res = AG.run(unstack("tr_aff"), unstack("tr_seg"), unstack("ev_aff"), unstack("ev_seg"), ctx,
-                 train_lsds=unstack("tr_lsd"), eval_lsds=unstack("ev_lsd"),
-                 train_jepas=unstack("tr_jepa"), eval_jepas=unstack("ev_jepa"))
-    print(json.dumps(res, indent=2))
-    return res
+    args = [unstack("tr_aff"), unstack("tr_seg"), unstack("ev_aff"), unstack("ev_seg")]
+    kw = dict(train_lsds=unstack("tr_lsd"), eval_lsds=unstack("ev_lsd"),
+              train_jepas=unstack("tr_jepa"), eval_jepas=unstack("ev_jepa"))
+    biases = [float(x) for x in os.environ.get("WORM_S3_BIAS_SWEEP", "-0.5,0,0.5,1,1.5,2").split(",")]
+    sweep = {}
+    for b in biases:                                     # merge-aggressiveness sweep (attack over-seg)
+        r = AG.run(*args, ctx, merge_bias=b, **kw)
+        bv = r["best_by_voi"]
+        sweep[f"bias_{b}"] = {"best": bv, **r[bv], "cremi": r["cremi_score_proxy"][bv],
+                              "error_types": r.get("error_types_mws_vs_best", {})}
+    print(json.dumps({"seed": seed, "merge_bias_sweep": sweep}, indent=2))
+    return {"seed": seed, "merge_bias_sweep": sweep}
 
 
 def _merge(dicts):
@@ -166,6 +173,15 @@ def _merge(dicts):
 
 @app.local_entrypoint()
 def main():
+    if os.environ.get("WORM_S3_MODE") == "rerun":              # FREE agglo sweep from saved checkpoint (CPU)
+        print("[modal] rerun_agglo merge-bias sweep (no training) ...", flush=True)
+        results = list(rerun_agglo.map(SEEDS))
+        art = os.path.join(HERE, "artifacts"); os.makedirs(art, exist_ok=True)
+        with open(os.path.join(art, "agglo_sweep.json"), "w") as f:
+            json.dump({"seeds": SEEDS, "results": results}, f, indent=2)
+        print(f"[modal] wrote {os.path.join(art, 'agglo_sweep.json')}", flush=True)
+        print(json.dumps(results, indent=2))
+        return
     print("[modal] preparing CREMI cache (once) ...", flush=True)
     print("[modal] cache:", prepare.remote(), flush=True)      # populate Volume before fan-out
     print(f"[modal] fanning out {len(SEEDS)} seeds in parallel: {SEEDS}", flush=True)

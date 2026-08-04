@@ -253,7 +253,7 @@ REPEL = {"mean_long", "log_min_size", "lsd_dist", "jepa_dist"}     # boundary-fa
 
 
 def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9,
-        train_lsds=None, eval_lsds=None, train_jepas=None, eval_jepas=None):
+        train_lsds=None, eval_lsds=None, train_jepas=None, eval_jepas=None, merge_bias=0.0):
     """Learned MULTICUT (GAEC) agglomeration with two-specialist signed edge weights,
     vs plain MWS. Runs multiple FEATURE VARIANTS so we can isolate each signal's value:
     affinity-only, +LSD shape, +JEPA context. Fed to GAEC as logit(P_A*(1-P_B))."""
@@ -340,9 +340,9 @@ def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9,
         for frags, lp, lf, lifp, liff, _ in ev:
             if not lp:
                 labs.append(frags); continue
-            wl = edge_w(clfA, clfB, lf, Ai, Bi)
+            wl = edge_w(clfA, clfB, lf, Ai, Bi) + merge_bias   # +bias -> merge more (attack over-seg)
             if lifted and lifp:
-                wlift = edge_w(clfA, clfB, liff, Ai, Bi)
+                wlift = edge_w(clfA, clfB, liff, Ai, Bi) + merge_bias
                 labs.append(_lifted_gaec(frags, lp, wl, lifp, wlift))
             else:
                 labs.append(_gaec(frags, lp, wl))

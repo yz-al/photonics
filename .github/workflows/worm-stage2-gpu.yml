@@ -13,6 +13,10 @@ on:
     paths: ['worm_jepa/RUN_GPU2']
   workflow_dispatch:
     inputs:
+      mode:
+        description: 'full (train+agglo) or rerun (FREE agglo merge-bias sweep from saved checkpoint)'
+        required: false
+        default: 'full'
       em_steps:
         description: 'EM-JEPA SSL training steps'
         required: false
@@ -55,6 +59,7 @@ jobs:
           WORM_EM_STEPS: ${{ inputs.em_steps || '4000' }}
           WORM_EM_CROP: ${{ inputs.em_crop || '224' }}
           WORM_AZ_EPISODES: ${{ inputs.az_episodes || '20000' }}
+          WORM_S3_MODE: ${{ inputs.mode || 'full' }}
         run: |
           if [ -z "$MODAL_TOKEN_ID" ] && [ -f test2/modal_tokens.secret ]; then
             set -a; . ./test2/modal_tokens.secret; set +a
