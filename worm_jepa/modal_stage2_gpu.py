@@ -118,35 +118,62 @@ def run_seed(seed: int) -> dict:
         return json.load(f)
 
 
-@app.function(image=image, volumes={"/cache": cremi_vol}, timeout=3600)
+@app.function(image=image, volumes={"/cache": cremi_vol}, timeout=3600, memory=16384)
 def connectome_fn(sample: str = "A") -> dict:
     """FREE (CPU) end-to-end skeleton: build the GT fly connectome from a CREMI sample
     (neuron_ids + synaptic clefts) and measure how segmentation merges corrupt the wiring.
-    Outputs the connectome graph for stage-2 mechanistic extraction."""
+    Outputs the connectome graph for stage-2 mechanistic extraction.
+
+    Also scans the WHOLE sample's cleft channel (streamed by z-slab, cheap because clefts are
+    sparse) to settle definitively whether CREMI is cleft-sparse -- i.e. whether it can serve as
+    a connectome testbed at all, or only as a segmentation testbed."""
     import sys
     import numpy as np
     import h5py
+    from collections import Counter
     os.chdir("/root/worm_jepa")
     for p in ("/root/worm_jepa", "/root/worm_jepa/vjepa"):
         if p not in sys.path:
             sys.path.insert(0, p)
     import connectome as C
-    z0, z1 = [int(x) for x in os.environ.get("WORM_S3_CONN_Z", "30,90").split(",")]
-    c0, c1 = [int(x) for x in os.environ.get("WORM_S3_CONN_XY", "300,940").split(",")]
+    full = os.environ.get("WORM_S3_CONN_FULL", "1") == "1"     # default: build over the whole sample
     with h5py.File(os.path.join(CACHE, f"sample_{sample}.hdf"), "r") as f:
         keys = []
         f.visit(lambda n: keys.append(n))
         print("[connectome] hdf keys:", [k for k in keys if "label" in k or "cleft" in k], flush=True)
-        nid = f["volumes/labels/neuron_ids"][z0:z1, c0:c1, c0:c1]
-        cl = f["volumes/labels/clefts"][z0:z1, c0:c1, c0:c1]
+        cds = f["volumes/labels/clefts"]; nds = f["volumes/labels/neuron_ids"]
+        Z, Y, X = cds.shape
+        # --- full-volume cleft scan, streamed by z-slab (never holds the whole cube) ---
+        cleft_vox = Counter(); cbg = None
+        for z in range(0, Z, 8):
+            sl = cds[z:z + 8]
+            if cbg is None:
+                cbg = sl.max()
+            u, ct = np.unique(sl[sl != cbg], return_counts=True)
+            for k, c in zip(u.tolist(), ct.tolist()):
+                cleft_vox[k] += c
+        full_total_clefts = len(cleft_vox)
+        full_nonbg_vox = int(sum(cleft_vox.values()))
+        print(f"[connectome] FULL sample {sample} shape={cds.shape} cleft_bg={int(cbg)} "
+              f"TOTAL_unique_clefts={full_total_clefts} nonbg_cleft_voxels={full_nonbg_vox}", flush=True)
+        if full:
+            z0, z1, c0, c1 = 0, Z, 0, X
+        else:
+            z0, z1 = [int(x) for x in os.environ.get("WORM_S3_CONN_Z", "30,90").split(",")]
+            c0, c1 = [int(x) for x in os.environ.get("WORM_S3_CONN_XY", "300,940").split(",")]
+        nid = nds[z0:z1, c0:c1, c0:c1]
+        cl = cds[z0:z1, c0:c1, c0:c1]
     # DO NOT cast to int64: CREMI stores a huge uint64 background (max value) that int64 turns
     # negative -> wrong background. compact() inside connectome.py handles native dtypes.
     ucl = np.unique(cl)
-    print(f"[connectome] sample {sample} chunk {nid.shape} neuron_dtype={nid.dtype} "
+    print(f"[connectome] build-chunk {nid.shape} neuron_dtype={nid.dtype} "
           f"neurons={len(np.unique(nid))} cleft_dtype={cl.dtype} cleft_uniques={len(ucl)} "
           f"cleft_min={int(ucl.min())} cleft_max={int(ucl.max())} "
           f"cleft_nonbg_voxels={int((cl != cl.max()).sum())}", flush=True)
     r = C.run(nid, cl)
+    r["full_volume_total_clefts"] = full_total_clefts
+    r["full_volume_nonbg_cleft_voxels"] = full_nonbg_vox
+    r["full_volume_shape"] = [int(Z), int(Y), int(X)]
     print(json.dumps({k: r[k] for k in ("n_neurons", "n_synaptic_clefts", "gt_connectome",
                                         "merge_corruption_curve")}, indent=2))
     return {"sample": sample, "chunk": [z0, z1, c0, c1], **r}
