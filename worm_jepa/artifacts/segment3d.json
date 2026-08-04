@@ -1,67 +1,118 @@
 {
-  "stage0a": {
-    "stage": "0a identifiability (profile likelihood) on mechinterp-pulled compact model",
-    "model": "top-6-channel logistic readout of membrane (short-range boundary)",
-    "gram_condition_number": 3.3,
-    "observables_per_param": 8000.0,
-    "profiles": [
-      {
-        "channel": 31,
-        "weight_opt": -0.558,
-        "profile_rise_low": 0.0545,
-        "profile_rise_high": 0.2345,
-        "verdict": "identifiable",
-        "vif": 1.21,
-        "top_comover_channel": 20
-      },
-      {
-        "channel": 20,
-        "weight_opt": -1.064,
-        "profile_rise_low": 0.022,
-        "profile_rise_high": 0.2436,
-        "verdict": "identifiable",
-        "vif": 1.16,
-        "top_comover_channel": 2
-      },
-      {
-        "channel": 25,
-        "weight_opt": -0.555,
-        "profile_rise_low": 0.0577,
-        "profile_rise_high": 0.347,
-        "verdict": "identifiable",
-        "vif": 1.06,
-        "top_comover_channel": 20
-      },
-      {
-        "channel": 1,
-        "weight_opt": 0.495,
-        "profile_rise_low": 0.3381,
-        "profile_rise_high": 0.252,
-        "verdict": "identifiable",
-        "vif": 1.24,
-        "top_comover_channel": 31
-      },
-      {
-        "channel": 2,
-        "weight_opt": 0.549,
-        "profile_rise_low": 0.4132,
-        "profile_rise_high": 0.2665,
-        "verdict": "identifiable",
-        "vif": 1.19,
-        "top_comover_channel": 20
-      },
-      {
-        "channel": 12,
-        "weight_opt": 0.479,
-        "profile_rise_low": 0.3968,
-        "profile_rise_high": 0.1805,
-        "verdict": "identifiable",
-        "vif": 1.12,
-        "top_comover_channel": 20
+  "dbb_seed": 0,
+  "stages_3_7": {
+    "model": "top-6 logistic readout (mechinterp-pulled, Stage-0a identifiable)",
+    "stage3a_scaling": {
+      "epsilon": "1/K (model incompleteness)",
+      "curve": [
+        {
+          "K": 1,
+          "held_out_deviance": 0.502,
+          "gap_to_full": 0.1932
+        },
+        {
+          "K": 2,
+          "held_out_deviance": 0.4178,
+          "gap_to_full": 0.1091
+        },
+        {
+          "K": 3,
+          "held_out_deviance": 0.3949,
+          "gap_to_full": 0.0862
+        },
+        {
+          "K": 4,
+          "held_out_deviance": 0.3875,
+          "gap_to_full": 0.0788
+        },
+        {
+          "K": 6,
+          "held_out_deviance": 0.3492,
+          "gap_to_full": 0.0404
+        },
+        {
+          "K": 9,
+          "held_out_deviance": 0.3179,
+          "gap_to_full": 0.0091
+        },
+        {
+          "K": 12,
+          "held_out_deviance": 0.3129,
+          "gap_to_full": 0.0042
+        },
+        {
+          "K": 32,
+          "held_out_deviance": 0.3088,
+          "gap_to_full": 0.0
+        }
+      ],
+      "residual_exponent_p": 1.5,
+      "reading": "gap ~ (1/K)^p; larger p => the dropped channels matter fast"
+    },
+    "stage3b_localisation": {
+      "membrane_band_frac_of_voxels": 0.589,
+      "error_rate_in_band": 0.2544,
+      "error_rate_interior": 0.0257,
+      "frac_of_total_error_in_band": 0.934,
+      "verdict": "BOUNDARY-LAYER: error concentrates at membranes -> missing term acts in a thin region"
+    },
+    "stage3c_stability": {
+      "bootstrap_weight_cv_mean": 0.03,
+      "sign_flip_frac": 0.0,
+      "verdict": "STABLE (well-posed)"
+    },
+    "stage4_candidates": {
+      "n_candidates": 23,
+      "regulariser": "sparsity (few added terms), strength by L-curve",
+      "families": {
+        "dropped_channels": 8,
+        "pairwise_products": 15
       }
-    ],
-    "n_structurally_non_identifiable": 0,
-    "GATE": "PASS: compact model identifiable -> proceed to Stage 1",
-    "note": "diffuse/collinear features (per mechinterp) => flat directions expected; a flat weight is non-identifiable alone -- only its co-moving combination is."
+    },
+    "stage5_search": {
+      "picks": [
+        {
+          "term": "channel 0",
+          "held_out_deviance": 0.3283,
+          "gain": 0.0209
+        },
+        {
+          "term": "channel 22",
+          "held_out_deviance": 0.322,
+          "gain": 0.0063
+        },
+        {
+          "term": "channel 17",
+          "held_out_deviance": 0.3179,
+          "gain": 0.0041
+        },
+        {
+          "term": "channel 19",
+          "held_out_deviance": 0.3149,
+          "gain": 0.0029
+        }
+      ],
+      "compact_deviance": 0.3492,
+      "full_deviance": 0.3088,
+      "metric_i_prediction_gain": 0.0343,
+      "metric_ii_term_extractability": "needs many terms -> a BETTER BLACK BOX (fails extractability)",
+      "note": "held out a REGIME (test z-region w/ margin), not random voxels"
+    },
+    "stage6_consistency": {
+      "membrane_error_reduction": 0.0306,
+      "interior_error_change": -0.0017,
+      "repairs_region_without_breaking_outer": true,
+      "equation_checks": "N/A (linear readout has no governing equation to re-nondimensionalise)"
+    },
+    "stage7_next_measurement": {
+      "top2_terms": [
+        "('chan', 0)",
+        "('chan', 19)"
+      ],
+      "mean_abs_pred_divergence": 0.0399,
+      "divergence_in_membrane_band": 0.054,
+      "divergence_interior": 0.0196,
+      "next_measurement": "label/inspect the voxels of max divergence (see region above) to separate the top-2 missing-term hypotheses; commit in advance to which each outcome falsifies"
+    }
   }
 }
