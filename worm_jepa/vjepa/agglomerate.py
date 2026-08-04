@@ -289,11 +289,39 @@ def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9,
         return {"error": "degenerate merge labels"}
     mu, sd = X.mean(0), X.std(0) + 1e-6
 
+    from skimage.metrics import variation_of_information as _voi
+
     def score_lab(labs):
         v = [seg_metrics(l, s) for l, s in zip(labs, eval_segs)]
+        # VOI decomposition: variation_of_information(gt, pred) = (H(gt|pred), H(pred|gt))
+        #   = (VI_MERGE / under-seg component, VI_SPLIT / over-seg component)
+        comp = [_voi(s, l) for l, s in zip(labs, eval_segs)]
+        vmerge = float(np.mean([c[0] for c in comp])); vsplit = float(np.mean([c[1] for c in comp]))
         return {"VOI": round(float(np.mean([x[0] for x in v])), 4),
+                "VOI_merge": round(vmerge, 4), "VOI_split": round(vsplit, 4),
                 "adapted_rand_error": round(float(np.mean([x[1] for x in v])), 4),
                 "ERL": round(float(np.mean([erl(l, s) for l, s in zip(labs, eval_segs)])), 4)}
+
+    def error_types(labs, cover=0.1):
+        """Count actual MERGE errors (a predicted segment spanning >=2 GT neurons) and
+        SPLIT errors (a GT neuron broken into >=2 predicted segments), by contingency."""
+        nmerge = nsplit = ngt = 0
+        for lab, seg in zip(labs, eval_segs):
+            for g in np.unique(seg):
+                if g == 0:
+                    continue
+                ngt += 1
+                pl = lab[seg == g]
+                pv, pc = np.unique(pl, return_counts=True)
+                if (pc >= cover * pc.sum()).sum() >= 2:
+                    nsplit += 1                          # GT neuron split across >=2 predicted
+            for p in np.unique(lab):
+                gl = seg[lab == p]
+                gv, gc = np.unique(gl[gl > 0], return_counts=True) if (gl > 0).any() else (np.array([]), np.array([]))
+                if len(gc) and (gc >= cover * max(1, gc.sum())).sum() >= 2:
+                    nmerge += 1                          # predicted segment spans >=2 GT neurons
+        return {"n_gt_neurons": int(ngt), "split_errors": int(nsplit), "merge_errors": int(nmerge),
+                "split_error_rate": round(nsplit / max(1, ngt), 3)}
 
     def edge_w(clfA, clfB, feats, Ai, Bi):                # signed multicut weight logit(P_A*(1-P_B))
         if not len(feats):
@@ -318,25 +346,37 @@ def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9,
                 labs.append(_lifted_gaec(frags, lp, wl, lifp, wlift))
             else:
                 labs.append(_gaec(frags, lp, wl))
-        return score_lab(labs)
+        return score_lab(labs), labs
 
-    M = score_lab([mws(np.clip(a, 0, 1), OFFS, ns) for a in eval_affs])
+    mws_labs = [mws(np.clip(a, 0, 1), OFFS, ns) for a in eval_affs]
+    M = score_lab(mws_labs)
     base = ["mean_short", "mean_long", "log_contact", "log_min_size"]
     full = names
-    variants = {"multicut_affinity": multicut(base)}
+    variants, labels = {}, {"mws": mws_labs}
+    def add(name, use, lifted=False):
+        sc, lb = multicut(use, lifted); variants[name] = sc; labels[name] = lb
+    add("multicut_affinity", base)
     if "jepa_cos" in names:
-        variants["multicut_affinity_lsd_jepa"] = multicut(full)
-        variants["lifted_multicut_full"] = multicut(full, lifted=True)   # lifted multicut, all features
+        add("multicut_affinity_lsd_jepa", full)
+        add("lifted_multicut_full", full, lifted=True)
     elif "lsd_cos" in names:
-        variants["multicut_affinity_lsd"] = multicut(full)
-        variants["lifted_multicut_full"] = multicut(full, lifted=True)
-    best = min([("mws", M)] + list(variants.items()), key=lambda kv: kv[1]["VOI"])
-    return {"method": "learned multicut (GAEC) feature-variants vs MWS",
+        add("multicut_affinity_lsd", full)
+        add("lifted_multicut_full", full, lifted=True)
+    allm = {"mws": M, **variants}
+    best = min(allm.items(), key=lambda kv: kv[1]["VOI"])
+    # error-type breakdown: MWS vs the winning method -- what kind of errors remain?
+    err = {"mws": error_types(labels["mws"]), best[0]: error_types(labels[best[0]])}
+    # CREMI-style score proxy = geomean(VOI, adapted-Rand); lower better (NOT official protocol)
+    cremi = {k: round(float((v["VOI"] * v["adapted_rand_error"]) ** 0.5), 4) for k, v in allm.items()}
+    return {"method": "learned multicut (GAEC) feature-variants vs MWS + error-type analysis",
             "features_available": names, "n_train_pairs": int(len(ysame)),
             "same_rate": round(float(ysame.mean()), 3),
             "mean_fragments": round(float(np.mean([r[0].max() + 1 for r in ev])), 1),
             "mws_baseline": M, **variants,
             "best_by_voi": best[0],
             "best_beats_mws": bool(best[0] != "mws" and best[1]["VOI"] <= M["VOI"]),
+            "VOI_split_merge_note": "VOI_merge = under-seg (merges), VOI_split = over-seg (splits)",
+            "error_types_mws_vs_best": err,
+            "cremi_score_proxy": cremi,
             "deltas_vs_mws": {k: {"dVOI": round(v["VOI"] - M["VOI"], 4),
                                   "dERL": round(v["ERL"] - M["ERL"], 4)} for k, v in variants.items()}}
