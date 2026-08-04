@@ -5,11 +5,11 @@
     "mode": "debug",
     "cost": {
       "per_stage_s": {
-        "scf": 160.7,
-        "nscf": 376.6,
+        "scf": 156.1,
+        "nscf": 366.5,
         "p2y": 1.2,
         "y_setup": 0.7,
-        "gw": 60.9,
+        "gw": 60.2,
         "bse": 1800.0
       },
       "note": "aborted at bse"
@@ -34,16 +34,16 @@
       "stage_failed": "bse",
       "note": "yambo BSE (kernel/diagonalization) exceeded its wall cap",
       "per_stage_s": {
-        "scf": 160.7,
-        "nscf": 376.6,
+        "scf": 156.1,
+        "nscf": 366.5,
         "p2y": 1.2,
         "y_setup": 0.7,
-        "gw": 60.9,
+        "gw": 60.2,
         "bse": 1800.0
       },
       "vacuum": 10.0,
-      "scf_tail": "     cegterg      :     97.19s CPU     76.17s WALL (      33 calls)\n\n     Called by *egterg:\n     cdiaghg      :      2.09s CPU      1.24s WALL (     168 calls)\n     h_psi        :     42.20s CPU     45.29s WALL (     170 calls)\n     s_psi        :      5.86s CPU      3.50s WALL (     170 calls)\n     g_psi        :      0.42s CPU      0.12s WALL (     136 calls)\n\n     Called by h_psi:\n     h_psi:calbec :      7.78s CPU     10.26s WALL (     170 calls)\n     vloc_psi     :     28.27s CPU     31.06s WALL (     170 calls)\n     add_vuspsi   :      4.83s CPU      2.91s WALL (     170 calls)\n\n     General routines\n     calbec       :      8.27s CPU     10.06s WALL (     203 calls)\n     fft          :      2.71s CPU      2.82s WALL (     428 calls)\n     ffts         :      0.82s CPU      1.00s WALL (      66 calls)\n     fftw         :     29.32s CPU     31.71s WALL (    2995 calls)\n     interpolate  :      0.62s CPU      0.61s WALL (      33 calls)\n\n     Parallel routines\n\n     PWSCF        :   2m49.32s CPU   2m37.84s WALL\n\n\n   This run was terminated on:  16:42:33   4Aug2026            \n\n=------------------------------------------------------------------------------=\n   JOB DONE.\n=------------------------------------------------------------------------------=",
-      "nscf_tail": "\n     Called by *egterg:\n     cdiaghg      :    181.45s CPU     47.84s WALL (      72 calls)\n     h_psi        :     53.00s CPU    151.31s WALL (      76 calls)\n     s_psi        :     11.73s CPU      6.53s WALL (      76 calls)\n     g_psi        :      1.35s CPU      0.30s WALL (      71 calls)\n\n     Called by h_psi:\n     h_psi:calbec :     10.59s CPU     16.05s WALL (      76 calls)\n     vloc_psi     :     25.86s CPU    125.90s WALL (      76 calls)\n     add_vuspsi   :     15.45s CPU      8.66s WALL (      76 calls)\n\n     General routines\n     calbec       :     10.48s CPU     15.91s WALL (      76 calls)\n     fft          :      0.56s CPU      0.59s WALL (      13 calls)\n     ffts         :      0.37s CPU      0.40s WALL (       1 calls)\n     fftw         :     23.26s CPU    112.07s WALL (    4182 calls)\n     interpolate  :      0.37s CPU      0.40s WALL (       1 calls)\n     davcio       :      0.00s CPU      0.01s WALL (       2 calls)\n\n     Parallel routines\n\n     PWSCF        :   6m31.60s CPU   6m13.23s WALL\n\n\n   This run was terminated on:  16:48:49   4Aug2026            \n\n=------------------------------------------------------------------------------=\n   JOB DONE.\n=------------------------------------------------------------------------------=",
+      "scf_tail": "     cegterg      :     93.13s CPU     70.68s WALL (      33 calls)\n\n     Called by *egterg:\n     cdiaghg      :      2.02s CPU      1.51s WALL (     168 calls)\n     h_psi        :     37.92s CPU     39.91s WALL (     170 calls)\n     s_psi        :      5.60s CPU      2.41s WALL (     170 calls)\n     g_psi        :      0.37s CPU      0.16s WALL (     136 calls)\n\n     Called by h_psi:\n     h_psi:calbec :      6.50s CPU      8.59s WALL (     170 calls)\n     vloc_psi     :     25.25s CPU     27.66s WALL (     170 calls)\n     add_vuspsi   :      5.21s CPU      3.07s WALL (     170 calls)\n\n     General routines\n     calbec       :      7.55s CPU      9.01s WALL (     203 calls)\n     fft          :      2.69s CPU      2.73s WALL (     428 calls)\n     ffts         :      0.79s CPU      0.64s WALL (      66 calls)\n     fftw         :     28.02s CPU     28.05s WALL (    2995 calls)\n     interpolate  :      0.67s CPU      0.92s WALL (      33 calls)\n\n     Parallel routines\n\n     PWSCF        :   2m42.02s CPU   2m32.75s WALL\n\n\n   This run was terminated on:  18:47:54   4Aug2026            \n\n=------------------------------------------------------------------------------=\n   JOB DONE.\n=------------------------------------------------------------------------------=",
+      "nscf_tail": "\n     Called by *egterg:\n     cdiaghg      :    191.78s CPU     58.17s WALL (      72 calls)\n     h_psi        :     57.33s CPU    135.96s WALL (      76 calls)\n     s_psi        :     11.27s CPU      4.38s WALL (      76 calls)\n     g_psi        :      1.16s CPU      0.71s WALL (      71 calls)\n\n     Called by h_psi:\n     h_psi:calbec :     13.82s CPU     16.16s WALL (      76 calls)\n     vloc_psi     :     27.33s CPU    109.40s WALL (      76 calls)\n     add_vuspsi   :     14.98s CPU      8.65s WALL (      76 calls)\n\n     General routines\n     calbec       :     13.61s CPU     15.97s WALL (      76 calls)\n     fft          :      0.52s CPU      0.59s WALL (      13 calls)\n     ffts         :      0.37s CPU      0.39s WALL (       1 calls)\n     fftw         :     24.23s CPU     96.52s WALL (    4182 calls)\n     interpolate  :      0.37s CPU      0.40s WALL (       1 calls)\n     davcio       :      0.07s CPU      0.01s WALL (       2 calls)\n\n     Parallel routines\n\n     PWSCF        :   6m41.94s CPU   6m 2.85s WALL\n\n\n   This run was terminated on:  18:54: 1   4Aug2026            \n\n=------------------------------------------------------------------------------=\n   JOB DONE.\n=------------------------------------------------------------------------------=",
       "bse_tail": "[modal:05395] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)\ncorrupted double-linked list\n[modal:05395] *** Process received signal ***\n[modal:05395] Signal: Aborted (6)\n[modal:05395] Signal code:  (-6)"
     }
   },
