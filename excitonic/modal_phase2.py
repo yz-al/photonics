@@ -568,14 +568,31 @@ def gwbse_cost(material: str = "MoS2", mode: str = "debug", vacuum: float = 10.0
     env["OMPI_MCA_plm_rsh_agent"] = "/usr/local/bin/fake_ssh"
     env["PRTE_MCA_plm_ssh_agent"] = "/usr/local/bin/fake_ssh"
     MPI = ["mpirun", "--allow-run-as-root", "-np", str(GWBSE_CORES)]
+    # Yambo on a 3-atom debug cell with 48 ranks over-decomposes and hung for 6 h
+    # (rode GitHub's job wall). Use modest ranks for debug; full ranks for production.
+    n_y = 8 if mode == "debug" else GWBSE_CORES
+    MPI_Y = ["mpirun", "--allow-run-as-root", "-np", str(n_y)]
+    # Per-stage wall caps so NO single stage can ride the 6 h GitHub limit. A stage
+    # that exceeds its cap is SIGKILLed and reported as a timeout (rc=124) with its
+    # output tail — a hang becomes a legible, minutes-long failure, not a 6 h burn.
+    TMO = ({"scf": 600, "nscf": 600, "p2y": 180, "y_setup": 300, "gw": 1500, "bse": 1500}
+           if mode == "debug"
+           else {"scf": 3600, "nscf": 3600, "p2y": 600, "y_setup": 900, "gw": 9000, "bse": 9000})
     stages, t_start = {}, time.time()
 
     def sh(name, cmd, cwd=wd, infile=None, outfile=None):
+        import signal
         t0 = time.time()
         stdin = open(os.path.join(cwd, infile)) if infile else None
         fo = open(os.path.join(cwd, outfile), "w") if outfile else subprocess.DEVNULL
-        rc = subprocess.run(cmd, cwd=cwd, env=env, stdin=stdin,
-                            stdout=fo, stderr=subprocess.STDOUT).returncode
+        proc = subprocess.Popen(cmd, cwd=cwd, env=env, stdin=stdin, stdout=fo,
+                                stderr=subprocess.STDOUT, start_new_session=True)
+        try:
+            rc = proc.wait(timeout=TMO.get(name))
+        except subprocess.TimeoutExpired:
+            os.killpg(os.getpgid(proc.pid), signal.SIGKILL)  # kill the whole MPI tree
+            proc.wait()
+            rc = 124  # timeout sentinel
         stages[name] = round(time.time() - t0, 1)
         return rc
 
@@ -671,7 +688,11 @@ K_POINTS automatic
     if not os.path.isdir(os.path.join(ydir, "SAVE")):
         return _fail("p2y", "no SAVE in yambo dir after p2y",
                      {"save_ls": os.listdir(save_dir) if os.path.isdir(save_dir) else []})
-    rc |= sh("y_setup", ["yambo"], cwd=ydir)
+    rc_setup = sh("y_setup", ["yambo"], cwd=ydir, outfile="y_setup.log")
+    if rc_setup == 124:
+        return _fail("y_setup", "yambo initialization timed out",
+                     {"y_setup_tail": _tail("yambo/y_setup.log")})
+    rc |= rc_setup
 
     # --- GW input (2D truncation 'slab z') + run ---
     gw_in = f"""gw
@@ -694,7 +715,12 @@ NGsBlkXp= {p['ng_x']}     Ry
 %
 """
     open(os.path.join(ydir, "gw.in"), "w").write(gw_in)
-    rc |= sh("gw", MPI + ["yambo", "-F", "gw.in", "-J", "GW"], cwd=ydir)
+    rc_gw = sh("gw", MPI_Y + ["yambo", "-F", "gw.in", "-J", "GW"], cwd=ydir,
+               outfile="gw_run.log")
+    if rc_gw == 124:
+        return _fail("gw", "yambo GW (screening/QP) exceeded its wall cap",
+                     {"gw_tail": _tail("yambo/gw_run.log")})
+    rc |= rc_gw
 
     # --- BSE input (use GW db) + run ---
     bse_in = f"""optics
@@ -715,7 +741,12 @@ BSENGBlk= {p['ng_x']}    Ry
 %
 """
     open(os.path.join(ydir, "bse.in"), "w").write(bse_in)
-    rc |= sh("bse", MPI + ["yambo", "-F", "bse.in", "-J", "BSE"], cwd=ydir)
+    rc_bse = sh("bse", MPI_Y + ["yambo", "-F", "bse.in", "-J", "BSE"], cwd=ydir,
+                outfile="bse_run.log")
+    if rc_bse == 124:
+        return _fail("bse", "yambo BSE (kernel/diagonalization) exceeded its wall cap",
+                     {"bse_tail": _tail("yambo/bse_run.log")})
+    rc |= rc_bse
 
     # --- parse: GW direct gap + lowest exciton -> E_b ---
     def _read(path):
@@ -785,9 +816,25 @@ def gwbse(mode: str = "debug"):
       after (a) the TMD sweep gate passes and (b) debug verified truncation.
     """
     if mode == "debug":
-        r10, r16 = gwbse_cost.remote("MoS2", "debug", 10.0), None
+        # Run vac=10 first; only pay for vac=16 if the chain actually returned an
+        # E_b (else the second vacuum would just reproduce the same failure at cost).
+        r10 = gwbse_cost.remote("MoS2", "debug", 10.0)
+        eb10 = r10["E_b"]["value"]
+        if eb10 is None:
+            err = r10.get("error", {})
+            res = {"mode": "debug", "vac10": r10, "vac16": None,
+                   "verdict": {"E_b_vac10_eV": None, "debug_pass": False,
+                               "reason": f"vac10 aborted at {err.get('stage_failed')}: "
+                                         f"{err.get('note')} — skipped vac16 (no spend)"}}
+            out = os.path.join(HERE, "data", "manifests", "phase2_gwbse_debug.json")
+            os.makedirs(os.path.dirname(out), exist_ok=True)
+            with open(out, "w") as fh:
+                json.dump(res, fh, indent=2)
+            print(f"[phase2/gwbse] DEBUG aborted at vac10: {res['verdict']['reason']}")
+            print(f"[phase2/gwbse] wrote {out}")
+            return
         r16 = gwbse_cost.remote("MoS2", "debug", 16.0)
-        eb10 = r10["E_b"]["value"]; eb16 = r16["E_b"]["value"]
+        eb16 = r16["E_b"]["value"]
         verdict = {"E_b_vac10_eV": eb10, "E_b_vac16_eV": eb16}
         if eb10 and eb16:
             drift = abs(eb16 - eb10) / abs(eb10)
