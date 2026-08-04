@@ -732,6 +732,43 @@ def main():
             json.dump(out, f, indent=2)
         return
 
+    # ---- MECHANISTIC EQUATION: distill the boundary decision to image primitives ----
+    if os.environ.get("WORM_S3_MECHEQ", "0") == "1":
+        from scipy.ndimage import gaussian_filter, uniform_filter
+        import mech_equation as ME
+        seed = SEEDS[0]; torch.manual_seed(seed)
+        MSTEPS = int(os.environ.get("WORM_S3_MECHEQ_STEPS", "6000"))
+        GAP = int(os.environ.get("WORM_S3_AUDIT_ZGAP", str(ZC)))
+        NPOOL = int(os.environ.get("WORM_S3_CURVE_POOL", "64"))
+        NTEST = int(os.environ.get("WORM_S3_AUDIT_NTEST", "8"))
+        trm_raw = tr_raw[:max(ZC + 1, tr_raw.shape[0] - GAP)]; trm_seg = tr_seg[:trm_raw.shape[0]]
+        pool = [sample_sub(trm_raw, trm_seg, CROP, 20000 + i) for i in range(NPOOL)]
+        test = [sample_sub(te_raw, te_seg, ec, 30000 + j) for j in range(NTEST)]
+        net = train_dec("sota", None, pool, steps=MSTEPS, augment=True, seed=seed)
+        pnames = ["I", "gradmag", "localvar", "blur1", "blur2", "highpass"]
+        Xs, ygt, yun = [], [], []; rng = np.random.default_rng(seed)
+        for sub, seg in test:
+            s = (sub - sub.mean()) / (sub.std() + 1e-6)
+            gy = np.gradient(s, axis=1); gx = np.gradient(s, axis=2); grad = np.sqrt(gy ** 2 + gx ** 2)
+            m1 = uniform_filter(s, (1, 3, 3)); m2 = uniform_filter(s ** 2, (1, 3, 3))
+            lv = np.clip(m2 - m1 ** 2, 0, None)
+            b1 = gaussian_filter(s, (0, 1, 1)); b2 = gaussian_filter(s, (0, 3, 3)); hp = s - b2
+            prim = np.stack([s, grad, lv, b1, b2, hp], -1)          # (Z,H,W,6)
+            ga, val = gt_affinity(seg, OFFS); pa = predict("sota", net, None, sub)
+            memgt = ((ga[:ns] < 0.5) & (val[:ns] > 0)).any(0)       # GT membrane voxel
+            memun = ((pa[:ns] < 0.5) & (val[:ns] > 0)).any(0)       # U-Net's membrane decision
+            P = prim.reshape(-1, 6); yg = memgt.reshape(-1).astype(np.float64); yu = memun.reshape(-1).astype(np.float64)
+            idx = rng.choice(len(P), min(6000, len(P)), replace=False)
+            Xs.append(P[idx]); ygt.append(yg[idx]); yun.append(yu[idx])
+        X = np.concatenate(Xs); y_gt = np.concatenate(ygt); y_un = np.concatenate(yun)
+        Xn = (X - X.mean(0)) / (X.std(0) + 1e-6)
+        res = ME.run(Xn, pnames, y_gt, y_un)
+        out = {"mecheq_seed": seed, "primitives": pnames, "mechanistic_equation": res}
+        print(json.dumps(out, indent=2))
+        with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
+            json.dump(out, f, indent=2)
+        return
+
     # ---- MEMBRANE HARD-REGION MINING (what the theory points to) --------------
     # Theory verdict: errors are MODEL-limited (resolvable), SIGNAL-limited at MEMBRANES,
     # and spatially CLUSTERED in a few bad regions -- so target the clustered weak-signal
