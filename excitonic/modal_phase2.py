@@ -578,7 +578,7 @@ def gwbse_cost(material: str = "MoS2", mode: str = "debug", vacuum: float = 10.0
     # Per-stage wall caps so NO single stage can ride the 6 h GitHub limit. A stage
     # that exceeds its cap is SIGKILLed and reported as a timeout (rc=124) with its
     # output tail — a hang becomes a legible, minutes-long failure, not a 6 h burn.
-    TMO = ({"scf": 1500, "nscf": 1500, "p2y": 180, "y_setup": 300, "gw": 1500, "bse": 1500}
+    TMO = ({"scf": 1500, "nscf": 1500, "p2y": 180, "y_setup": 300, "gw": 1500, "bse": 2400}
            if mode == "debug"
            else {"scf": 3600, "nscf": 3600, "p2y": 600, "y_setup": 900, "gw": 9000, "bse": 9000})
     stages, t_start = {}, time.time()
@@ -762,12 +762,13 @@ BEnSteps= 100
     # -J "BSE,GW": write to BSE, but READ the GW databases (ndb.QP for KfnQP_E="GW"
     # and the screening) from the GW folder. Without the GW read dir the BSE has no
     # QP correction and exits in seconds (the 3.2 s no-op we saw).
-    # BSE on the tiny debug problem crashed with SIGABRT (rank 6/8): 8-way MPI
-    # over-decomposes the small eh-transition space. Run BSE SERIAL for debug
-    # (fast, no decomposition — same class of fix as the QE cdiaghg one); full
-    # ranks only for the large production BSE.
-    bse_cmd = (["yambo", "-F", "bse.in", "-J", "BSE,GW"] if mode == "debug"
-               else MPI_Y + ["yambo", "-F", "bse.in", "-J", "BSE,GW"])
+    # BSE parallelism: the 8-rank SIGABRT was really the HDF5-locking bug (now
+    # fixed); serial is crash-free but too slow (hit the 25 min cap). Use MODERATE
+    # ranks for debug — 4 is fast enough yet unlikely to over-decompose the tiny
+    # eh-transition space; full ranks for production.
+    n_bse = 4 if mode == "debug" else GWBSE_CORES
+    bse_cmd = ["mpirun", "--allow-run-as-root", "-np", str(n_bse),
+               "yambo", "-F", "bse.in", "-J", "BSE,GW"]
     rc_bse = sh("bse", bse_cmd, cwd=ydir, outfile="bse_run.log")
     if rc_bse == 124:
         return _fail("bse", "yambo BSE (kernel/diagonalization) exceeded its wall cap",
