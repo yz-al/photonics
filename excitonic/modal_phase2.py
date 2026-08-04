@@ -650,7 +650,7 @@ def gwbse_cost(material: str = "MoS2", mode: str = "debug", vacuum: float = 10.0
 {common}{nbnd}{occ}/
 &electrons
   conv_thr=1.0d-9
-  diagonalization='cg'
+  diagonalization='david'
 /
 CELL_PARAMETERS angstrom
 {cellblk}
