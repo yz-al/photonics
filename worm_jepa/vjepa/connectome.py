@@ -17,14 +17,22 @@ import numpy as np
 from collections import defaultdict
 
 
-def build_edges(seg, clefts, cleft_bg, dil=2, pad=3):
+def compact(vol):
+    """Relabel arbitrary (possibly huge uint64) ids -> 0..K with 0 = background (the MAX
+    original value, CREMI's convention). Robust to huge background values (no max-sized LUT)."""
+    vol = np.asarray(vol)
+    bg = vol.max()
+    uniq = np.unique(vol[vol != bg]) if (vol != bg).any() else np.array([], dtype=vol.dtype)
+    out = np.zeros(vol.shape, np.int64)
+    if len(uniq):
+        out = np.clip(np.searchsorted(uniq, vol) + 1, 0, len(uniq))   # non-bg -> 1..K
+        out[vol == bg] = 0
+    return out, int(len(uniq)), int(bg)
+
+
+def build_edges(seg, clefts, cleft_bg=0, dil=2, pad=3):
     from scipy.ndimage import find_objects, binary_dilation
-    mx = int(clefts.max())
-    ids = [int(c) for c in np.unique(clefts) if c != cleft_bg]
-    lut = np.zeros(mx + 1, np.int32)                          # compact non-bg clefts -> 1..K
-    for i, c in enumerate(ids):
-        lut[c] = i + 1
-    lab = lut[np.clip(clefts, 0, mx)]
+    lab = clefts.astype(np.int32)                            # already compacted: 0=bg, 1..K
     slices = find_objects(lab)                               # bounding box per cleft (one pass)
     edges = defaultdict(int)
     for i, sl in enumerate(slices):
@@ -45,11 +53,12 @@ def build_edges(seg, clefts, cleft_bg, dil=2, pad=3):
 
 
 def merge_neurons(seg, rate, rng):
-    """Randomly fuse a fraction `rate` of neurons into partners -- simulate seg merges."""
+    """Randomly fuse a fraction `rate` of neurons into partners -- simulate seg merges.
+    `seg` must be COMPACTED (0=bg, 1..K) so the LUT is small."""
     ids = [int(i) for i in np.unique(seg) if i > 0]
     if len(ids) < 2:
         return seg
-    rng.shuffle(ids)
+    ids = list(ids); rng.shuffle(ids)
     lut = np.arange(int(seg.max()) + 1)
     npairs = int(rate * len(ids) / 2)
     for k in range(npairs):
@@ -84,19 +93,28 @@ def spectral(edges, nodes):
 
 
 def run(neuron_ids, clefts, merge_rates=(0.0, 0.05, 0.1, 0.2, 0.4)):
-    cleft_bg = int(clefts.max())                              # CREMI: max label = background
-    nodes = [int(i) for i in np.unique(neuron_ids) if i > 0]
-    gt_edges = build_edges(neuron_ids, clefts, cleft_bg)
+    # Compact BOTH inputs first: CREMI stores huge uint64 ids with MAX = background. Compacting
+    # gives 0=bg, 1..K and keeps every LUT/array small and int64-safe.
+    seg, n_neurons, nbg = compact(neuron_ids)
+    cl, n_clefts, cbg = compact(clefts)
+    diag = {"cleft_dtype": str(np.asarray(clefts).dtype), "cleft_bg_value": cbg,
+            "n_synaptic_clefts": n_clefts, "neuron_bg_value": nbg, "n_neurons": n_neurons}
+    if n_clefts == 0:
+        return {**diag, "note": ("no synaptic clefts in this chunk after background removal -- "
+                                 "either genuinely cleft-sparse or the wrong label channel. "
+                                 "Cannot build a connectome from clefts here."),
+                "gt_connectome": {"n_edges": 0}, "merge_corruption_curve": []}
+    nodes = [int(i) for i in np.unique(seg) if i > 0]
+    gt_edges = build_edges(seg, cl, cleft_bg=0)
     struct = spectral(gt_edges, nodes)
     rng = np.random.default_rng(0)
     corruption = []
     for r in merge_rates:
-        mseg = neuron_ids if r == 0 else merge_neurons(neuron_ids, r, rng)
-        me = build_edges(mseg, clefts, cleft_bg)
-        # map merged edges back to GT-neuron space via the merge LUT is implicit: merged seg
-        # uses GT ids (fused), so edges are already in a GT-derived space; compare to GT edges.
+        mseg = seg if r == 0 else merge_neurons(seg, r, rng)
+        me = build_edges(mseg, cl, cleft_bg=0)
+        # merged seg reuses compacted ids (fused), so edges live in a GT-derived space; compare to GT.
         corruption.append({"merge_rate": r, **_f1(me, gt_edges)})
-    return {"n_neurons": len(nodes), "n_synaptic_clefts": int(len(np.unique(clefts)) - 1),
+    return {**diag,
             "gt_connectome": {"n_edges": len(gt_edges), "structure": struct},
             "merge_corruption_curve": corruption,
             "reading": ("connectome edge-F1 vs segmentation merge rate: this is the wiring-level "

@@ -134,11 +134,19 @@ def connectome_fn(sample: str = "A") -> dict:
     z0, z1 = [int(x) for x in os.environ.get("WORM_S3_CONN_Z", "30,90").split(",")]
     c0, c1 = [int(x) for x in os.environ.get("WORM_S3_CONN_XY", "300,940").split(",")]
     with h5py.File(os.path.join(CACHE, f"sample_{sample}.hdf"), "r") as f:
+        keys = []
+        f.visit(lambda n: keys.append(n))
+        print("[connectome] hdf keys:", [k for k in keys if "label" in k or "cleft" in k], flush=True)
         nid = f["volumes/labels/neuron_ids"][z0:z1, c0:c1, c0:c1]
         cl = f["volumes/labels/clefts"][z0:z1, c0:c1, c0:c1]
-    print(f"[connectome] sample {sample} chunk {nid.shape} neurons={len(np.unique(nid))} "
-          f"clefts={len(np.unique(cl)) - 1}", flush=True)
-    r = C.run(nid.astype(np.int64), cl.astype(np.int64))
+    # DO NOT cast to int64: CREMI stores a huge uint64 background (max value) that int64 turns
+    # negative -> wrong background. compact() inside connectome.py handles native dtypes.
+    ucl = np.unique(cl)
+    print(f"[connectome] sample {sample} chunk {nid.shape} neuron_dtype={nid.dtype} "
+          f"neurons={len(np.unique(nid))} cleft_dtype={cl.dtype} cleft_uniques={len(ucl)} "
+          f"cleft_min={int(ucl.min())} cleft_max={int(ucl.max())} "
+          f"cleft_nonbg_voxels={int((cl != cl.max()).sum())}", flush=True)
+    r = C.run(nid, cl)
     print(json.dumps({k: r[k] for k in ("n_neurons", "n_synaptic_clefts", "gt_connectome",
                                         "merge_corruption_curve")}, indent=2))
     return {"sample": sample, "chunk": [z0, z1, c0, c1], **r}
