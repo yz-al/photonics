@@ -127,27 +127,32 @@ def rerun_agglo(seed: int = 0) -> dict:
     args = [unstack("tr_aff"), unstack("tr_seg"), unstack("ev_aff"), unstack("ev_seg")]
     kw = dict(train_lsds=unstack("tr_lsd"), eval_lsds=unstack("ev_lsd"),
               train_jepas=unstack("tr_jepa"), eval_jepas=unstack("ev_jepa"))
-    # The winning multicut is SPLIT-dominated (over-segments), so we attack over-seg on
-    # two free levers: merge_bias (GAEC merges more) and seed_q (the interior-core quantile
-    # = fragment granularity; higher -> coarser -> fewer splits to stitch). NOTE thr_over
-    # is inert here -- the adaptive quantile floor dominates it -- so we sweep seed_q, the
-    # knob that actually moves mean_fragments. Both re-derive from the saved affinities.
-    biases = [float(x) for x in os.environ.get("WORM_S3_BIAS_SWEEP", "1.0,1.5").split(",")]
-    seedqs = [float(x) for x in os.environ.get("WORM_S3_SEEDQ_SWEEP", "0.6,0.7,0.8").split(",")]
+    # ERL-FIRST (merge-averse) operating-point search. A MERGE is catastrophic in
+    # connectomics (poisons a whole traced run) while a split is cheaply proofread, so we
+    # optimize ERL, not VOI, and sweep merge_bias into the CONSERVATIVE (negative) range --
+    # negative bias makes GAEC merge LESS (fewer catastrophic merges, more cheap splits).
+    # seed_q tunes fragment granularity. Per cell we record the ERL-best variant + its
+    # merge-error count, and pick the ERL-max cell. All re-derives from saved affinities.
+    biases = [float(x) for x in os.environ.get("WORM_S3_BIAS_SWEEP", "-1.5,-1.0,-0.5,0,0.5").split(",")]
+    seedqs = [float(x) for x in os.environ.get("WORM_S3_SEEDQ_SWEEP", "0.6,0.8").split(",")]
     sweep = {}
     best = None
     for q in seedqs:
         for b in biases:
             r = AG.run(*args, ctx, seed_q=q, merge_bias=b, **kw)
-            bv = r["best_by_voi"]
-            cell = {"best": bv, "seed_q": q, "merge_bias": b, **r[bv],
-                    "cremi": r["cremi_score_proxy"][bv],
-                    "mean_fragments": r.get("mean_fragments"),
-                    "error_types": r.get("error_types_mws_vs_best", {})}
+            be = r["best_by_erl"]; bv = r["best_by_voi"]
+            me = r["merge_errors_by_method"]
+            cell = {"seed_q": q, "merge_bias": b,
+                    "best_by_erl": be, "ERL": r[be]["ERL"], "VOI_at_erlbest": r[be]["VOI"],
+                    "merge_errors_at_erlbest": me.get(be),
+                    "best_by_voi": bv, "VOI": r[bv]["VOI"], "ERL_at_voibest": r[bv]["ERL"],
+                    "cremi_voibest": r["cremi_score_proxy"][bv],
+                    "mean_fragments": r.get("mean_fragments"), "merge_errors_by_method": me}
             sweep[f"seedq{q}_bias{b}"] = cell
-            if best is None or cell["VOI"] < best[1]["VOI"]:
+            if best is None or cell["ERL"] > best[1]["ERL"]:   # ERL-FIRST selection
                 best = (f"seedq{q}_bias{b}", cell)
-    print(json.dumps({"seed": seed, "best_cell": best[0], "grid": sweep}, indent=2))
+    print(json.dumps({"seed": seed, "objective": "ERL (merge-averse)",
+                      "best_cell": best[0], "grid": sweep}, indent=2))
     return {"seed": seed, "best_cell": best[0], "best": best[1], "grid": sweep}
 
 

@@ -258,7 +258,8 @@ REPEL = {"mean_long", "log_min_size", "lsd_dist", "jepa_dist"}     # boundary-fa
 
 
 def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9, seed_q=0.6,
-        train_lsds=None, eval_lsds=None, train_jepas=None, eval_jepas=None, merge_bias=0.0):
+        train_lsds=None, eval_lsds=None, train_jepas=None, eval_jepas=None, merge_bias=0.0,
+        merge_w=3.0):
     """Learned MULTICUT (GAEC) agglomeration with two-specialist signed edge weights,
     vs plain MWS. Runs multiple FEATURE VARIANTS so we can isolate each signal's value:
     affinity-only, +LSD shape, +JEPA context. Fed to GAEC as logit(P_A*(1-P_B))."""
@@ -369,19 +370,32 @@ def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9, seed_q=
         add("lifted_multicut_full", full, lifted=True)
     allm = {"mws": M, **variants}
     best = min(allm.items(), key=lambda kv: kv[1]["VOI"])
-    # error-type breakdown: MWS vs the winning method -- what kind of errors remain?
-    err = {"mws": error_types(labels["mws"]), best[0]: error_types(labels[best[0]])}
+    # ERL-FIRST / MERGE-AVERSE selection: in connectomics a MERGE is catastrophic (one
+    # merge poisons a whole traced run to length 0) while a split is cheaply proofread.
+    # So also select by ERL (higher = longer correct runs, merge-penalized) and by a
+    # merge-weighted VOI (VOI_merge/under-seg penalized merge_w x harder than VOI_split).
+    best_erl = max(allm.items(), key=lambda kv: kv[1]["ERL"])
+
+    def mwv(d):
+        return d["VOI_split"] + merge_w * d["VOI_merge"]        # merge-averse composite (lower better)
+    best_mw = min(allm.items(), key=lambda kv: mwv(kv[1]))
+    # error types for EVERY method -> pick the merge-MINIMIZING operating point, not just VOI
+    err_all = {k: error_types(labs) for k, labs in labels.items()}
+    merge_errs = {k: err_all[k]["merge_errors"] for k in err_all}
     # CREMI-style score proxy = geomean(VOI, adapted-Rand); lower better (NOT official protocol)
     cremi = {k: round(float((v["VOI"] * v["adapted_rand_error"]) ** 0.5), 4) for k, v in allm.items()}
-    return {"method": "learned multicut (GAEC) feature-variants vs MWS + error-type analysis",
+    return {"method": "learned multicut (GAEC) feature-variants vs MWS + ERL-first error analysis",
             "features_available": names, "n_train_pairs": int(len(ysame)),
             "same_rate": round(float(ysame.mean()), 3),
             "mean_fragments": round(float(np.mean([r[0].max() + 1 for r in ev])), 1),
             "mws_baseline": M, **variants,
             "best_by_voi": best[0],
+            "best_by_erl": best_erl[0],                          # ERL-first (merge-averse) winner
+            "best_by_merge_weighted_voi": best_mw[0], "merge_w": merge_w,
             "best_beats_mws": bool(best[0] != "mws" and best[1]["VOI"] <= M["VOI"]),
             "VOI_split_merge_note": "VOI_merge = under-seg (merges), VOI_split = over-seg (splits)",
-            "error_types_mws_vs_best": err,
+            "error_types_mws_vs_best": {"mws": err_all["mws"], best[0]: err_all[best[0]]},
+            "error_types_all": err_all, "merge_errors_by_method": merge_errs,
             "cremi_score_proxy": cremi,
             "deltas_vs_mws": {k: {"dVOI": round(v["VOI"] - M["VOI"], 4),
                                   "dERL": round(v["ERL"] - M["ERL"], 4)} for k, v in variants.items()}}
