@@ -578,7 +578,7 @@ def gwbse_cost(material: str = "MoS2", mode: str = "debug", vacuum: float = 10.0
     # Per-stage wall caps so NO single stage can ride the 6 h GitHub limit. A stage
     # that exceeds its cap is SIGKILLed and reported as a timeout (rc=124) with its
     # output tail — a hang becomes a legible, minutes-long failure, not a 6 h burn.
-    TMO = ({"scf": 1500, "nscf": 1500, "p2y": 180, "y_setup": 300, "gw": 1500, "bse": 2400}
+    TMO = ({"scf": 1500, "nscf": 1500, "p2y": 180, "y_setup": 300, "gw": 1500, "bse": 3000}
            if mode == "debug"
            else {"scf": 3600, "nscf": 3600, "p2y": 600, "y_setup": 900, "gw": 9000, "bse": 9000})
     stages, t_start = {}, time.time()
@@ -698,6 +698,12 @@ K_POINTS automatic
     rc |= rc_setup
 
     # --- GW input (2D truncation 'slab z') + run ---
+    # RandQpts/RandGvec control the RIM (random integration of the truncated
+    # Coulomb) — the expensive, poorly-parallel step that made serial BSE crawl.
+    # Cheap sampling for debug (this DB is reused by the BSE via -J GW); production
+    # raises them for convergence.
+    rim = "RandQpts=  1000000\nRandGvec= 100          RL\n" if mode == "production" \
+          else "RandQpts=  100000\nRandGvec=  50          RL\n"
     gw_in = f"""gw
 rim_cut
 gw0
@@ -706,7 +712,7 @@ HF_and_locXC
 em1d
 CUTGeo= "slab z"
 EXXRLvcs= 8000            RL
-% BndsRnXp
+{rim}% BndsRnXp
   1 | {p['bnd_x']} |
 %
 NGsBlkXp= {p['ng_x']}     Ry
@@ -762,13 +768,12 @@ BEnSteps= 100
     # -J "BSE,GW": write to BSE, but READ the GW databases (ndb.QP for KfnQP_E="GW"
     # and the screening) from the GW folder. Without the GW read dir the BSE has no
     # QP correction and exits in seconds (the 3.2 s no-op we saw).
-    # BSE parallelism: the 8-rank SIGABRT was really the HDF5-locking bug (now
-    # fixed); serial is crash-free but too slow (hit the 25 min cap). Use MODERATE
-    # ranks for debug — 4 is fast enough yet unlikely to over-decompose the tiny
-    # eh-transition space; full ranks for production.
-    n_bse = 4 if mode == "debug" else GWBSE_CORES
-    bse_cmd = ["mpirun", "--allow-run-as-root", "-np", str(n_bse),
-               "yambo", "-F", "bse.in", "-J", "BSE,GW"]
+    # BSE parallelism: MPI BSE crashes (SIGABRT) at BOTH 4 and 8 ranks — yambo's
+    # decomposition over the tiny eh-transition space breaks — while SERIAL is
+    # crash-free (just slow). So run debug BSE SERIAL and make it finish via a
+    # bigger cap + a cheaper RIM (below); full ranks only for the large production BSE.
+    bse_cmd = (["yambo", "-F", "bse.in", "-J", "BSE,GW"] if mode == "debug"
+               else MPI_Y + ["yambo", "-F", "bse.in", "-J", "BSE,GW"])
     rc_bse = sh("bse", bse_cmd, cwd=ydir, outfile="bse_run.log")
     if rc_bse == 124:
         return _fail("bse", "yambo BSE (kernel/diagonalization) exceeded its wall cap",
