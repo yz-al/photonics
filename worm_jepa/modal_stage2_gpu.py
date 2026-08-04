@@ -51,6 +51,7 @@ _PASS = {
     "WORM_S3_STAGE0A": "1" if os.environ.get("WORM_S3_MODE") == "stage0a" else os.environ.get("WORM_S3_STAGE0A", "0"),
     "WORM_S3_DBB_STAGES": "1" if os.environ.get("WORM_S3_MODE") == "dbb" else os.environ.get("WORM_S3_DBB_STAGES", "0"),
     "WORM_S3_THEORY": "1" if os.environ.get("WORM_S3_MODE") == "theory" else os.environ.get("WORM_S3_THEORY", "0"),
+    "WORM_S3_HARDMINE": "1" if os.environ.get("WORM_S3_MODE") == "hardmine" else os.environ.get("WORM_S3_HARDMINE", "0"),
     "WORM_S3_AUG_BANK": os.environ.get("WORM_S3_AUG_BANK", "2"),     # autocontext aug-bank size (GPU mem)
     "WORM_S3_AGGLO": os.environ.get("WORM_S3_AGGLO", "1"),          # two-specialist multicut vs MWS
     "WORM_S3_CTX": os.environ.get("WORM_S3_CTX", ""),
@@ -332,6 +333,31 @@ def main():
             with open(os.path.join(art, fn), "w") as f:
                 json.dump(merged, f, indent=2)
         print(json.dumps(agg, indent=2))
+        return
+    if os.environ.get("WORM_S3_MODE") == "hardmine":          # membrane hard-region mining vs uniform, per seed
+        print(f"[modal] membrane hard-region mining vs uniform control, seeds {SEEDS} ...", flush=True)
+        print("[modal] cache:", prepare.remote(), flush=True)
+        results = list(run_seed.map(SEEDS))
+
+        def agg(key, metric):
+            vs = [r[key][metric] for r in results]
+            return {"mean": round(statistics.mean(vs), 4), "std": round(statistics.pstdev(vs), 4) if len(vs) > 1 else 0.0}
+        de = [r["dERL_hm_minus_control"] for r in results]; dv = [r["dVOI_hm_minus_control"] for r in results]
+        de_mean = statistics.mean(de); de_std = statistics.pstdev(de) if len(de) > 1 else 0.0
+        merged = {"seeds": SEEDS, "ERL_noise_floor_ref": 15.0,
+                  "base": {"VOI": agg("base", "VOI"), "ERL": agg("base", "ERL")},
+                  "control_uniform": {"VOI": agg("control_uniform", "VOI"), "ERL": agg("control_uniform", "ERL")},
+                  "membrane_hardmine": {"VOI": agg("membrane_hardmine", "VOI"), "ERL": agg("membrane_hardmine", "ERL")},
+                  "dERL_hm_minus_control": {"mean": round(de_mean, 4), "std": round(de_std, 4), "per_seed": de},
+                  "dVOI_hm_minus_control": {"mean": round(statistics.mean(dv), 4), "per_seed": dv},
+                  "verdict": ("REAL: hard-mining beats uniform on ERL beyond the ~15 noise floor"
+                              if de_mean > 15 and de_mean - de_std > 0 else
+                              "WITHIN NOISE: ERL gain does not clear the resample noise floor -> not a real effect")}
+        art = os.path.join(HERE, "artifacts"); os.makedirs(art, exist_ok=True)
+        for fn in ("hardmine.json", "segment3d.json"):
+            with open(os.path.join(art, fn), "w") as f:
+                json.dump(merged, f, indent=2)
+        print(json.dumps(merged, indent=2))
         return
     if os.environ.get("WORM_S3_MODE") == "theory":            # non-ODE pipeline theory (5 toolkits), single GPU
         print("[modal] pipeline theory: percolation / EVT / spectral / scale-space / discrete ...", flush=True)

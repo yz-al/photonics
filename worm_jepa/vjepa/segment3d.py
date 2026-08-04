@@ -732,6 +732,64 @@ def main():
             json.dump(out, f, indent=2)
         return
 
+    # ---- MEMBRANE HARD-REGION MINING (what the theory points to) --------------
+    # Theory verdict: errors are MODEL-limited (resolvable), SIGNAL-limited at MEMBRANES,
+    # and spatially CLUSTERED in a few bad regions -- so target the clustered weak-signal
+    # membranes, not uniform training. Continue-train the base net with the loss UP-WEIGHTED
+    # exactly where (a) GT says membrane AND (b) the base model is wrong there. Fair control:
+    # same extra steps, uniform. Judge the ERL delta against the ~15-ERL resample noise floor.
+    if os.environ.get("WORM_S3_HARDMINE", "0") == "1":
+        seed = SEEDS[0]; torch.manual_seed(seed)
+        BASE = int(os.environ.get("WORM_S3_HM_BASE", "6000"))
+        EXTRA = int(os.environ.get("WORM_S3_HM_EXTRA", "3000"))
+        BOOST = float(os.environ.get("WORM_S3_HM_BOOST", "6.0"))
+        GAP = int(os.environ.get("WORM_S3_AUDIT_ZGAP", str(ZC)))
+        NPOOL = int(os.environ.get("WORM_S3_CURVE_POOL", "64"))
+        NTEST = int(os.environ.get("WORM_S3_AUDIT_NTEST", "8"))
+        trm_raw = tr_raw[:max(ZC + 1, tr_raw.shape[0] - GAP)]; trm_seg = tr_seg[:trm_raw.shape[0]]
+        pool = [sample_sub(trm_raw, trm_seg, CROP, 20000 + i) for i in range(NPOOL)]
+        test = [sample_sub(te_raw, te_seg, ec, 30000 + j) for j in range(NTEST)]
+
+        def r_eval(net):
+            vois, erls = [], []
+            for sub, seg in test:
+                aff = predict("sota", net, None, sub); lab = mutex_watershed(aff, OFFS, len(SHORT))
+                v, _ = seg_metrics(lab, seg); vois.append(v); erls.append(erl_proxy(lab, seg))
+            return {"VOI": round(float(np.mean(vois)), 4), "ERL": round(float(np.mean(erls)), 4)}
+
+        base = train_dec("sota", None, pool, steps=BASE, augment=True, seed=seed)
+        base_state = base.state_dict()
+        # membrane hard-mine continue-train
+        hm = SotaUNet3D().to(DEV); hm.load_state_dict(base_state)
+        bf = SotaUNet3D().to(DEV); bf.load_state_dict(base_state); bf.eval()
+        opt = torch.optim.Adam(hm.parameters(), lr=2e-3); mrng = np.random.default_rng(999 + seed)
+        for step in range(EXTRA):
+            sub, seg = pool[step % len(pool)]; sub, seg = augment_em(sub, seg, mrng)
+            aff, val = gt_affinity(seg, OFFS); raw = torch.tensor(sub, device=DEV)[None, None].float()
+            with torch.no_grad():
+                bp = torch.sigmoid(bf(raw)).cpu().numpy()
+            mem = aff[:ns] < 0.5                         # GT membrane short-edges
+            wrong = (bp[:ns] > 0.5) != (aff[:ns] > 0.5)  # base model wrong there
+            wmap = np.ones_like(val); wmap[:ns] = wmap[:ns] + BOOST * (mem & wrong)   # up-weight hard membranes
+            tgt = torch.tensor(aff, device=DEV); vmask = torch.tensor(val * wmap, device=DEV)
+            logit = hm(raw)
+            pos = (tgt * vmask).sum((1, 2, 3)); neg = ((1 - tgt) * vmask).sum((1, 2, 3))
+            pw = (neg / (pos + 1)).clamp(0.1, 10)[:, None, None, None]
+            bce = F.binary_cross_entropy_with_logits(logit, tgt, pos_weight=pw, reduction="none")
+            loss = (bce * vmask).sum() / vmask.sum().clamp(min=1)
+            opt.zero_grad(); loss.backward(); opt.step()
+        hm.eval()
+        ctrl = train_dec("sota", None, pool, steps=EXTRA, init_state=base_state, augment=True, seed=seed)
+        mb, mh, mc = r_eval(base), r_eval(hm), r_eval(ctrl)
+        out = {"hardmine_seed": seed, "boost": BOOST, "extra_steps": EXTRA,
+               "base": mb, "control_uniform": mc, "membrane_hardmine": mh,
+               "dERL_hm_minus_control": round(mh["ERL"] - mc["ERL"], 4),
+               "dVOI_hm_minus_control": round(mh["VOI"] - mc["VOI"], 4)}
+        print(json.dumps(out, indent=2))
+        with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
+            json.dump(out, f, indent=2)
+        return
+
     # ---- NON-ODE PIPELINE THEORY (percolation / EVT / spectral / scale-space / discrete) ----
     if os.environ.get("WORM_S3_THEORY", "0") == "1":
         import pipeline_theory as PT
