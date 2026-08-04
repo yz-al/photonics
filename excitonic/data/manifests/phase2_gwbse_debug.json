@@ -6,27 +6,27 @@
     "vacuum": 10.0,
     "cost": {
       "mode": "debug",
-      "total_wall_s": 1067.8,
+      "total_wall_s": 836.6,
       "cores": 48,
-      "core_hours": 14.237,
+      "core_hours": 11.155,
       "usd_estimate": [
-        0.71,
-        2.14
+        0.56,
+        1.67
       ],
       "per_stage_s": {
-        "scf": 180.9,
-        "nscf": 309.3,
-        "p2y": 1.4,
-        "y_setup": 0.8,
-        "gw": 573.3,
-        "bse": 1.2
+        "scf": 143.0,
+        "nscf": 260.3,
+        "p2y": 1.2,
+        "y_setup": 0.6,
+        "gw": 428.3,
+        "bse": 1.0
       },
       "wall_cap_s": 86400,
       "spend_ceiling_usd": 400,
       "hit_wall_cap": false,
       "over_ceiling": false
     },
-    "gw_gap_eV": 2.238757,
+    "gw_gap_eV": 2.660267,
     "ks_gap_eV": 2.660267,
     "exciton_eV": null,
     "oscillator_strength": null,
@@ -38,10 +38,11 @@
       "source": "",
       "uncertainty": null,
       "converged": null,
-      "notes": "Yambo chain incomplete (exc_e=None, gw_gap=2.238757); stages={'scf': 180.9, 'nscf': 309.3, 'p2y': 1.4, 'y_setup': 0.8, 'gw': 573.3, 'bse': 1.2}; needs input tuning",
+      "notes": "Yambo chain incomplete (exc_e=None, gw_gap=2.660267); stages={'scf': 143.0, 'nscf': 260.3, 'p2y': 1.2, 'y_setup': 0.6, 'gw': 428.3, 'bse': 1.0}; needs input tuning",
       "computed": false,
       "is_model_estimate": false
     },
+    "bse_log_tail": "[modal:05413] [24] yambo(+0xecdca)[0x5636585b8dca]\n[modal:05413] [25] yambo(+0xeda70)[0x5636585b9a70]\n[modal:05413] [26] yambo(+0x3e254)[0x56365850a254]\n[modal:05413] [27] yambo(+0x2e519c)[0x5636587b119c]\n[modal:05413] [28] yambo(+0x3bf45)[0x563658507f45]\n[modal:05413] [29] /opt/conda/bin/../lib/libhdf5.so.310(H5I_dec_app_ref+0xb)[0x2a89de6952bb]\n[modal:05399] [16] /opt/conda/bin/../lib/libhdf5.so.310(H5Pclose+0xfb)[0x2a89de6e62fb]\n[modal:05399] [17] yambo(+0x3b9ab7)[0x55e3cb177ab7]\n[modal:05399] [18] /lib/x86_64-linux-gnu/libc.so.6(+0x2724a)[0x2a741bad124a]\n[modal:05413] *** End of error message ***\n[modal:05403] *** End of error message ***\n[modal:05402] [24] yambo(+0xecdca)[0x561aadc97dca]\n[modal:05402] [25] yambo(+0xeda70)[0x561aadc98a70]\n[modal:05402] [26] yambo(+0x3e254)[0x561aadbe9254]\n[modal:05402] [27] yambo(+0x2e519c)[0x561aade9019c]\n[modal:05402] [28] yambo(+0x3bf45)[0x561aadbe6f45]\n[modal:05402] [29] yambo(+0x38672c)[0x55e3cb14472c]\n[modal:05399] [19] yambo(+0x3868d5)[0x55e3cb1448d5]\n[modal:05399] [20] yambo(+0x3746d8)[0x55e3cb1326d8]\n[modal:05399] [21] yambo(+0x373126)[0x55e3cb131126]\n[modal:05399] [22] yambo(+0x1cbd27)[0x55e3caf89d27]\n[modal:05399] [23] /lib/x86_64-linux-gnu/libc.so.6(+0x2724a)[0x2b4d95af324a]\n[modal:05402] *** End of error message ***\nyambo(+0x1c5fc4)[0x55e3caf83fc4]\n[modal:05399] [24] yambo(+0xecdca)[0x55e3caeaadca]\n[modal:05399] [25] yambo(+0xeda70)[0x55e3caeaba70]\n[modal:05399] [26] yambo(+0x3e254)[0x55e3cadfc254]\n[modal:05399] [27] yambo(+0x2e519c)[0x55e3cb0a319c]\n[modal:05399] [28] yambo(+0x3bf45)[0x55e3cadf9f45]\n[modal:05399] [29] /lib/x86_64-linux-gnu/libc.so.6(+0x2724a)[0x2a89df79f24a]\n[modal:05399] *** End of error message ***\n--------------------------------------------------------------------------\nPrimary job  terminated normally, but 1 process returned\na non-zero exit code. Per user-direction, the job has been aborted.\n--------------------------------------------------------------------------\n--------------------------------------------------------------------------\nmpirun noticed that process rank 6 with PID 0 on node modal exited on signal 6 (Aborted).\n--------------------------------------------------------------------------\n[modal:05395] 7 more processes have sent help message help-btl-vader.txt / cma-permission-denied\n[modal:05395] Set MCA parameter \"orte_base_help_aggregate\" to 0 to see all help / error messages",
     "report_tail": "re mode                       : no\n  [X] El. density                                   :  0.12976E+24 [cm-3]\n  [X] Fermi Level                                   : -6.001999 [eV]\n\n  [X] === Gaps and Widths ===\n  [X] Conduction Band Min                           :  2.238757 [eV]\n  [X] Valence Band Max                              :  0.000000 [eV]\n  [X] Filled Bands                                  :  13\n  [X] Empty Bands                                   :   14   60\n  [X] Direct Gap                                    :  2.660267 [eV]\n  [X] Direct Gap localized at k                     :   5\n  [X] Indirect Gap                                  :  2.238757 [eV]\n  [X] Indirect Gap between kpts                     :  1  2\n  [X] Last valence band width                       :  0.633542 [eV]\n  [X] 1st conduction band width                     :  0.711569 [eV]\n   \n   \n\n [03] Transferred momenta grid and indexing\n ==========================================\n\n [RD./SAVE//ndb.kindx]-----------------------------------------------------------\n  Fragmentation                                    : no\n  Polarization last K                              :  10\n  QP states                                        :   1  10\n  X grid is uniform                                : yes\n  Grids                                            : X S\n  *ERR*BS scattering                               : no\n  COLL scattering                                  : no\n  Sigma scattering                                 : yes\n"
   },
   "vac16": null,
