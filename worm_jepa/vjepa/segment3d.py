@@ -730,6 +730,64 @@ def main():
             json.dump(out, f, indent=2)
         return
 
+    # ---- CLEAN LEARNING CURVE (gated): steps scaled to data + multi-seed -----
+    # Settles what the audit left confounded: does more data KEEP helping past ~32 crops,
+    # or was the flattening just fewer-epochs + single-seed noise? Fixes both: STEPS SCALE
+    # with pool size (epochs held ~constant, so n=64 isn't undertrained vs n=32), and each
+    # seed runs in its OWN container (modal fans out) so we aggregate mean+-std and clear the
+    # ~0.15-VOI RNG noise. Held-out test with a z-margin, same as the audit.
+    if os.environ.get("WORM_S3_CURVE", "0") == "1":
+        seed = SEEDS[0]; torch.manual_seed(seed)
+        SPC = int(os.environ.get("WORM_S3_CURVE_STEPS_PER_CROP", "300"))   # steps per crop = ~constant epochs
+        MAXSTEPS = int(os.environ.get("WORM_S3_CURVE_MAX_STEPS", "20000"))
+        GAP = int(os.environ.get("WORM_S3_AUDIT_ZGAP", str(ZC)))
+        NPOOL = int(os.environ.get("WORM_S3_CURVE_POOL", "64"))
+        NTEST = int(os.environ.get("WORM_S3_AUDIT_NTEST", "8"))
+        trm_raw = tr_raw[:max(ZC + 1, tr_raw.shape[0] - GAP)]; trm_seg = tr_seg[:trm_raw.shape[0]]
+        pool = [sample_sub(trm_raw, trm_seg, CROP, 20000 + i) for i in range(NPOOL)]
+        test = [sample_sub(te_raw, te_seg, ec, 30000 + j) for j in range(NTEST)]
+
+        def c_eval(dec, subs):
+            accs, vois, erls = [], [], []
+            for sub, seg in subs:
+                aff = predict("sota", dec, None, sub)
+                ga, val = gt_affinity(seg, OFFS)
+                accs.append(float((((aff > 0.5) == (ga > 0.5))[val > 0]).mean()))
+                lab = mutex_watershed(aff, OFFS, len(SHORT))
+                v, _ = seg_metrics(lab, seg); vois.append(v); erls.append(erl_proxy(lab, seg))
+            return {"affinity_acc": round(float(np.mean(accs)), 4), "VOI": round(float(np.mean(vois)), 4),
+                    "ERL": round(float(np.mean(erls)), 4)}
+
+        def c_train(subpool, steps, sd):
+            dec = SotaUNet3D(base=32).to(DEV); opt = torch.optim.Adam(dec.parameters(), lr=2e-3)
+            rng = np.random.default_rng(1234 + sd)
+            for step in range(steps):
+                sub, seg = subpool[step % len(subpool)]
+                sub, seg = augment_em(sub, seg, rng)
+                aff, val = gt_affinity(seg, OFFS)
+                tgt = torch.tensor(aff, device=DEV); vmask = torch.tensor(val, device=DEV)
+                logit = dec(torch.tensor(sub, device=DEV)[None, None].float())
+                pos = (tgt * vmask).sum((1, 2, 3)); neg = ((1 - tgt) * vmask).sum((1, 2, 3))
+                pw = (neg / (pos + 1)).clamp(0.1, 10)[:, None, None, None]
+                bce = F.binary_cross_entropy_with_logits(logit, tgt, pos_weight=pw, reduction="none")
+                loss = (bce * vmask).sum() / vmask.sum().clamp(min=1)
+                opt.zero_grad(); loss.backward(); opt.step()
+            dec.eval(); return dec
+        sizes = sorted({max(2, int(round(NPOOL * f))) for f in (0.125, 0.25, 0.5, 1.0)})
+        pts = []
+        for n in sizes:
+            steps = min(MAXSTEPS, SPC * n)                 # steps scale with data -> epochs held ~constant
+            dec = c_train(pool[:n], steps, seed)
+            m = c_eval(dec, test)
+            pts.append({"n_labels": n, "steps": steps, "test": m})
+            print(f"[curve] seed{seed} n={n} steps={steps} testVOI={m['VOI']} testERL={m['ERL']}", flush=True)
+        out = {"curve_seed": seed, "steps_per_crop": SPC, "n_pool": NPOOL, "n_test": NTEST,
+               "z_margin": GAP, "points": pts}
+        print(json.dumps(out, indent=2))
+        with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
+            json.dump(out, f, indent=2)
+        return
+
     # ---- LEARNABILITY CEILING AUDIT (gated) ---------------------------------
     # Establish WHICH ceiling caps us before assuming "train better". Mandated order:
     # (1) LABEL ceiling, (2) OVERFIT gate [hard STOP if it fails], then INFO ablations,

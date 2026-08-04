@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'full (train+agglo) | rerun (FREE sweep) | debug (FREE error analysis) | audit (GPU learnability ceiling audit, single seed)'
+        description: 'full | rerun (FREE) | debug (FREE) | audit (ceiling audit) | curve (clean learning curve: steps-scaled, multi-seed)'
         required: false
         default: 'full'
       em_steps:

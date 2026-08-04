@@ -44,6 +44,7 @@ _PASS = {
     "WORM_S3_EDGE": os.environ.get("WORM_S3_EDGE", "0"),
     "WORM_S3_BEAT": os.environ.get("WORM_S3_BEAT", "0"),
     "WORM_S3_AUDIT": "1" if os.environ.get("WORM_S3_MODE") == "audit" else os.environ.get("WORM_S3_AUDIT", "0"),
+    "WORM_S3_CURVE": "1" if os.environ.get("WORM_S3_MODE") == "curve" else os.environ.get("WORM_S3_CURVE", "0"),
     "WORM_S3_AGGLO": os.environ.get("WORM_S3_AGGLO", "1"),          # two-specialist multicut vs MWS
     "WORM_S3_CTX": os.environ.get("WORM_S3_CTX", ""),
     "WORM_S3_LSD": os.environ.get("WORM_S3_LSD", ""),
@@ -249,6 +250,32 @@ def main():
             json.dump({"seeds": SEEDS, "results": results}, f, indent=2)
         print(f"[modal] wrote {os.path.join(art, 'debug_errors.json')}", flush=True)
         print(json.dumps(results, indent=2))
+        return
+    if os.environ.get("WORM_S3_MODE") == "curve":              # clean learning curve: 1 container/seed, aggregate
+        print(f"[modal] clean learning curve (steps-scaled, multi-seed {SEEDS}) ...", flush=True)
+        print("[modal] cache:", prepare.remote(), flush=True)
+        results = list(run_seed.map(SEEDS))                    # one A10G per seed
+        from collections import defaultdict
+        byn = defaultdict(lambda: defaultdict(list))
+        for r in results:
+            for p in r.get("points", []):
+                for k in ("VOI", "ERL", "affinity_acc"):
+                    byn[p["n_labels"]][k].append(p["test"][k])
+                byn[p["n_labels"]]["steps"] = p["steps"]
+        agg = []
+        for n in sorted(byn):
+            row = {"n_labels": n, "steps": byn[n]["steps"]}
+            for k in ("VOI", "ERL", "affinity_acc"):
+                vs = byn[n][k]
+                row[k] = {"mean": round(statistics.mean(vs), 4),
+                          "std": round(statistics.pstdev(vs), 4) if len(vs) > 1 else 0.0}
+            agg.append(row)
+        art = os.path.join(HERE, "artifacts"); os.makedirs(art, exist_ok=True)
+        merged = {"seeds": SEEDS, "aggregate": agg, "per_seed": results}
+        for fn in ("curve.json", "segment3d.json"):
+            with open(os.path.join(art, fn), "w") as f:
+                json.dump(merged, f, indent=2)
+        print(json.dumps(agg, indent=2))
         return
     if os.environ.get("WORM_S3_MODE") == "audit":              # learnability-ceiling audit on ONE GPU (no _merge)
         print("[modal] learnability ceiling audit (single seed, GPU) ...", flush=True)
