@@ -20,6 +20,10 @@ on:
         description: 'for gwbse: debug (cheap) or production (~$300 converged)'
         required: false
         default: 'debug'
+      yambo_src:
+        description: 'build Yambo from source at this git tag (e.g. 5.1.2) instead of the ABI-broken conda binary; blank = conda'
+        required: false
+        default: ''
   push:
     branches:
       - claude/excitonic-property-model-88byhk
@@ -55,6 +59,7 @@ jobs:
           MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
           ENTRY: ${{ github.event.inputs.entrypoint || 'smoke' }}
           MODE: ${{ github.event.inputs.mode || 'debug' }}
+          YAMBO_SRC: ${{ github.event.inputs.yambo_src || '' }}
         run: |
           if [ -z "$MODAL_TOKEN_ID" ] && [ -f excitonic/modal_tokens.secret ]; then
             set -a; . ./excitonic/modal_tokens.secret; set +a

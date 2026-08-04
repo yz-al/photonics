@@ -49,22 +49,66 @@ _FAKE_SSH = (
     "printf '#!/bin/sh\\nshift\\nexec \"$@\"\\n' > /usr/local/bin/fake_ssh "
     "&& chmod +x /usr/local/bin/fake_ssh"
 )
-# GW-BSE engine: Yambo (conda-forge, free) replaces the distribution-gated
-# BerkeleyGW. qe -> p2y -> yambo gives G0W0 + BSE (E_b, oscillator strengths, and
-# the exciton CT character the interlayer test needs).
-qe_bgw_image = (
-    modal.Image.micromamba(python_version="3.11")
-    .micromamba_install(
-        # Fork A: pin an OLDER yambo — the default (latest, 5.3.0) build's BSE hangs
-        # even serial on a 2x2/KS problem (a version bug; OMP_NUM_THREADS=1 rules out a
-        # thread deadlock). Constrain to the newest available BELOW 5.3 (a range, so it
-        # resolves whatever 5.2.x exists rather than a guessed exact version).
-        "qe", "yambo<5.3", "openmpi", "fftw", "hdf5", "numpy", "ase",
-        channels=["conda-forge"],
+# GW-BSE engine: Yambo. The conda-forge Yambo BINARY's BSE aborts in this image
+# (SIGABRT with no Yambo [ERROR] across 5.2.x and 5.3.0 — a linked-library ABI abort
+# in the BSE code path; see feasibility_bound.md "Fork A — CONCLUDED"). Fork B builds
+# Yambo FROM SOURCE against the conda MPI/ScaLAPACK/FFTW/HDF5 stack we control, which
+# is the documented way to escape that ABI mismatch.
+#
+#   YAMBO_SRC="5.1.2"  (a git tag on yambo-code/yambo) → source build replaces the
+#                       conda yambo binary; the rest of the image is unchanged.
+#   unset              → conda yambo binary (GW works; BSE known-broken here).
+YAMBO_SRC = os.environ.get("YAMBO_SRC", "").strip()
+
+if YAMBO_SRC:
+    # Toolchain-only base (NO conda yambo binary — we compile our own against these
+    # exact libs so there is one, self-consistent MPI/BLAS/ScaLAPACK/HDF5/netCDF ABI).
+    qe_bgw_image = (
+        modal.Image.micromamba(python_version="3.11")
+        .micromamba_install(
+            "qe", "openmpi", "fftw", "libxc", "scalapack", "openblas",
+            "hdf5=*=mpi_openmpi*", "netcdf-fortran=*=mpi_openmpi*", "libnetcdf",
+            "fortran-compiler", "c-compiler", "cxx-compiler",
+            "make", "pkg-config", "curl", "numpy", "ase",
+            channels=["conda-forge"],
+        )
+        .pip_install("requests==2.33.1")
+        .run_commands(_FAKE_SSH)
+        .run_commands(
+            # fetch pinned source
+            f"curl -L -o /opt/yambo.tar.gz "
+            f"https://github.com/yambo-code/yambo/archive/refs/tags/{YAMBO_SRC}.tar.gz",
+            "mkdir -p /opt/yambo && tar xzf /opt/yambo.tar.gz -C /opt/yambo --strip-components=1",
+            # configure against the conda prefix (robustly derived from the mpif90 path)
+            "cd /opt/yambo && P=$(dirname $(dirname $(which mpif90))) && "
+            "FC=mpif90 F77=mpif90 CC=mpicc CPP='cpp -E' "
+            "./configure --enable-mpi --enable-open-mp --enable-hdf5-par-io "
+            "--with-blas-libs=\"-L$P/lib -lopenblas\" "
+            "--with-lapack-libs=\"-L$P/lib -lopenblas\" "
+            "--with-scalapack-libs=\"-L$P/lib -lscalapack\" "
+            "--with-blacs-libs=\"-L$P/lib -lscalapack\" "
+            "--with-fft-path=\"$P\" --with-hdf5-path=\"$P\" "
+            "--with-netcdf-path=\"$P\" --with-netcdff-path=\"$P\" "
+            "--with-libxc-path=\"$P\" 2>&1 | tail -40",
+            # build the exe we need: yambo (GW+BSE) + p2y/ypp (interfaces)
+            "cd /opt/yambo && make -j8 yambo ypp interfaces 2>&1 | tail -60",
+            # expose the source-built binaries ahead of anything else on PATH
+            "cp /opt/yambo/bin/yambo /opt/yambo/bin/p2y /opt/yambo/bin/ypp "
+            "$(dirname $(which mpif90))/ && echo 'yambo-from-source installed:' "
+            "&& yambo -version 2>&1 | head -3 || true",
+        )
     )
-    .pip_install("requests==2.33.1")
-    .run_commands(_FAKE_SSH)
-)
+else:
+    qe_bgw_image = (
+        modal.Image.micromamba(python_version="3.11")
+        .micromamba_install(
+            # conda yambo binary — GW works; BSE known-broken in this image (Fork A).
+            "qe", "yambo<5.3", "openmpi", "fftw", "hdf5", "numpy", "ase",
+            channels=["conda-forge"],
+        )
+        .pip_install("requests==2.33.1")
+        .run_commands(_FAKE_SSH)
+    )
 if BGW_TARBALL_URL:  # pragma: no cover - opt-in heavy build, needs a source URL
     qe_bgw_image = qe_bgw_image.run_commands(
         f"curl -L -o /opt/bgw.tar.gz '{BGW_TARBALL_URL}'",
