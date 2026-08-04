@@ -2,310 +2,160 @@
   "device": "cuda",
   "crop": 160,
   "zc": 8,
-  "n_eval": 4,
   "seeds": [
-    0,
-    1,
-    2
+    0
   ],
-  "jepa_steps": 5000,
-  "label_pool": [
-    16
-  ],
-  "offsets": {
-    "short": [
-      [
-        1,
-        0,
-        0
-      ],
-      [
-        0,
-        1,
-        0
-      ],
-      [
-        0,
-        0,
-        1
-      ]
-    ],
-    "long": [
-      [
-        0,
-        9,
-        0
-      ],
-      [
-        0,
-        0,
-        9
-      ],
-      [
-        0,
-        9,
-        9
-      ],
-      [
-        0,
-        4,
-        0
-      ],
-      [
-        0,
-        0,
-        4
-      ],
-      [
-        0,
-        4,
-        4
-      ],
-      [
-        2,
-        0,
-        0
-      ],
-      [
-        3,
-        0,
-        0
-      ]
-    ]
-  },
-  "backbone": "vol_jepa (3D hierarchical)",
-  "anticollapse": {
-    "var": 0.6,
-    "cov": 0.01,
-    "fine_aux": 3.0,
-    "coarse_drop": 0.5,
-    "target_std": true,
-    "embedding_std_final_per_seed": [
-      0.989,
-      0.9498,
-      0.9997
-    ]
-  },
-  "label_efficiency": {
-    "jepa": {
-      "16": {
-        "affinity_acc": {
-          "mean": 0.7983,
-          "std": 0.0126
+  "audit": {
+    "note": "learnability ceiling audit; label ceiling is a PROXY (EM cannot be re-annotated here)",
+    "label_ceiling_proxy": {
+      "VOI_floor": 1.6348,
+      "ERL_ceiling": 21.9887,
+      "meaning": "best VOI a model can reach ~ this floor; best ERL ~ this ceiling"
+    },
+    "overfit_gate": {
+      "train": {
+        "affinity_acc": 0.9881,
+        "VOI": 0.2493,
+        "ERL": 178.1318
+      },
+      "test": {
+        "affinity_acc": 0.8644,
+        "VOI": 3.3357,
+        "ERL": 33.5448
+      },
+      "pass": true,
+      "verdict": "info present + labels fittable -> proceed"
+    },
+    "label_shuffle": {
+      "test": {
+        "affinity_acc": 0.7197,
+        "VOI": 3.786,
+        "ERL": 4.0796
+      },
+      "meaning": "should be ~chance; near-normal test perf here would indicate leakage"
+    },
+    "learning_curve": {
+      "points": [
+        {
+          "n_labels": 2,
+          "test": {
+            "affinity_acc": 0.8567,
+            "VOI": 2.5781,
+            "ERL": 69.4829
+          },
+          "train": {
+            "affinity_acc": 0.9473,
+            "VOI": 0.8254,
+            "ERL": 148.5312
+          },
+          "train_test_gap_VOI": 1.7527
         },
-        "VOI": {
-          "mean": 3.4765,
-          "std": 0.3953
+        {
+          "n_labels": 4,
+          "test": {
+            "affinity_acc": 0.8515,
+            "VOI": 2.5542,
+            "ERL": 57.443
+          },
+          "train": {
+            "affinity_acc": 0.9281,
+            "VOI": 1.1579,
+            "ERL": 148.6138
+          },
+          "train_test_gap_VOI": 1.3963
         },
-        "adapted_rand_error": {
-          "mean": 0.5388,
-          "std": 0.1379
+        {
+          "n_labels": 8,
+          "test": {
+            "affinity_acc": 0.8634,
+            "VOI": 2.116,
+            "ERL": 77.8941
+          },
+          "train": {
+            "affinity_acc": 0.9185,
+            "VOI": 1.3758,
+            "ERL": 153.7627
+          },
+          "train_test_gap_VOI": 0.7402
         },
-        "ERL_proxy": {
-          "mean": 19.264,
-          "std": 14.8564
-        },
-        "n_segments": {
-          "mean": 1081.3333,
-          "std": 762.2238
+        {
+          "n_labels": 16,
+          "test": {
+            "affinity_acc": 0.8662,
+            "VOI": 2.0703,
+            "ERL": 82.3084
+          },
+          "train": {
+            "affinity_acc": 0.912,
+            "VOI": 1.4885,
+            "ERL": 138.5116
+          },
+          "train_test_gap_VOI": 0.5818
         }
-      }
+      ],
+      "loglog_slope_top": -0.031,
+      "reading": "steep negative slope at 100% => DATA-limited (more labels help); flat => data will NOT help"
     },
-    "random": {
-      "16": {
-        "affinity_acc": {
-          "mean": 0.7857,
-          "std": 0.0066
+    "capacity_curve": {
+      "points": [
+        {
+          "base_width": 16,
+          "test": {
+            "affinity_acc": 0.8588,
+            "VOI": 2.2878,
+            "ERL": 83.1846
+          }
         },
-        "VOI": {
-          "mean": 3.5156,
-          "std": 0.5831
+        {
+          "base_width": 32,
+          "test": {
+            "affinity_acc": 0.8649,
+            "VOI": 2.1464,
+            "ERL": 76.6379
+          }
         },
-        "adapted_rand_error": {
-          "mean": 0.6098,
-          "std": 0.1672
-        },
-        "ERL_proxy": {
-          "mean": 31.5068,
-          "std": 44.5573
-        },
-        "n_segments": {
-          "mean": 627.5,
-          "std": 881.7622
+        {
+          "base_width": 64,
+          "test": {
+            "affinity_acc": 0.8585,
+            "VOI": 2.1519,
+            "ERL": 87.2529
+          }
         }
-      }
+      ],
+      "reading": "flat across widths => capacity NOT limiting"
     },
-    "raw": {
-      "16": {
-        "affinity_acc": {
-          "mean": 0.8382,
-          "std": 0.0087
-        },
-        "VOI": {
-          "mean": 2.4972,
-          "std": 0.0822
-        },
-        "adapted_rand_error": {
-          "mean": 0.3851,
-          "std": 0.025
-        },
-        "ERL_proxy": {
-          "mean": 88.2187,
-          "std": 7.3498
-        },
-        "n_segments": {
-          "mean": 1553.8333,
-          "std": 142.6073
-        }
-      }
-    },
-    "sota": {
-      "16": {
-        "affinity_acc": {
-          "mean": 0.8754,
-          "std": 0.007
-        },
-        "VOI": {
-          "mean": 2.2721,
-          "std": 0.1756
-        },
-        "adapted_rand_error": {
-          "mean": 0.3378,
-          "std": 0.038
-        },
-        "ERL_proxy": {
-          "mean": 69.5606,
-          "std": 9.0987
-        },
-        "n_segments": {
-          "mean": 1498.5,
-          "std": 155.1769
-        }
-      }
-    }
-  },
-  "error_set_analysis": {
-    "all_offsets": {
-      "raw_error_rate": {
-        "mean": 0.1618,
-        "std": 0.0087
+    "input_restriction": {
+      "VOI_by_blur": {
+        "blur_sigma_0.0": 2.0508,
+        "blur_sigma_1.0": 1.9933,
+        "blur_sigma_2.0": 1.937
       },
-      "jepa_recovers": {
-        "mean": 0.5204,
-        "std": 0.0853
-      },
-      "random_recovers": {
-        "mean": 0.5137,
-        "std": 0.1581
-      },
-      "sota_recovers": {
-        "mean": 0.5713,
-        "std": 0.026
-      }
+      "reading": "big VOI jump with blur => membrane signal is LOCAL/high-res"
     },
-    "long_range_merge_edges": {
-      "raw_error_rate": {
-        "mean": 0.1828,
-        "std": 0.0117
-      },
-      "jepa_recovers": {
-        "mean": 0.5299,
-        "std": 0.1046
-      },
-      "random_recovers": {
-        "mean": 0.5406,
-        "std": 0.1911
-      },
-      "sota_recovers": {
-        "mean": 0.5643,
-        "std": 0.0272
-      }
-    }
-  },
-  "agglomerate": {
-    "method": "learned multicut (GAEC) feature-variants vs MWS + error-type analysis",
-    "features_available": [
-      "mean_short",
-      "mean_long",
-      "log_contact",
-      "log_min_size",
-      "lsd_dist",
-      "lsd_cos",
-      "jepa_dist",
-      "jepa_cos"
-    ],
-    "n_train_pairs": 2791,
-    "same_rate": 0.461,
-    "mean_fragments": 112.2,
-    "mws_baseline": {
-      "VOI": 2.2755,
-      "VOI_merge": 1.4779,
-      "VOI_split": 0.7975,
-      "adapted_rand_error": 0.3646,
-      "ERL": 56.8163
-    },
-    "multicut_affinity": {
-      "VOI": 1.9781,
-      "VOI_merge": 0.8306,
-      "VOI_split": 1.1476,
-      "adapted_rand_error": 0.3467,
-      "ERL": 63.0299
-    },
-    "multicut_affinity_lsd_jepa": {
-      "VOI": 1.9771,
-      "VOI_merge": 0.8206,
-      "VOI_split": 1.1565,
-      "adapted_rand_error": 0.3468,
-      "ERL": 63.0276
-    },
-    "lifted_multicut_full": {
-      "VOI": 2.1765,
-      "VOI_merge": 1.096,
-      "VOI_split": 1.0805,
-      "adapted_rand_error": 0.3663,
-      "ERL": 72.5923
-    },
-    "best_by_voi": "multicut_affinity_lsd_jepa",
-    "best_beats_mws": true,
-    "VOI_split_merge_note": "VOI_merge = under-seg (merges), VOI_split = over-seg (splits)",
-    "error_types_mws_vs_best": {
+    "agglo_vs_mws": {
       "mws": {
-        "n_gt_neurons": 65,
-        "split_errors": 27,
-        "merge_errors": 1518,
-        "split_error_rate": 0.415
+        "VOI": 2.0508,
+        "ERL": 85.3788
       },
-      "multicut_affinity_lsd_jepa": {
-        "n_gt_neurons": 65,
-        "split_errors": 27,
-        "merge_errors": 20,
-        "split_error_rate": 0.415
-      }
+      "learned_multicut": {
+        "method": "multicut_affinity",
+        "VOI": 1.7352,
+        "ERL": 67.385
+      },
+      "safe_best_by_erl": "multicut_affinity"
     },
-    "cremi_score_proxy": {
-      "mws": 0.9108,
-      "multicut_affinity": 0.8281,
-      "multicut_affinity_lsd_jepa": 0.828,
-      "lifted_multicut_full": 0.8929
+    "error_stratification": {
+      "dominant_error": "split-dominated (over-seg): more false_split -> improve over-seg / attraction",
+      "confidence": "errors sit CLOSER to the decision boundary than correct edges -> mostly low-confidence (calibration/more training helps)",
+      "structure_auc": 0.72,
+      "clusters": "errors do not cluster tightly -> no single dominant failure mode"
     },
-    "deltas_vs_mws": {
-      "multicut_affinity": {
-        "dVOI": -0.2974,
-        "dERL": 6.2136
-      },
-      "multicut_affinity_lsd_jepa": {
-        "dVOI": -0.2984,
-        "dERL": 6.2113
-      },
-      "lifted_multicut_full": {
-        "dVOI": -0.099,
-        "dERL": 15.776
-      }
+    "FINAL_VERDICT": {
+      "limits": [
+        "approaching LABEL ceiling (proxy)"
+      ],
+      "recommendation": "follow the verdict: data-limited -> label more; capacity-flat -> don't grow the net; near label ceiling -> modelling has little headroom"
     }
-  },
-  "jepa_analysis_seed": {
-    "index": 2,
-    "std_final": 0.9997,
-    "seed": 2
   }
 }
