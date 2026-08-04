@@ -105,14 +105,14 @@ class SotaUNet3D(nn.Module):
     predicting affinities from the raw subvolume. Downsamples xy by 4, z by 2.
     Used as the 'sota' base -- pretrained on dense labels, then adapted per budget,
     to test whether supervised-SOTA transfer beats SSL-JEPA / from-scratch."""
-    def __init__(self):
+    def __init__(self, in_ch=1, out_ch=NAFF):
         super().__init__()
-        self.e1 = _Res3d(1, 32); self.d1 = nn.Conv3d(32, 32, 3, stride=(2, 2, 2), padding=1)
+        self.e1 = _Res3d(in_ch, 32); self.d1 = nn.Conv3d(32, 32, 3, stride=(2, 2, 2), padding=1)
         self.e2 = _Res3d(32, 64); self.d2 = nn.Conv3d(64, 64, 3, stride=(1, 2, 2), padding=1)
         self.bott = _Res3d(64, 128)
         self.u2 = nn.ConvTranspose3d(128, 64, (1, 2, 2), stride=(1, 2, 2)); self.dec2 = _Res3d(128, 64)
         self.u1 = nn.ConvTranspose3d(64, 32, (2, 2, 2), stride=(2, 2, 2)); self.dec1 = _Res3d(64, 32)
-        self.head = nn.Conv3d(32, NAFF, 1)
+        self.head = nn.Conv3d(32, out_ch, 1)
 
     def forward(self, img):
         s1 = self.e1(img); x = self.d1(s1)
@@ -177,6 +177,28 @@ class SotaLSD3D(SotaUNet3D):
         return aff
 
 
+class SotaACRLSD3D(nn.Module):
+    """Autocontext (acrlsd, Funke Nature Methods 2022) -- the missing SOTA recipe piece.
+    TWO passes: net1 predicts the 10-D LSDs from raw; net2 predicts affinities from
+    raw + the PREDICTED LSDs (11 input channels). The LSD pass injects a learned shape
+    prior as INPUT to the affinity pass -- the trick that pushed affinity nets to
+    flood-filling quality. We had LSDs only as agglomeration *edge features*; here they
+    finally feed back to sharpen the affinities THEMSELVES. Trained jointly (net1 on GT
+    LSDs, net2 on GT affinities). (B=1 per step throughout this codebase.)"""
+    def __init__(self):
+        super().__init__()
+        self.lsd_net = SotaUNet3D(in_ch=1, out_ch=10)
+        self.aff_net = SotaUNet3D(in_ch=1 + 10, out_ch=NAFF)
+
+    def forward(self, img, return_lsd=False):
+        lsd = torch.sigmoid(self.lsd_net(img))            # (10,Z,H,W), batch stripped by SotaUNet3D
+        x = torch.cat([img[0], lsd], 0)[None]             # (1, 1+10, Z, H, W)
+        aff = self.aff_net(x)                             # (NAFF,Z,H,W)
+        if return_lsd:
+            return aff, lsd
+        return aff
+
+
 def local_shape_descriptors(seg, sigma=(2.0, 6.0, 6.0), max_obj=40):
     """GT 10-D LSD per voxel (Funke): within a Gaussian window, the local CoM offset (3),
     covariance (6) and size (1) of the voxel's OWN object, normalized to [0,1]. Computed
@@ -218,6 +240,53 @@ def sample_sub(raw, seg, cxy, seed):
     r = np.random.default_rng(seed); Z, Hh, W = raw.shape
     z = r.integers(0, Z - ZC); y = r.integers(0, Hh - cxy); x = r.integers(0, W - cxy)
     return raw[z:z + ZC, y:y + cxy, x:x + cxy], seg[z:z + ZC, y:y + cxy, x:x + cxy]
+
+
+def augment_em(raw, seg, rng):
+    """EM-specific augmentation -- the single biggest lever on affinity quality that we
+    were doing NONE of. Keeps (raw, seg) spatially consistent. Applies, at random:
+      - in-plane ELASTIC deformation (coherent across z; a smooth random displacement
+        field warps both raw [bilinear] and seg [nearest]) -- the deformation invariance
+        EM nets need, and the reason boundaries generalize.
+      - INTENSITY jitter (gamma, brightness/contrast, gaussian noise) -- section-to-section
+        staining/imaging variation.
+      - MISSING/partial SECTION (a z-slice darkened) -- the classic EM artifact; the net
+        learns to bridge affinities across it instead of splitting.
+      - dihedral FLIPS / transpose in-plane (anisotropy-respecting: never flips z).
+    Cheap enough for per-step use on small subvols; pure numpy + scipy."""
+    from scipy.ndimage import map_coordinates, gaussian_filter
+    Z, H, W = raw.shape
+    raw = raw.astype(np.float32).copy(); seg = seg.copy()
+    # in-plane elastic (same field for every z -> coherent columns, correct for aniso EM)
+    if rng.random() < 0.8:
+        amp = float(rng.uniform(2.0, 6.0))                # displacement magnitude (px)
+        dy = gaussian_filter(rng.standard_normal((H, W)).astype(np.float32), 12) * amp * 40
+        dx = gaussian_filter(rng.standard_normal((H, W)).astype(np.float32), 12) * amp * 40
+        yy, xx = np.meshgrid(np.arange(H), np.arange(W), indexing="ij")
+        cy = np.clip(yy + dy, 0, H - 1); cx = np.clip(xx + dx, 0, W - 1)
+        for z in range(Z):
+            raw[z] = map_coordinates(raw[z], [cy, cx], order=1, mode="reflect")
+            seg[z] = map_coordinates(seg[z], [cy, cx], order=0, mode="reflect")
+    # intensity: gamma + brightness/contrast + noise
+    if rng.random() < 0.8:
+        lo, hi = float(raw.min()), float(raw.max()) + 1e-6
+        r01 = (raw - lo) / (hi - lo)
+        r01 = np.clip(r01 ** float(rng.uniform(0.7, 1.4)), 0, 1)      # gamma
+        r01 = np.clip(r01 * float(rng.uniform(0.8, 1.2)) + float(rng.uniform(-0.1, 0.1)), 0, 1)
+        raw = r01 * (hi - lo) + lo
+        raw = raw + rng.standard_normal(raw.shape).astype(np.float32) * float(rng.uniform(0, 0.05)) * (hi - lo)
+    # missing / partial section (darken a z-slice; GT kept -> learn to bridge)
+    if Z > 2 and rng.random() < 0.3:
+        z = int(rng.integers(0, Z))
+        raw[z] = raw[z] * float(rng.uniform(0.0, 0.3))
+    # dihedral in-plane (never z)
+    if rng.random() < 0.5:
+        raw = raw[:, ::-1, :].copy(); seg = seg[:, ::-1, :].copy()
+    if rng.random() < 0.5:
+        raw = raw[:, :, ::-1].copy(); seg = seg[:, :, ::-1].copy()
+    if H == W and rng.random() < 0.5:
+        raw = raw.transpose(0, 2, 1).copy(); seg = seg.transpose(0, 2, 1).copy()
+    return np.ascontiguousarray(raw), np.ascontiguousarray(seg)
 
 
 def mutex_watershed(aff, offs, n_short):
@@ -321,7 +390,7 @@ def main():
           f"jepa_steps={JEPA_STEPS} dec_steps={DEC_STEPS} affs={NAFF}", flush=True)
 
     CTX_KINDS = ("mamba", "transformer", "gnn")           # global-context image->affinity heads
-    IMG_KINDS = ("raw", "sota", "sotamamba", "sotalsd") + CTX_KINDS   # all image -> affinity nets
+    IMG_KINDS = ("raw", "sota", "sotamamba", "sotalsd", "sotaacrlsd") + CTX_KINDS   # image -> affinity nets
 
     def run_dec(source, dec, encoder, sub):
         raw_t = torch.tensor(sub, device=DEV)[None, None].float()
@@ -334,6 +403,8 @@ def main():
             return SotaMamba3D().to(DEV)
         if source == "sotalsd":                            # SOTA U-Net + LSD auxiliary head
             return SotaLSD3D().to(DEV)
+        if source == "sotaacrlsd":                         # autocontext: LSD pass -> affinity pass
+            return SotaACRLSD3D().to(DEV)
         if source in CTX_KINDS:
             import context_heads as CH                     # mamba / transformer / gnn
             return CH.make_context_head(source, NAFF).to(DEV)
@@ -377,6 +448,56 @@ def main():
             opt.zero_grad(); loss.backward(); opt.step()
         dec.eval(); return dec
 
+    def train_acrlsd(pool, steps=None, init_state=None, augment=None, seed=0,
+                     malis_m=float(os.environ.get("WORM_S3_MALIS_M", "3.0")),
+                     malis_s=float(os.environ.get("WORM_S3_MALIS_S", "1.0")), lsd_w=1.0):
+        # AUTOCONTEXT affinity training (the SOTA recipe piece) + the two applied-math levers:
+        #   1. a STRUCTURED loss -- up-weight edges that would cause a topological error
+        #      (would-be MERGE across a real boundary [heavy] / would-be SPLIT inside an
+        #      object). This optimizes affinities for the graph-partition objective, not
+        #      per-voxel accuracy (constrained-MALIS flavored; malis_m/malis_s are its weights).
+        #   2. EM AUGMENTATION -- elastic/intensity/missing-section/flip. Because elastic+flip
+        #      change geometry (so GT LSDs/affs must be recomputed), we precompute an
+        #      augmentation BANK once (per-step recompute would be too slow), then apply cheap
+        #      intensity jitter per step on top.
+        if augment is None:
+            augment = os.environ.get("WORM_S3_AUGMENT", "0") == "1"
+        dec = SotaACRLSD3D().to(DEV)
+        if init_state is not None:
+            dec.load_state_dict(init_state, strict=False)   # partial ok (e.g. warm-start aff_net from sota)
+        opt = torch.optim.Adam(dec.parameters(), lr=2e-3)
+        aug_rng = np.random.default_rng(777 + seed)
+        nvar = int(os.environ.get("WORM_S3_AUG_BANK", "4")) if augment else 1
+        bank = []                                           # (raw, aff_tgt, val, lsd_tgt, obj_mask)
+        for sub, seg in pool:
+            for v in range(nvar):
+                s_r, s_s = (augment_em(sub, seg, aug_rng) if (augment and v > 0) else (sub, seg))
+                aff, val = gt_affinity(s_s, OFFS)
+                bank.append((s_r.astype(np.float32),
+                             torch.tensor(aff, device=DEV), torch.tensor(val, device=DEV),
+                             torch.tensor(local_shape_descriptors(s_s), device=DEV),
+                             torch.tensor((s_s > 0).astype(np.float32), device=DEV)[None]))
+        for step in range(steps or DEC_STEPS):
+            raw, tgt, vmask, lsd_t, om = bank[step % len(bank)]
+            if augment:                                     # cheap per-step intensity on banked raw
+                lo, hi = float(raw.min()), float(raw.max()) + 1e-6
+                raw = (np.clip(((raw - lo) / (hi - lo)) ** float(aug_rng.uniform(0.8, 1.25)), 0, 1)
+                       * (hi - lo) + lo).astype(np.float32)
+            raw_t = torch.tensor(raw, device=DEV)[None, None].float()
+            logit, lsd_p = dec(raw_t, return_lsd=True)
+            p = torch.sigmoid(logit.detach())
+            pos = (tgt * vmask).sum((1, 2, 3)); neg = ((1 - tgt) * vmask).sum((1, 2, 3))
+            pw = (neg / (pos + 1)).clamp(0.1, 10)[:, None, None, None]
+            bce = F.binary_cross_entropy_with_logits(logit, tgt, pos_weight=pw, reduction="none")
+            w = torch.ones_like(vmask)
+            w = w + malis_m * ((tgt < 0.5) & (p > 0.5)).float()   # structured: would-be MERGE (heavy)
+            w = w + malis_s * ((tgt > 0.5) & (p < 0.5)).float()   # would-be SPLIT
+            aloss = (bce * vmask * w).sum() / (vmask * w).sum().clamp(min=1)
+            lloss = ((lsd_p - lsd_t) ** 2 * om).sum() / om.sum().clamp(min=1) / 10    # LSD pass supervision
+            loss = aloss + lsd_w * lloss
+            opt.zero_grad(); loss.backward(); opt.step()
+        dec.eval(); return dec
+
     def _rand_sparse_mask(pool, sparse_k, seed):
         """A FIXED random set of sparse_k annotated voxel-edges on pool[0]."""
         _, seg0 = pool[0]; _, val0 = gt_affinity(seg0, OFFS)
@@ -387,7 +508,7 @@ def main():
         return smask, val0
 
     def train_dec(source, encoder, pool, sparse_k=None, smask=None, seed=0,
-                  init_state=None, steps=None, boost_dec=None, boost=5.0):
+                  init_state=None, steps=None, boost_dec=None, boost=5.0, augment=None):
         # pool = fixed labeled (subvol, seg) list. DENSE budget = len(pool) fully
         # labeled subvolumes. SPARSE budget (sparse_k) = ONE subvolume but the loss
         # is restricted to a FIXED set of sparse_k annotated voxel-edges -- the
@@ -415,8 +536,13 @@ def main():
         opt = torch.optim.Adam(dec.parameters(), lr=2e-3)
         if smask is None and sparse_k is not None:        # fixed random sparse annotation
             smask, _ = _rand_sparse_mask(pool, sparse_k, seed)
+        if augment is None:
+            augment = os.environ.get("WORM_S3_AUGMENT", "0") == "1"
+        aug_rng = np.random.default_rng(4242 + seed)
         for step in range(steps or DEC_STEPS):
             i = step % len(pool); sub, seg = pool[i]
+            if augment and smask is None and boost_w is None:   # dense case: EM aug per step
+                sub, seg = augment_em(sub, seg, aug_rng)
             aff, val = gt_affinity(seg, OFFS)
             if smask is not None:
                 val = val * smask                          # only the annotated labels count
@@ -679,6 +805,14 @@ def main():
             lm, lpreds = evaluate("sotalsd", ldec, None)
             full_preds[lk] = lpreds
             print(f"[s3d] {lk} dense metrics={lm}", flush=True)
+        if os.environ.get("WORM_S3_ACRLSD", "") == "1" and "sotaacrlsd" not in full_preds:
+            # AUTOCONTEXT affinity net (missing SOTA recipe piece) + structured MALIS +
+            # EM augmentation -- the affinity-quality upgrades. Head-to-head vs the plain
+            # 'sota' affinity net at the same budget: does the recipe improve affinities?
+            adec = train_acrlsd(full_pool, steps=DEC_STEPS, seed=seed)
+            am, apreds = evaluate("sotaacrlsd", adec, None)
+            full_preds["sotaacrlsd"] = apreds
+            print(f"[s3d] sotaacrlsd (autocontext+MALIS+aug) dense metrics={am}", flush=True)
         if (CTX_HEADS or LSD_HEADS) and "sota_plus" not in full_preds:
             # fair control: SOTA warm-started + SAME extra fine-tune steps, NO mamba.
             # sotamamba vs sota_plus isolates Mamba's contribution at equal budget.
