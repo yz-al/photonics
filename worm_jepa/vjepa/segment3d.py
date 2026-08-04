@@ -729,7 +729,11 @@ def main():
                     sv.update(tr_jepa=np.stack(tr_jepa).astype(np.float16), ev_jepa=np.stack(ev_jepa).astype(np.float16))
                 np.savez_compressed(save_p, **sv)
                 print(f"[s3d] saved agglo inputs -> {save_p} (re-run agglomeration/error-analysis for free)", flush=True)
-            agglo_res = AG.run(tr_aff, tr_seg, ev_aff, ev_seg, actx,
+            # merge_bias +1.25 is the swept operating point: the winning multicut is
+            # split-dominated (over-segments), and +bias makes GAEC merge slightly more
+            # to clean the leftover fragments (VOI 2.15->2.07, CREMI 0.916->0.895).
+            mbias = float(os.environ.get("WORM_S3_MERGE_BIAS", "1.25"))
+            agglo_res = AG.run(tr_aff, tr_seg, ev_aff, ev_seg, actx, merge_bias=mbias,
                                train_lsds=tr_lsd, eval_lsds=ev_lsd,
                                train_jepas=tr_jepa, eval_jepas=ev_jepa)
             print(f"[s3d] agglomerate={agglo_res}", flush=True)

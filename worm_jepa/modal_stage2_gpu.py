@@ -124,15 +124,26 @@ def rerun_agglo(seed: int = 0) -> dict:
     args = [unstack("tr_aff"), unstack("tr_seg"), unstack("ev_aff"), unstack("ev_seg")]
     kw = dict(train_lsds=unstack("tr_lsd"), eval_lsds=unstack("ev_lsd"),
               train_jepas=unstack("tr_jepa"), eval_jepas=unstack("ev_jepa"))
-    biases = [float(x) for x in os.environ.get("WORM_S3_BIAS_SWEEP", "-0.5,0,0.5,1,1.5,2").split(",")]
+    # The winning multicut is SPLIT-dominated (over-segments), so we attack over-seg on
+    # two free levers: merge_bias (GAEC merges more) and thr_over (coarser fragment
+    # seeding -> fewer splits to stitch). Grid them; both re-derive from saved affinities.
+    biases = [float(x) for x in os.environ.get("WORM_S3_BIAS_SWEEP", "0.75,1,1.25,1.5").split(",")]
+    thrs = [float(x) for x in os.environ.get("WORM_S3_THR_SWEEP", "0.9,0.93,0.96").split(",")]
     sweep = {}
-    for b in biases:                                     # merge-aggressiveness sweep (attack over-seg)
-        r = AG.run(*args, ctx, merge_bias=b, **kw)
-        bv = r["best_by_voi"]
-        sweep[f"bias_{b}"] = {"best": bv, **r[bv], "cremi": r["cremi_score_proxy"][bv],
-                              "error_types": r.get("error_types_mws_vs_best", {})}
-    print(json.dumps({"seed": seed, "merge_bias_sweep": sweep}, indent=2))
-    return {"seed": seed, "merge_bias_sweep": sweep}
+    best = None
+    for t in thrs:
+        for b in biases:
+            r = AG.run(*args, ctx, thr_over=t, merge_bias=b, **kw)
+            bv = r["best_by_voi"]
+            cell = {"best": bv, "thr_over": t, "merge_bias": b, **r[bv],
+                    "cremi": r["cremi_score_proxy"][bv],
+                    "mean_fragments": r.get("mean_fragments"),
+                    "error_types": r.get("error_types_mws_vs_best", {})}
+            sweep[f"thr{t}_bias{b}"] = cell
+            if best is None or cell["VOI"] < best[1]["VOI"]:
+                best = (f"thr{t}_bias{b}", cell)
+    print(json.dumps({"seed": seed, "best_cell": best[0], "grid": sweep}, indent=2))
+    return {"seed": seed, "best_cell": best[0], "best": best[1], "grid": sweep}
 
 
 def _merge(dicts):
