@@ -566,6 +566,11 @@ def gwbse_cost(material: str = "MoS2", mode: str = "debug", vacuum: float = 10.0
     # yambo BSE crashed inside libhdf5 (H5Pclose) on database close — the classic
     # HDF5-in-container failure: file locking on an overlay/ephemeral FS. Disable it.
     env["HDF5_USE_FILE_LOCKING"] = "FALSE"
+    # OpenMPI vader/sm shared-memory single-copy uses CMA (ptrace), which is
+    # permission-denied in the container ("cma-permission-denied") — a possible
+    # contributor to the BSE MPI aborts. Force a copy mechanism that needs no ptrace.
+    env["OMPI_MCA_btl_vader_single_copy_mechanism"] = "none"
+    env["OMPI_MCA_smsc"] = "^cma"
     env["OMPI_ALLOW_RUN_AS_ROOT"] = "1"
     env["OMPI_ALLOW_RUN_AS_ROOT_CONFIRM"] = "1"
     env["OMPI_MCA_plm_rsh_agent"] = "/usr/local/bin/fake_ssh"
@@ -578,7 +583,7 @@ def gwbse_cost(material: str = "MoS2", mode: str = "debug", vacuum: float = 10.0
     # Per-stage wall caps so NO single stage can ride the 6 h GitHub limit. A stage
     # that exceeds its cap is SIGKILLed and reported as a timeout (rc=124) with its
     # output tail — a hang becomes a legible, minutes-long failure, not a 6 h burn.
-    TMO = ({"scf": 1500, "nscf": 1500, "p2y": 180, "y_setup": 300, "gw": 1500, "bse": 3000}
+    TMO = ({"scf": 1500, "nscf": 1500, "p2y": 180, "y_setup": 300, "gw": 1500, "bse": 1800}
            if mode == "debug"
            else {"scf": 3600, "nscf": 3600, "p2y": 600, "y_setup": 900, "gw": 9000, "bse": 9000})
     stages, t_start = {}, time.time()
@@ -739,6 +744,10 @@ NGsBlkXp= {p['ng_x']}     Ry
     # given a string — an input-parse bail) is dropped.
     v_lo = max(1, p['nbnd'] // 2 - p['bse_v'] + 1)
     c_hi = p['nbnd'] // 2 + p['bse_c']
+    # Force BSE MPI parallelism onto k-points (16 in the debug grid), NOT the tiny
+    # eh-transition space that yambo auto-decomposed into a crash. 4 ranks over k.
+    bs_par = ('BS_CPU= "4 1 1"\nBS_ROLEs= "k eh t"\nDIP_CPU= "4 1 1"\nDIP_ROLEs= "k c v"\n'
+              if mode == "debug" else "")
     bse_in = f"""dipoles
 optics
 bss
@@ -763,17 +772,18 @@ BSENGBlk= {p['ng_x']}    Ry
   0.1 | 0.1 |  eV
 %
 BEnSteps= 100
-"""
+{bs_par}"""
     open(os.path.join(ydir, "bse.in"), "w").write(bse_in)
     # -J "BSE,GW": write to BSE, but READ the GW databases (ndb.QP for KfnQP_E="GW"
     # and the screening) from the GW folder. Without the GW read dir the BSE has no
     # QP correction and exits in seconds (the 3.2 s no-op we saw).
-    # BSE parallelism: MPI BSE crashes (SIGABRT) at BOTH 4 and 8 ranks — yambo's
-    # decomposition over the tiny eh-transition space breaks — while SERIAL is
-    # crash-free (just slow). So run debug BSE SERIAL and make it finish via a
-    # bigger cap + a cheaper RIM (below); full ranks only for the large production BSE.
-    bse_cmd = (["yambo", "-F", "bse.in", "-J", "BSE,GW"] if mode == "debug"
-               else MPI_Y + ["yambo", "-F", "bse.in", "-J", "BSE,GW"])
+    # BSE parallelism: serial is too slow, and default MPI crashed because yambo
+    # auto-decomposed the tiny eh-transition space. Fix: run 4 ranks but force the
+    # parallel role onto k-points (16 of them) via BS_CPU/BS_ROLEs (set in bse.in),
+    # not eh — plus the CMA-free transport (env above). Full ranks for production.
+    n_bse = 4 if mode == "debug" else GWBSE_CORES
+    bse_cmd = ["mpirun", "--allow-run-as-root", "-np", str(n_bse),
+               "yambo", "-F", "bse.in", "-J", "BSE,GW"]
     rc_bse = sh("bse", bse_cmd, cwd=ydir, outfile="bse_run.log")
     if rc_bse == 124:
         return _fail("bse", "yambo BSE (kernel/diagonalization) exceeded its wall cap",
