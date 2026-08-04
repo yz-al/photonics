@@ -46,6 +46,8 @@ _PASS = {
     "WORM_S3_AUDIT": "1" if os.environ.get("WORM_S3_MODE") == "audit" else os.environ.get("WORM_S3_AUDIT", "0"),
     "WORM_S3_CURVE": "1" if os.environ.get("WORM_S3_MODE") == "curve" else os.environ.get("WORM_S3_CURVE", "0"),
     "WORM_S3_GROW": "1" if os.environ.get("WORM_S3_MODE") == "grow" else os.environ.get("WORM_S3_GROW", "0"),
+    "WORM_S3_RECIPE": "1" if os.environ.get("WORM_S3_MODE") == "recipe" else os.environ.get("WORM_S3_RECIPE", "0"),
+    "WORM_S3_AUG_BANK": os.environ.get("WORM_S3_AUG_BANK", "2"),     # autocontext aug-bank size (GPU mem)
     "WORM_S3_AGGLO": os.environ.get("WORM_S3_AGGLO", "1"),          # two-specialist multicut vs MWS
     "WORM_S3_CTX": os.environ.get("WORM_S3_CTX", ""),
     "WORM_S3_LSD": os.environ.get("WORM_S3_LSD", ""),
@@ -251,6 +253,27 @@ def main():
             json.dump({"seeds": SEEDS, "results": results}, f, indent=2)
         print(f"[modal] wrote {os.path.join(art, 'debug_errors.json')}", flush=True)
         print(json.dumps(results, indent=2))
+        return
+    if os.environ.get("WORM_S3_MODE") == "recipe":             # autocontext vs plain affinities (both MWS), per seed
+        print(f"[modal] affinity-recipe head-to-head (autocontext vs plain, MWS) seeds {SEEDS} ...", flush=True)
+        print("[modal] cache:", prepare.remote(), flush=True)
+        results = list(run_seed.map(SEEDS))
+        def agg(key, metric):
+            vs = [r[key][metric] for r in results]
+            return {"mean": round(statistics.mean(vs), 4), "std": round(statistics.pstdev(vs), 4) if len(vs) > 1 else 0.0}
+        dv = [r["delta_VOI_autoctx_minus_plain"] for r in results]
+        de = [r["delta_ERL_autoctx_minus_plain"] for r in results]
+        merged = {"seeds": SEEDS,
+                  "plain": {"VOI": agg("plain", "VOI"), "ERL": agg("plain", "ERL")},
+                  "autocontext": {"VOI": agg("autocontext", "VOI"), "ERL": agg("autocontext", "ERL")},
+                  "delta_VOI": {"mean": round(statistics.mean(dv), 4), "std": round(statistics.pstdev(dv), 4) if len(dv) > 1 else 0.0, "per_seed": dv},
+                  "delta_ERL": {"mean": round(statistics.mean(de), 4), "std": round(statistics.pstdev(de), 4) if len(de) > 1 else 0.0, "per_seed": de},
+                  "per_seed": results}
+        art = os.path.join(HERE, "artifacts"); os.makedirs(art, exist_ok=True)
+        for fn in ("recipe.json", "segment3d.json"):
+            with open(os.path.join(art, fn), "w") as f:
+                json.dump(merged, f, indent=2)
+        print(json.dumps(merged, indent=2))
         return
     if os.environ.get("WORM_S3_MODE") == "grow":               # progressive train->freeze->measure->run, per seed
         print(f"[modal] progressive grow (freeze+measure until ERL plateaus) seeds {SEEDS} ...", flush=True)

@@ -730,6 +730,46 @@ def main():
             json.dump(out, f, indent=2)
         return
 
+    # ---- AFFINITY-RECIPE HEAD-TO-HEAD (gated): the honest last technique ------
+    # Everything else came up empty (steps plateau; learned agglomeration lost to MWS), so
+    # affinity QUALITY is the only differentiator left. Fair test: PLAIN affinity net vs the
+    # SOTA-recipe autocontext net (acrlsd + merge-averse MALIS + aug), trained on the SAME
+    # data at equal budget, BOTH scored with MWS (the winner) on held-out VOI/ERL. Multi-seed.
+    if os.environ.get("WORM_S3_RECIPE", "0") == "1":
+        seed = SEEDS[0]; torch.manual_seed(seed)
+        RSTEPS = int(os.environ.get("WORM_S3_RECIPE_STEPS", "6000"))    # past the ERL plateau (~4k)
+        GAP = int(os.environ.get("WORM_S3_AUDIT_ZGAP", str(ZC)))
+        NPOOL = int(os.environ.get("WORM_S3_CURVE_POOL", "64"))
+        NTEST = int(os.environ.get("WORM_S3_AUDIT_NTEST", "8"))
+        trm_raw = tr_raw[:max(ZC + 1, tr_raw.shape[0] - GAP)]; trm_seg = tr_seg[:trm_raw.shape[0]]
+        pool = [sample_sub(trm_raw, trm_seg, CROP, 20000 + i) for i in range(NPOOL)]
+        test = [sample_sub(te_raw, te_seg, ec, 30000 + j) for j in range(NTEST)]
+
+        def r_eval(source, dec):
+            accs, vois, erls = [], [], []
+            for sub, seg in test:
+                aff = predict(source, dec, None, sub)
+                ga, val = gt_affinity(seg, OFFS)
+                accs.append(float((((aff > 0.5) == (ga > 0.5))[val > 0]).mean()))
+                lab = mutex_watershed(aff, OFFS, len(SHORT))         # MWS -- the winning agglomerator
+                v, _ = seg_metrics(lab, seg); vois.append(v); erls.append(erl_proxy(lab, seg))
+            return {"affinity_acc": round(float(np.mean(accs)), 4), "VOI": round(float(np.mean(vois)), 4),
+                    "ERL": round(float(np.mean(erls)), 4)}
+
+        plain = train_dec("sota", None, pool, steps=RSTEPS, augment=True, seed=seed)
+        mp = r_eval("sota", plain)
+        print(f"[recipe] seed{seed} PLAIN   VOI={mp['VOI']} ERL={mp['ERL']}", flush=True)
+        acr = train_acrlsd(pool, steps=RSTEPS, augment=True, seed=seed)
+        ma = r_eval("sotaacrlsd", acr)
+        print(f"[recipe] seed{seed} AUTOCTX VOI={ma['VOI']} ERL={ma['ERL']}", flush=True)
+        out = {"recipe_seed": seed, "steps": RSTEPS, "plain": mp, "autocontext": ma,
+               "delta_ERL_autoctx_minus_plain": round(ma["ERL"] - mp["ERL"], 4),
+               "delta_VOI_autoctx_minus_plain": round(ma["VOI"] - mp["VOI"], 4)}
+        print(json.dumps(out, indent=2))
+        with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
+            json.dump(out, f, indent=2)
+        return
+
     # ---- PROGRESSIVE TRAIN -> FREEZE -> MEASURE until converged, then RUN (gated) ----
     # "Did we learn from it?" Train continuously on the full (margined, dense) volume,
     # FREEZE and measure held-out VOI/ERL every CHECK steps, and keep going UNTIL ERL stops
