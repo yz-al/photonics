@@ -89,11 +89,43 @@ def run_seed(seed: int) -> dict:
     os.environ["WORM_EM_DEVICE"] = "cuda"
     os.environ["WORM_EM_DIR"] = CACHE                # read CREMI from the cached Volume
     os.environ["WORM_S3_SEEDS"] = str(seed)          # this container = one seed
+    # checkpoint agglomeration inputs to the Volume so agglo/error-analysis re-runs are FREE (CPU)
+    os.environ["WORM_S3_AGGLO_SAVE"] = os.path.join(CACHE, f"agglo_seed{seed}.npz")
     import torch
     print(f"[modal] seed {seed} torch {torch.__version__} cuda {torch.cuda.is_available()}", flush=True)
     runpy.run_path("/root/worm_jepa/vjepa/segment3d.py", run_name="__main__")
+    cremi_vol.commit()                               # persist the saved agglo inputs
     with open("/root/worm_jepa/vjepa/segment3d.json") as f:
         return json.load(f)
+
+
+@app.function(image=image, volumes={"/cache": cremi_vol}, timeout=3600)
+def rerun_agglo(seed: int = 0) -> dict:
+    """FREE (CPU-only) re-run of agglomeration + error analysis from saved inputs -- no
+    GPU, no retraining. Use to tune the multicut / lifted weights / features / error
+    analysis at ~$0.10 instead of a full ~$6-8 run."""
+    import sys
+    import numpy as np
+    os.chdir("/root/worm_jepa")
+    for p in ("/root/worm_jepa", "/root/worm_jepa/vjepa"):
+        if p not in sys.path:
+            sys.path.insert(0, p)
+    import segment3d as S
+    import agglomerate as AG
+    d = np.load(os.path.join(CACHE, f"agglo_seed{seed}.npz"))
+
+    def unstack(k):
+        if k not in d:
+            return None
+        dt = np.int32 if k.endswith("seg") else np.float32   # segs stay integer
+        return [d[k][i].astype(dt) for i in range(len(d[k]))]
+    ctx = {"SHORT": S.SHORT, "OFFS": S.OFFS, "mutex_watershed": S.mutex_watershed,
+           "seg_metrics": S.seg_metrics, "erl_proxy": S.erl_proxy}
+    res = AG.run(unstack("tr_aff"), unstack("tr_seg"), unstack("ev_aff"), unstack("ev_seg"), ctx,
+                 train_lsds=unstack("tr_lsd"), eval_lsds=unstack("ev_lsd"),
+                 train_jepas=unstack("tr_jepa"), eval_jepas=unstack("ev_jepa"))
+    print(json.dumps(res, indent=2))
+    return res
 
 
 def _merge(dicts):

@@ -620,6 +620,16 @@ def main():
                     return up.cpu().numpy().astype(np.float32)
                 tr_jepa = [_jepa(sub) for sub, _ in full_pool]
                 ev_jepa = [_jepa(sub) for sub, _ in te_subs]
+            save_p = os.environ.get("WORM_S3_AGGLO_SAVE")     # checkpoint agglo inputs for FREE re-runs
+            if save_p and agglo_res is None:
+                sv = dict(tr_aff=np.stack(tr_aff).astype(np.float16), tr_seg=np.stack(tr_seg).astype(np.int32),
+                          ev_aff=np.stack(ev_aff).astype(np.float16), ev_seg=np.stack(ev_seg).astype(np.int32))
+                if tr_lsd is not None:
+                    sv.update(tr_lsd=np.stack(tr_lsd).astype(np.float16), ev_lsd=np.stack(ev_lsd).astype(np.float16))
+                if tr_jepa is not None:
+                    sv.update(tr_jepa=np.stack(tr_jepa).astype(np.float16), ev_jepa=np.stack(ev_jepa).astype(np.float16))
+                np.savez_compressed(save_p, **sv)
+                print(f"[s3d] saved agglo inputs -> {save_p} (re-run agglomeration/error-analysis for free)", flush=True)
             agglo_res = AG.run(tr_aff, tr_seg, ev_aff, ev_seg, actx,
                                train_lsds=tr_lsd, eval_lsds=ev_lsd,
                                train_jepas=tr_jepa, eval_jepas=ev_jepa)
