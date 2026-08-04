@@ -32,6 +32,7 @@ from .frohlich import bose, C_CAL
 
 KB_meV = 0.0861733
 RY_meV = 13605.693
+BLOCKADE_THRESHOLD = 0.71   # U/Γ blockade threshold (targets.BLOCKADE_THRESHOLD)
 
 
 # --- (Γ floor) --------------------------------------------------------------
@@ -88,6 +89,45 @@ def u_saturation_ceiling(E_b_eV: float, mu_min: float, eps_eff: float,
     a_B = (eps_eff / mu_min) * A0_nm            # nm
     g_xx = 6.0 * E_b_eV * a_B ** 2              # eV·nm²
     return g_xx / area_nm2                       # eV
+
+
+# --- (U_sat confinement leg) — the moiré/localization channel ---------------
+def saturation_window(g_xx_meV: float, a_B_nm: float, gamma_ph_meV: float,
+                      gamma_inh0_meV: float, q: float, L_nm=None):
+    """Usable saturation FOM vs localization length L, and whether the leg CLOSES.
+
+    Localizing the exciton to length L ≥ a_B raises the per-polariton interaction as
+    U_sat(L) = g_xx·(a_B/L)²  (∝ L⁻², the moiré/single-emitter route), but pays in
+    inhomogeneous broadening Γ_inh(L) = Γ_inh0·(a_B/L)^q. The usable FOM is
+        F(L) = U_sat(L) / (Γ_ph + Γ_inh(L)),   blockade needs F > 0.71.
+
+    Because U_sat ∝ L⁻², the CRITICAL EXPONENT is q_crit = 2:
+      q < 2  → F grows without bound as you confine → leg OPEN (tight confinement
+               wins; this is the single-emitter blockade regime).
+      q > 2  → Γ_inh outruns U → F falls at tight confinement → leg CLOSED.
+    So the whole saturation channel hinges on ONE measurable exponent q — the analog
+    of λ_f for the dipolar channel. q is set by how fast moiré/disorder broadening
+    grows with confinement (a measurable slope, not yet pinned).
+    """
+    if L_nm is None:
+        L_nm = [a_B_nm * s for s in (1.0, 1.5, 2.0, 3.0, 5.0, 10.0)]
+    curve = []
+    for L in L_nm:
+        r = a_B_nm / L
+        U = g_xx_meV * r ** 2
+        g_inh = gamma_inh0_meV * r ** q
+        F = U / (gamma_ph_meV + g_inh) if (gamma_ph_meV + g_inh) > 0 else None
+        curve.append({"L_nm": round(L, 3), "U_sat_meV": round(U, 3),
+                      "gamma_inh_meV": round(g_inh, 3),
+                      "F": (None if F is None else round(F, 4)),
+                      "meets": (None if F is None else bool(F > BLOCKADE_THRESHOLD))})
+    tight, loose = curve[0]["F"], curve[-1]["F"]
+    closes = (q > 2.0)
+    return {"q": q, "q_crit": 2.0,
+            "verdict": "leg_closed (Γ_inh outruns U)" if closes
+                       else "leg_open (confinement wins)",
+            "F_tightest": tight, "F_loosest": loose, "curve": curve,
+            "note": "q<2 ⇒ open, q>2 ⇒ closed. q is the decisive, unmeasured exponent."}
 
 
 # --- (U_dip ceiling) — needs λ_f from the flagship --------------------------

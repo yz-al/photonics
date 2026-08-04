@@ -107,3 +107,31 @@ the correct direction for a real proof. Closing it rigorously needs DFPT ω_LO/Z
 binding-spanning set (cheap: cents/material via the existing DFPT screen), not the flat
 TMD-analogy value. Net: the bound's most-provable leg is now honestly characterized, and it
 is *looser* than first assumed — the question is not yet closed on the Γ side either.
+
+## Track-C synthesis — the whole question is now Γ_floor + two exponents
+
+Assembling the legs (`scripts/phase2_bound_synthesis.py`, `src/exciton_fm/bound.py:saturation_window`),
+the room-temperature blockade feasibility bound collapses to three quantities — one
+data-derived, two single-measurement exponents:
+
+| Leg | Decisive quantity | Closes iff | Status |
+|-----|-------------------|-----------|:------:|
+| Γ floor | Γ_floor(E_b) | — (it's the target) | **data-derived**, ~6–15 meV robustly bound → need U > 4–11 meV |
+| Saturation / moiré | **q_sat** (Γ_inh ∝ L^−q vs U ∝ L^−²) | **q_sat > 2** | unmeasured |
+| Dipolar / interlayer | **λ_f** (f-decay vs U-rise) | f falls faster than U rises | unmeasured (needs interlayer BSE) |
+
+Both U channels have the *same* structure: raise U by localizing (moiré) or separating
+(interlayer), and pay a readout penalty (inhomogeneous broadening, or oscillator-strength
+loss). Each reduces to **one exponent against a critical value** — q_crit = 2 for the
+saturation channel (exact, since U_sat ∝ L^−²), and the f-vs-U slope for the dipolar
+channel. The saturation demo confirms the switch: q = 1.5 → leg *open* (tight confinement
+wins), q = 3.0 → leg *closed* (broadening outruns U).
+
+**Net verdict: UNDETERMINED — but no longer vague.** The entire moonshot now rests on two
+numbers: the moiré confinement-broadening exponent q_sat, and the interlayer
+oscillator-strength decay λ_f, both measured against the data-derived Γ floor. If both legs
+close, the feasible set is empty and Phase 3 never runs; if either stays open, that corner
+*is* the search space. q_sat may already be bounded by published moiré-exciton linewidth
+data; λ_f needs the interlayer flagship once the BSE toolchain is repaired. That is the
+sharpest honest statement the bound supports today — and it is two targeted measurements
+from a decisive answer, not a search.
