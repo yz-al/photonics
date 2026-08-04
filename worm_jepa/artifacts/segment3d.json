@@ -1,95 +1,121 @@
 {
-  "seeds": [
-    0,
-    1,
-    2
-  ],
-  "plain": {
-    "VOI": {
-      "mean": 1.8669,
-      "std": 0.0156
+  "mechinterp_seed": 0,
+  "train_steps": 6000,
+  "mechinterp": {
+    "stage": "FIRST BLACK BOX ONLY (mechinterp) -- synthesis intentionally NOT run",
+    "model": "plain affinity U-Net (SotaUNet3D)",
+    "penultimate_channels": 32,
+    "baseline_boundary_acc": 0.9029,
+    "channel_ablation_top": [
+      {
+        "channel": 9,
+        "acc_drop": 0.0097
+      },
+      {
+        "channel": 6,
+        "acc_drop": 0.0064
+      },
+      {
+        "channel": 4,
+        "acc_drop": 0.0047
+      },
+      {
+        "channel": 31,
+        "acc_drop": 0.0047
+      },
+      {
+        "channel": 13,
+        "acc_drop": 0.0045
+      },
+      {
+        "channel": 20,
+        "acc_drop": 0.0039
+      },
+      {
+        "channel": 15,
+        "acc_drop": 0.0035
+      },
+      {
+        "channel": 19,
+        "acc_drop": 0.0034
+      },
+      {
+        "channel": 7,
+        "acc_drop": 0.003
+      },
+      {
+        "channel": 16,
+        "acc_drop": 0.003
+      }
+    ],
+    "concentration": {
+      "n_channels": 32,
+      "n_channels_for_80pct_importance": 12,
+      "top5_channels": [
+        9,
+        6,
+        4,
+        31,
+        13
+      ],
+      "reading": "12/32 channels carry 80% of the boundary decision"
     },
-    "ERL": {
-      "mean": 95.2153,
-      "std": 3.4906
-    }
-  },
-  "autocontext": {
-    "VOI": {
-      "mean": 2.9533,
-      "std": 0.1805
+    "sparse_autoencoder": {
+      "dict_size": 64,
+      "recon_r2": 0.998,
+      "mean_active_frac": 0.813,
+      "n_membrane_selective(|corr|>0.3)": 5,
+      "top_features": [
+        {
+          "feature": 62,
+          "boundary_corr": -0.366,
+          "fire_rate": 0.981
+        },
+        {
+          "feature": 28,
+          "boundary_corr": 0.33,
+          "fire_rate": 0.536
+        },
+        {
+          "feature": 29,
+          "boundary_corr": -0.323,
+          "fire_rate": 0.54
+        },
+        {
+          "feature": 21,
+          "boundary_corr": 0.322,
+          "fire_rate": 0.965
+        },
+        {
+          "feature": 17,
+          "boundary_corr": 0.304,
+          "fire_rate": 0.936
+        },
+        {
+          "feature": 5,
+          "boundary_corr": 0.295,
+          "fire_rate": 0.587
+        },
+        {
+          "feature": 14,
+          "boundary_corr": -0.289,
+          "fire_rate": 0.974
+        },
+        {
+          "feature": 16,
+          "boundary_corr": 0.289,
+          "fire_rate": 0.529
+        }
+      ],
+      "reading": "sparse features with high +|boundary_corr| are membrane detectors; clean separation => the net learned near-monosemantic boundary features"
     },
-    "ERL": {
-      "mean": 83.6046,
-      "std": 2.5237
-    }
-  },
-  "delta_VOI": {
-    "mean": 1.0864,
-    "std": 0.1958,
-    "per_seed": [
-      1.0019,
-      1.3571,
-      0.9003
-    ]
-  },
-  "delta_ERL": {
-    "mean": -11.6107,
-    "std": 4.1005,
-    "per_seed": [
-      -17.374,
-      -9.2853,
-      -8.1728
-    ]
-  },
-  "per_seed": [
-    {
-      "recipe_seed": 0,
-      "steps": 6000,
-      "plain": {
-        "affinity_acc": 0.8682,
-        "VOI": 1.8773,
-        "ERL": 99.4284
-      },
-      "autocontext": {
-        "affinity_acc": 0.8224,
-        "VOI": 2.8792,
-        "ERL": 82.0544
-      },
-      "delta_ERL_autoctx_minus_plain": -17.374,
-      "delta_VOI_autoctx_minus_plain": 1.0019
+    "activation_clamp": {
+      "top_channel": 9,
+      "baseline_acc": 0.9029,
+      "acc_clamp_high": 0.915,
+      "acc_clamp_zero": 0.8932,
+      "reading": "large acc change under clamping => channel is CAUSAL for the boundary decision"
     },
-    {
-      "recipe_seed": 1,
-      "steps": 6000,
-      "plain": {
-        "affinity_acc": 0.8786,
-        "VOI": 1.8448,
-        "ERL": 90.8809
-      },
-      "autocontext": {
-        "affinity_acc": 0.7957,
-        "VOI": 3.2019,
-        "ERL": 81.5956
-      },
-      "delta_ERL_autoctx_minus_plain": -9.2853,
-      "delta_VOI_autoctx_minus_plain": 1.3571
-    },
-    {
-      "recipe_seed": 2,
-      "steps": 6000,
-      "plain": {
-        "affinity_acc": 0.8697,
-        "VOI": 1.8786,
-        "ERL": 95.3366
-      },
-      "autocontext": {
-        "affinity_acc": 0.8195,
-        "VOI": 2.7789,
-        "ERL": 87.1638
-      },
-      "delta_ERL_autoctx_minus_plain": -8.1728,
-      "delta_VOI_autoctx_minus_plain": 0.9003
-    }
-  ]
+    "handoff_note": "extracted signal ready; conversion to a mechanistic model deferred to your new techniques"
+  }
 }
