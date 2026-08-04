@@ -116,12 +116,14 @@ class SotaUNet3D(nn.Module):
         self.head = nn.Conv3d(b, out_ch, 1)
 
     def forward(self, img):
+        return self.head(self.features(img))[0]
+
+    def features(self, img):                               # penultimate 32-ch voxel features (for mechinterp)
         s1 = self.e1(img); x = self.d1(s1)
         s2 = self.e2(x); x = self.d2(s2)
         x = self.bott(x)
         x = self.dec2(torch.cat([self.u2(x), s2], 1))
-        x = self.dec1(torch.cat([self.u1(x), s1], 1))
-        return self.head(x)[0]
+        return self.dec1(torch.cat([self.u1(x), s1], 1))   # (B, base, Z, H, W)
 
 
 class SotaMamba3D(SotaUNet3D):
@@ -725,6 +727,26 @@ def main():
         curric["aggregate"] = agg_arms
         out = {"device": DEV, "crop": CROP, "zc": ZC, "seeds": SEEDS,
                "offsets": {"short": SHORT, "long": LONG}, "curriculum": curric}
+        print(json.dumps(out, indent=2))
+        with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
+            json.dump(out, f, indent=2)
+        return
+
+    # ---- FIRST BLACK BOX: mechinterp the best model, STOP before synthesis (gated) ----
+    if os.environ.get("WORM_S3_MECHINTERP", "0") == "1":
+        seed = SEEDS[0]; torch.manual_seed(seed)
+        MSTEPS = int(os.environ.get("WORM_S3_MECH_STEPS", "6000"))
+        GAP = int(os.environ.get("WORM_S3_AUDIT_ZGAP", str(ZC)))
+        NPOOL = int(os.environ.get("WORM_S3_CURVE_POOL", "64"))
+        NTEST = int(os.environ.get("WORM_S3_AUDIT_NTEST", "8"))
+        trm_raw = tr_raw[:max(ZC + 1, tr_raw.shape[0] - GAP)]; trm_seg = tr_seg[:trm_raw.shape[0]]
+        pool = [sample_sub(trm_raw, trm_seg, CROP, 20000 + i) for i in range(NPOOL)]
+        test = [sample_sub(te_raw, te_seg, ec, 30000 + j) for j in range(NTEST)]
+        best = train_dec("sota", None, pool, steps=MSTEPS, augment=True, seed=seed)   # our best model
+        import mechinterp as MI
+        mctx = {"DEV": DEV, "OFFS": OFFS, "SHORT": SHORT, "gt_affinity": gt_affinity}
+        mi = MI.run(best, test, mctx)
+        out = {"mechinterp_seed": seed, "train_steps": MSTEPS, "mechinterp": mi}
         print(json.dumps(out, indent=2))
         with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
             json.dump(out, f, indent=2)
