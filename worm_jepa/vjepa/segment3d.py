@@ -489,18 +489,20 @@ def main():
                  "ERL_proxy": float(np.mean(erls)), "n_segments": float(np.mean(nseg))}, preds)
 
     def recovery(full_preds, mask_fn):
-        raw_errs, jepa_ok, rand_ok, sota_ok, tot = 0, 0, 0, 0, 0
+        # "of the edges RAW gets wrong, what fraction does each source recover?" Robust to a
+        # focused source set (WORM_S3_SOURCES): any source not trained this run is skipped.
+        if "raw" not in full_preds:
+            return {"raw_error_rate": 0.0}
+        others = [s for s in ("jepa", "random", "sota") if s in full_preds]
+        raw_errs, tot = 0, 0; ok = {s: 0 for s in others}
         for j, (_, (gt_a, val)) in enumerate(zip(te_subs, te_gt)):
             m = (val > 0) & mask_fn(j)
             e = m & ((full_preds["raw"][j] > 0.5) != (gt_a > 0.5))          # raw wrong
             raw_errs += int(e.sum()); tot += int(m.sum())
-            jepa_ok += int((e & ((full_preds["jepa"][j] > 0.5) == (gt_a > 0.5))).sum())
-            rand_ok += int((e & ((full_preds["random"][j] > 0.5) == (gt_a > 0.5))).sum())
-            sota_ok += int((e & ((full_preds["sota"][j] > 0.5) == (gt_a > 0.5))).sum())
+            for s in others:
+                ok[s] += int((e & ((full_preds[s][j] > 0.5) == (gt_a > 0.5))).sum())
         return {"raw_error_rate": raw_errs / max(1, tot),
-                "jepa_recovers": jepa_ok / max(1, raw_errs),
-                "random_recovers": rand_ok / max(1, raw_errs),
-                "sota_recovers": sota_ok / max(1, raw_errs)}
+                **{f"{s}_recovers": ok[s] / max(1, raw_errs) for s in others}}
 
     # ---- progressive active-learning curriculum (gated) ---------------------
     # "Train, freeze, test; train MORE, freeze, test" while GROWING the labeled
@@ -602,7 +604,9 @@ def main():
         return
 
     # ---- multi-seed loop (mean +- std) ----
-    SOURCES = ["jepa", "random", "raw", "sota"]
+    # Focusable source set: a heavy-training (big DEC_STEPS) run only needs "sota" trained
+    # -- training jepa/random/raw at the same step count too would 4x the cost and time out.
+    SOURCES = [x.strip() for x in os.environ.get("WORM_S3_SOURCES", "jepa,random,raw,sota").split(",") if x.strip()]
     DBB = os.environ.get("WORM_S3_DBB", "0") == "1"       # double black box analysis
     EDGE = os.environ.get("WORM_S3_EDGE", "0") == "1"     # sota edge-case (failure) analysis
     BEAT = os.environ.get("WORM_S3_BEAT", "0") == "1"     # beat-sota failure-targeted strategies

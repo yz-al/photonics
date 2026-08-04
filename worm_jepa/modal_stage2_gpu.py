@@ -23,11 +23,14 @@ _PASS = {
     "WORM_VOL_DIM": os.environ.get("WORM_VOL_DIM", "256"),
     "WORM_VOL_DEPTH": os.environ.get("WORM_VOL_DEPTH", "6"),
     "WORM_VOL_BATCH": os.environ.get("WORM_VOL_BATCH", "8"),
-    # AGGLOMERATION RUN: the real upgrade from MWS. Two-specialist learned MULTICUT (GAEC)
-    # fed learned edge weights + LSD shape features, vs plain MWS, on well-trained SOTA.
-    "WORM_SEG_JEPA_STEPS": os.environ.get("WORM_SEG_JEPA_STEPS", "5000"),  # JEPA now feeds agglo edge features
-    "WORM_SEG_DEC_STEPS": os.environ.get("WORM_SEG_DEC_STEPS", "1000"),   # SOTA base training
-    "WORM_S3_CTX_STEPS": os.environ.get("WORM_S3_CTX_STEPS", "800"),      # LSD head fine-tune
+    # HEAVY-SOTA RUN: the error debug said the residual errors are diffuse/low-confidence
+    # and driven by AFFINITY QUALITY (not a targetable head), so the honest lever is heavier
+    # affinity training. Train ONLY the sota affinity net (WORM_S3_SOURCES=sota) at ~30k
+    # steps (base) + a warm-started continuation, then agglomerate + re-run the analysis.
+    "WORM_SEG_JEPA_STEPS": os.environ.get("WORM_SEG_JEPA_STEPS", "5000"),  # JEPA feeds agglo edge features
+    "WORM_SEG_DEC_STEPS": os.environ.get("WORM_SEG_DEC_STEPS", "30000"),  # heavy SOTA affinity training
+    "WORM_S3_SOURCES": os.environ.get("WORM_S3_SOURCES", "sota"),         # focus: only train sota heavily
+    "WORM_S3_CTX_STEPS": os.environ.get("WORM_S3_CTX_STEPS", "800"),      # LSD head fine-tune (agglo feature)
     "WORM_S3_NEVAL": os.environ.get("WORM_S3_NEVAL", "4"),
     "WORM_S3_LABEL_POOL": os.environ.get("WORM_S3_LABEL_POOL", "16"),
     "WORM_S3_SPARSE": os.environ.get("WORM_S3_SPARSE", ""),
@@ -76,7 +79,7 @@ def prepare():
     return sorted(os.listdir(CACHE))
 
 
-@app.function(gpu="A10G", image=image, volumes={"/cache": cremi_vol}, timeout=10800)
+@app.function(gpu="A10G", image=image, volumes={"/cache": cremi_vol}, timeout=18000)
 def run_seed(seed: int) -> dict:
     """One A10G container runs segment3d for a SINGLE seed and returns its result
     dict (each metric's 'mean' is that seed's value, 'std' 0)."""

@@ -1,1 +1,9 @@
-fly error-analysis + checkpoint run 2b9f844: the full ladder (MWS vs multicut{affinity} vs multicut{+LSD+JEPA} vs lifted_multicut_full) WITH the diagnostics the user asked for -- VOI split/merge decomposition (VOI_merge=under-seg, VOI_split=over-seg), actual merge/split ERROR COUNTS for MWS vs the winner, and a CREMI-score proxy (geomean VOI x adapted-Rand) to gauge distance from published fly SOTA ~0.22. ALSO saves the agglomeration inputs to the Modal Volume so future error-analysis/tuning is a ~$0.10 CPU rerun (rerun_agglo), not a full retrain. CREMI=Drosophila(fly). Well-trained SOTA + JEPA(5000) + LSD, dense-16, 3 seeds parallel A10G. approved (checkpoint-first). 2026-08-03T18:45Z
+HEAVY-SOTA affinity run: the error debug (confidence + is-error AUC + clustering) showed the winner's
+residual errors are DIFFUSE (CV-AUC ~0.56, silhouette ~0.22), LOW-CONFIDENCE (errors sit closer to the
+decision boundary than correct edges), and driven by AFFINITY QUALITY (errors correlate with raw
+mean_short/mean_long affinities; LSD/JEPA shape features at chance) -- i.e. no targetable head, the honest
+lever is heavier affinity training (we were at ~1k steps vs real SOTA ~400k). This run trains ONLY the sota
+affinity net (WORM_S3_SOURCES=sota) at DEC_STEPS=30000 (base) + a warm-started continuation, keeps JEPA(5000)
+edge features + LSD, then agglomerates with the baked merge_bias=+1.25 operating point and re-saves the
+Volume checkpoint so we can re-run the FREE error debug afterward to confirm the errors actually dropped.
+CREMI=Drosophila(fly). 3 seeds parallel A10G, per-seed timeout 5h. approved (bigger SOTA ~30k). 2026-08-04T02:40Z
