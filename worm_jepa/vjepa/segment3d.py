@@ -775,12 +775,16 @@ def main():
         # (1) LABEL CEILING (proxy): a perfect model still can't beat annotator boundary noise.
         # Simulate ~1-voxel boundary disagreement: erode each object, reassign freed voxels to
         # the nearest object, then score the perturbed GT against the original with OUR metrics.
+        # IN-PLANE-ONLY structuring element: EM is anisotropic (few z-slices), so a 3D
+        # erosion removes whole sheet-objects in z and grossly OVER-states label noise.
+        _inplane = np.zeros((3, 3, 3), bool); _inplane[1] = [[0, 1, 0], [1, 1, 1], [0, 1, 0]]
+
         def perturb(seg):
             er = np.zeros_like(seg)
             for L in np.unique(seg):
                 if L == 0:
                     continue
-                er[binary_erosion(seg == L)] = L
+                er[binary_erosion(seg == L, structure=_inplane)] = L
             m = er == 0
             if m.all() or not m.any():
                 return seg
