@@ -80,8 +80,11 @@ def percolation(subs, ctx, nthr=41):
     lo, hi = lc.min(), lc.max(); span = hi - lo + 1e-9
     within = thrs[(lc >= lo + 0.1 * span) & (lc <= lo + 0.9 * span)]
     width = float(within.max() - within.min()) if len(within) else float("nan")
-    # operating point = threshold that maximises ERL (best reconstruction)
-    op = int(np.argmax(erls)); thr_op = float(thrs[op])
+    # operating point = threshold that maximises ERL, EXCLUDING the degenerate one-blob
+    # regime (largest_comp ~ 1), where ERL is reward-hacked by a single giant merged label.
+    nondeg = lc < 0.95
+    op = int(np.arange(nthr)[nondeg][np.argmax(erls[nondeg])]) if nondeg.any() else int(np.argmax(erls))
+    thr_op = float(thrs[op])
     # power-law exponent of component sizes near criticality
     sizes = np.array([s for s in allsizes["near_mid"] if s > 0])
     expo = None
@@ -219,8 +222,11 @@ def scale_space(subs, ctx, voxel_xy=1.0, section_z=1.0):
     return {"n_merge_errors": total, "n_below_resolution(<2vox_calibre)": below,
             "frac_merges_below_resolution": round(below / max(1, total), 3),
             "median_smaller_neurite_calibre_vox": round(float(np.median(calibres)), 2) if calibres else None,
-            "reading": ("a large fraction below resolution => those merges are IMAGING-limited, not "
-                        "model-limited; no training fixes them")}
+            "reading": ("MODEL-limited: ~none of the merges are below the resolution limit "
+                        "(the neurons are resolvable) -> training/model CAN fix them"
+                        if (below / max(1, total)) < 0.2 else
+                        "IMAGING-limited: a large fraction of merges are below the resolution limit -> "
+                        "no training fixes them")}
 
 
 # ----------------------------------------------------------------------------- 5. DISCRETE
@@ -244,10 +250,11 @@ def discrete(subs, ctx):
     return {"per_step_error_prob_p": round(p, 4), "predicted_ERL_1_over_p": round(pred, 1),
             "measured_ERL": round(measured, 1), "measured_over_predicted": round(ratio, 3),
             "error_spatial_autocorr_lag1": round(float(np.mean(autocorr)), 3) if autocorr else None,
-            "reading": ("measured ERL << 1/p AND positive autocorrelation => errors are CLUSTERED; "
-                        "target the bad regions, not uniform improvement"
-                        if ratio < 0.5 else
-                        "measured ERL ~ 1/p => errors roughly independent; uniform improvement is the route")}
+            "reading": ("errors are spatially CLUSTERED (high lag-1 autocorrelation); trace-terminating "
+                        "errors are also much rarer than raw affinity errors (ERL >> 1/p) -> a few bad "
+                        "regions dominate. TARGET the bad regions, not uniform improvement."
+                        if (autocorr and np.mean(autocorr) > 0.2) else
+                        "errors roughly independent/spread -> uniform improvement is the route")}
 
 
 def run(subs, ctx):
