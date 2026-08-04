@@ -94,8 +94,14 @@ def _rag(frags, aff, short_offs, long_offs, lsd=None, jepa=None):
         fa = np.minimum(f1[diff], f2[diff]); fb = np.maximum(f1[diff], f2[diff])
         keys.append(fa.astype(np.int64) * NF + fb); avs.append(a[diff])
         shorts.append(np.full(int(diff.sum()), k < ns, bool))
+    empty = ([], np.zeros((0, 4 + (2 if lsd is not None else 0) + (2 if jepa is not None else 0)), np.float32))
+    names = ["mean_short", "mean_long", "log_contact", "log_min_size"]
+    if lsd is not None:
+        names += ["lsd_dist", "lsd_cos"]
+    if jepa is not None:
+        names += ["jepa_dist", "jepa_cos"]
     if not keys or sum(len(x) for x in keys) == 0:
-        return [], np.zeros((0, 4), np.float32)
+        return (*empty, *empty, names)
     key = np.concatenate(keys); av = np.concatenate(avs); sm = np.concatenate(shorts)
     uniq, inv = np.unique(key, return_inverse=True); P = len(uniq)   # compact pair index
     ss = np.zeros(P); ns_e = np.zeros(P); sl = np.zeros(P); nl_e = np.zeros(P)
@@ -103,19 +109,23 @@ def _rag(frags, aff, short_offs, long_offs, lsd=None, jepa=None):
     np.add.at(sl, inv[~sm], av[~sm]); np.add.at(nl_e, inv[~sm], 1.0)
     sizes = np.bincount(frags.ravel(), minlength=NF)
     a = (uniq // NF).astype(np.int64); b = (uniq % NF).astype(np.int64)
-    keep = ns_e > 0                                       # need a short-range contact
-    mean_short = ss[keep] / ns_e[keep]
-    mean_long = np.where(nl_e[keep] > 0, sl[keep] / np.maximum(nl_e[keep], 1), 0.5)
-    ak, bk = a[keep], b[keep]
-    cols = [mean_short, mean_long, np.log1p(ns_e[keep]),
-            np.log1p(np.minimum(sizes[ak], sizes[bk]))]
-    names = ["mean_short", "mean_long", "log_contact", "log_min_size"]
-    if lsd is not None:                                   # LSD shape agreement across the pair
-        d, c = _pair_agree(frags, lsd, ak, bk); cols += [d, c]; names += ["lsd_dist", "lsd_cos"]
-    if jepa is not None:                                  # hierarchical JEPA context agreement
-        d, c = _pair_agree(frags, jepa, ak, bk); cols += [d, c]; names += ["jepa_dist", "jepa_cos"]
-    feats = np.stack(cols, 1).astype(np.float32)
-    return list(zip(ak.tolist(), bk.tolist())), feats, names
+
+    def rows(mask):                                       # feature matrix for the selected pairs
+        ak, bk = a[mask], b[mask]
+        ms = np.where(ns_e[mask] > 0, ss[mask] / np.maximum(ns_e[mask], 1), 0.0)
+        ml = np.where(nl_e[mask] > 0, sl[mask] / np.maximum(nl_e[mask], 1), 0.5)
+        cols = [ms, ml, np.log1p(ns_e[mask] + nl_e[mask]),
+                np.log1p(np.minimum(sizes[ak], sizes[bk]))]
+        if lsd is not None:
+            d, c = _pair_agree(frags, lsd, ak, bk); cols += [d, c]
+        if jepa is not None:
+            d, c = _pair_agree(frags, jepa, ak, bk); cols += [d, c]
+        return list(zip(ak.tolist(), bk.tolist())), np.stack(cols, 1).astype(np.float32)
+
+    local = ns_e > 0                                      # short-range contact = adjacent (contractible)
+    lifted = (ns_e == 0) & (nl_e > 0)                     # long-range-only = LIFTED (constraint, no contract)
+    lp, lf = rows(local); lifp, liff = rows(lifted)
+    return lp, lf, lifp, liff, names
 
 
 def _gaec(frags, pairs, weights):
@@ -165,6 +175,60 @@ def _gaec(frags, pairs, weights):
     return _relabel(np.array([find(i) for i in range(nf)])[frags])
 
 
+def _lifted_gaec(frags, lpairs, lw, liftpairs, liftw):
+    """Lifted multicut (GAEC approximation): LOCAL edges are contractible (adjacency);
+    LIFTED edges are long-range same/different CONSTRAINTS that are never contracted but
+    modify the effective merge score of the local edge between the same two clusters. A
+    long-range 'different' signal (negative lifted) blocks a local merge; 'same' (positive)
+    encourages it -- the extra expressiveness local multicut lacks. The CREMI-SOTA agglomerator."""
+    import heapq
+    nf = int(frags.max()) + 1
+    parent = list(range(nf))
+
+    def find(a):
+        r = a
+        while parent[r] != r:
+            r = parent[r]
+        while parent[a] != r:
+            parent[a], a = r, parent[a]
+        return r
+    local = defaultdict(lambda: defaultdict(float)); lift = defaultdict(lambda: defaultdict(float))
+    for (a, b), w in zip(lpairs, lw):
+        if a != b:
+            local[a][b] += w; local[b][a] += w
+    for (a, b), w in zip(liftpairs, liftw):
+        if a != b:
+            lift[a][b] += w; lift[b][a] += w
+
+    def eff(u, v):
+        return local[u].get(v, 0.0) + lift[u].get(v, 0.0)
+    heap = [(-eff(a, b), a, b) for a in local for b in local[a] if a < b]
+    heapq.heapify(heap)
+    while heap:
+        nw, a, b = heapq.heappop(heap); w = -nw
+        if w <= 0:
+            break
+        ra, rb = find(a), find(b)
+        if ra == rb or rb not in local[ra]:
+            continue
+        if abs(eff(ra, rb) - w) > 1e-6:
+            continue                                     # stale
+        parent[rb] = ra
+        for tbl in (local, lift):                        # merge both adjacencies
+            tbl[ra].pop(rb, None); tbl[rb].pop(ra, None)
+            for nb, wt in list(tbl[rb].items()):
+                tbl[nb].pop(rb, None)
+                if nb == ra:
+                    continue
+                tbl[ra][nb] += wt; tbl[nb][ra] += wt
+            tbl[rb].clear()
+        for nb in list(local[ra]):                       # re-push affected local edges
+            e = eff(ra, nb)
+            if e > 0:
+                heapq.heappush(heap, (-e, min(ra, nb), max(ra, nb)))
+    return _relabel(np.array([find(i) for i in range(nf)])[frags])
+
+
 def _agglomerate(frags, pairs, prob, thr):
     """Union fragment pairs with merge prob > thr (descending), producing final labels."""
     nf = frags.max() + 1
@@ -204,20 +268,20 @@ def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9,
         out = []
         for i, aff in enumerate(affs):
             frags = _relabel(_oversegment(aff, SHORT, thr_over))
-            pairs, feats, names = _rag(frags, aff, SHORT, LONG,
-                                       lsds[i] if lsds else None, jepas[i] if jepas else None)
-            out.append((frags, pairs, feats, names))
+            lp, lf, lifp, liff, names = _rag(frags, aff, SHORT, LONG,
+                                             lsds[i] if lsds else None, jepas[i] if jepas else None)
+            out.append((frags, lp, lf, lifp, liff, names))
         return out
     tr = build(train_affs, train_lsds, train_jepas)
     ev = build(eval_affs, eval_lsds, eval_jepas)
-    names = next((r[3] for r in tr if r[3]), ["mean_short", "mean_long", "log_contact", "log_min_size"])
+    names = next((r[5] for r in tr if r[5]), ["mean_short", "mean_long", "log_contact", "log_min_size"])
 
     X, ysame = [], []
-    for (frags, pairs, feats, _), seg in zip(tr, train_segs):
-        if not pairs:
+    for (frags, lp, lf, _lifp, _liff, _), seg in zip(tr, train_segs):
+        if not lp:
             continue
         fg = _frag_gt(frags, seg)
-        X.append(feats); ysame.append(np.array([1 if fg[a] == fg[b] and fg[a] != 0 else 0 for a, b in pairs]))
+        X.append(lf); ysame.append(np.array([1 if fg[a] == fg[b] and fg[a] != 0 else 0 for a, b in lp]))
     if not X:
         return {"error": "no fragment pairs"}
     X = np.concatenate(X); ysame = np.concatenate(ysame)
@@ -231,29 +295,41 @@ def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9,
                 "adapted_rand_error": round(float(np.mean([x[1] for x in v])), 4),
                 "ERL": round(float(np.mean([erl(l, s) for l, s in zip(labs, eval_segs)])), 4)}
 
-    def multicut(use):                                    # use = feature-name subset
+    def edge_w(clfA, clfB, feats, Ai, Bi):                # signed multicut weight logit(P_A*(1-P_B))
+        if not len(feats):
+            return np.zeros(0)
+        pA = clfA.predict_proba((feats[:, Ai] - mu[Ai]) / sd[Ai])[:, 1]
+        pB = clfB.predict_proba((feats[:, Bi] - mu[Bi]) / sd[Bi])[:, 1]
+        p = np.clip(pA * (1 - pB), 1e-4, 1 - 1e-4)
+        return np.log(p / (1 - p))
+
+    def multicut(use, lifted=False):
         Ai = [names.index(n) for n in use if n in ATTRACT]
         Bi = [names.index(n) for n in use if n in REPEL]
-        clfA = LogisticRegression(class_weight="balanced", max_iter=300).fit(
-            ((X[:, Ai] - mu[Ai]) / sd[Ai]), ysame)
-        clfB = LogisticRegression(class_weight="balanced", max_iter=300).fit(
-            ((X[:, Bi] - mu[Bi]) / sd[Bi]), 1 - ysame)
+        clfA = LogisticRegression(class_weight="balanced", max_iter=300).fit((X[:, Ai] - mu[Ai]) / sd[Ai], ysame)
+        clfB = LogisticRegression(class_weight="balanced", max_iter=300).fit((X[:, Bi] - mu[Bi]) / sd[Bi], 1 - ysame)
         labs = []
-        for frags, pairs, feats, _ in ev:
-            if not pairs:
+        for frags, lp, lf, lifp, liff, _ in ev:
+            if not lp:
                 labs.append(frags); continue
-            pA = clfA.predict_proba((feats[:, Ai] - mu[Ai]) / sd[Ai])[:, 1]
-            pB = clfB.predict_proba((feats[:, Bi] - mu[Bi]) / sd[Bi])[:, 1]
-            p = np.clip(pA * (1 - pB), 1e-4, 1 - 1e-4)
-            labs.append(_gaec(frags, pairs, np.log(p / (1 - p))))
+            wl = edge_w(clfA, clfB, lf, Ai, Bi)
+            if lifted and lifp:
+                wlift = edge_w(clfA, clfB, liff, Ai, Bi)
+                labs.append(_lifted_gaec(frags, lp, wl, lifp, wlift))
+            else:
+                labs.append(_gaec(frags, lp, wl))
         return score_lab(labs)
 
     M = score_lab([mws(np.clip(a, 0, 1), OFFS, ns) for a in eval_affs])
-    variants = {"multicut_affinity": multicut(["mean_short", "mean_long", "log_contact", "log_min_size"])}
-    if "lsd_cos" in names:
-        variants["multicut_affinity_lsd"] = multicut([n for n in names if not n.startswith("jepa")])
+    base = ["mean_short", "mean_long", "log_contact", "log_min_size"]
+    full = names
+    variants = {"multicut_affinity": multicut(base)}
     if "jepa_cos" in names:
-        variants["multicut_affinity_lsd_jepa"] = multicut(names)
+        variants["multicut_affinity_lsd_jepa"] = multicut(full)
+        variants["lifted_multicut_full"] = multicut(full, lifted=True)   # lifted multicut, all features
+    elif "lsd_cos" in names:
+        variants["multicut_affinity_lsd"] = multicut(full)
+        variants["lifted_multicut_full"] = multicut(full, lifted=True)
     best = min([("mws", M)] + list(variants.items()), key=lambda kv: kv[1]["VOI"])
     return {"method": "learned multicut (GAEC) feature-variants vs MWS",
             "features_available": names, "n_train_pairs": int(len(ysame)),
