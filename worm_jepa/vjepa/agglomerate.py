@@ -22,16 +22,21 @@ import numpy as np
 from collections import defaultdict
 
 
-def _oversegment(aff, short_offs, thr):
+def _oversegment(aff, short_offs, thr, seed_q=0.6):
     """Robust over-segmentation via watershed: seeds = connected components of the
     high-attraction interior (mean short affinity above a data-adaptive threshold), then
     flood the boundary height (1 - attraction). Scale-robust -> many fragments regardless
-    of the affinity distribution, essentially merge-free."""
+    of the affinity distribution, essentially merge-free.
+
+    Granularity is set by seed_q (the interior-core quantile), NOT thr: seed_thr takes the
+    MAX of thr and quantile(a, seed_q), and the quantile usually dominates, so raising
+    seed_q -> stricter cores -> FEWER, coarser fragments (attacks over-seg); lowering it ->
+    finer. (thr only bites when the quantile floor falls below it.)"""
     from scipy.ndimage import label
     from skimage.segmentation import watershed
     ns = len(short_offs)
     a = aff[:ns].mean(0)                                  # attraction: high inside objects
-    seed_thr = max(thr, float(np.quantile(a, 0.6)))       # adaptive: interior cores
+    seed_thr = max(thr, float(np.quantile(a, seed_q)))    # adaptive: interior cores
     seeds, n = label(a > seed_thr)
     if n == 0:
         seeds, n = label(a > float(np.quantile(a, 0.8)))
@@ -252,7 +257,7 @@ ATTRACT = {"mean_short", "log_contact", "lsd_cos", "jepa_cos"}     # merge-favor
 REPEL = {"mean_long", "log_min_size", "lsd_dist", "jepa_dist"}     # boundary-favoring (specialist B)
 
 
-def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9,
+def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9, seed_q=0.6,
         train_lsds=None, eval_lsds=None, train_jepas=None, eval_jepas=None, merge_bias=0.0):
     """Learned MULTICUT (GAEC) agglomeration with two-specialist signed edge weights,
     vs plain MWS. Runs multiple FEATURE VARIANTS so we can isolate each signal's value:
@@ -267,7 +272,7 @@ def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9,
     def build(affs, lsds, jepas):
         out = []
         for i, aff in enumerate(affs):
-            frags = _relabel(_oversegment(aff, SHORT, thr_over))
+            frags = _relabel(_oversegment(aff, SHORT, thr_over, seed_q))
             lp, lf, lifp, liff, names = _rag(frags, aff, SHORT, LONG,
                                              lsds[i] if lsds else None, jepas[i] if jepas else None)
             out.append((frags, lp, lf, lifp, liff, names))

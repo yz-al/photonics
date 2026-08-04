@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'full (train+agglo) or rerun (FREE agglo merge-bias sweep from saved checkpoint)'
+        description: 'full (train+agglo) | rerun (FREE merge_bias x seed_q sweep) | debug (FREE error confidence+clustering) -- rerun/debug read the saved checkpoint, no GPU'
         required: false
         default: 'full'
       em_steps:

@@ -125,25 +125,59 @@ def rerun_agglo(seed: int = 0) -> dict:
     kw = dict(train_lsds=unstack("tr_lsd"), eval_lsds=unstack("ev_lsd"),
               train_jepas=unstack("tr_jepa"), eval_jepas=unstack("ev_jepa"))
     # The winning multicut is SPLIT-dominated (over-segments), so we attack over-seg on
-    # two free levers: merge_bias (GAEC merges more) and thr_over (coarser fragment
-    # seeding -> fewer splits to stitch). Grid them; both re-derive from saved affinities.
-    biases = [float(x) for x in os.environ.get("WORM_S3_BIAS_SWEEP", "0.75,1,1.25,1.5").split(",")]
-    thrs = [float(x) for x in os.environ.get("WORM_S3_THR_SWEEP", "0.9,0.93,0.96").split(",")]
+    # two free levers: merge_bias (GAEC merges more) and seed_q (the interior-core quantile
+    # = fragment granularity; higher -> coarser -> fewer splits to stitch). NOTE thr_over
+    # is inert here -- the adaptive quantile floor dominates it -- so we sweep seed_q, the
+    # knob that actually moves mean_fragments. Both re-derive from the saved affinities.
+    biases = [float(x) for x in os.environ.get("WORM_S3_BIAS_SWEEP", "1.0,1.5").split(",")]
+    seedqs = [float(x) for x in os.environ.get("WORM_S3_SEEDQ_SWEEP", "0.6,0.7,0.8").split(",")]
     sweep = {}
     best = None
-    for t in thrs:
+    for q in seedqs:
         for b in biases:
-            r = AG.run(*args, ctx, thr_over=t, merge_bias=b, **kw)
+            r = AG.run(*args, ctx, seed_q=q, merge_bias=b, **kw)
             bv = r["best_by_voi"]
-            cell = {"best": bv, "thr_over": t, "merge_bias": b, **r[bv],
+            cell = {"best": bv, "seed_q": q, "merge_bias": b, **r[bv],
                     "cremi": r["cremi_score_proxy"][bv],
                     "mean_fragments": r.get("mean_fragments"),
                     "error_types": r.get("error_types_mws_vs_best", {})}
-            sweep[f"thr{t}_bias{b}"] = cell
+            sweep[f"seedq{q}_bias{b}"] = cell
             if best is None or cell["VOI"] < best[1]["VOI"]:
-                best = (f"thr{t}_bias{b}", cell)
+                best = (f"seedq{q}_bias{b}", cell)
     print(json.dumps({"seed": seed, "best_cell": best[0], "grid": sweep}, indent=2))
     return {"seed": seed, "best_cell": best[0], "best": best[1], "grid": sweep}
+
+
+@app.function(image=image, volumes={"/cache": cremi_vol}, timeout=3600)
+def debug_errors(seed: int = 0) -> dict:
+    """FREE (CPU-only) error debug on the saved agglomeration checkpoints -- confidence,
+    structure (is-error AUC), and clustering of the residual edge errors. Tells us whether
+    to spend GPU on heavier SOTA training (diffuse errors) or build a targeted fix
+    (structured errors) BEFORE kicking off a big run."""
+    import sys
+    import numpy as np
+    os.chdir("/root/worm_jepa")
+    for p in ("/root/worm_jepa", "/root/worm_jepa/vjepa"):
+        if p not in sys.path:
+            sys.path.insert(0, p)
+    import segment3d as S
+    import debug_errors as DBG
+    d = np.load(os.path.join(CACHE, f"agglo_seed{seed}.npz"))
+
+    def unstack(k):
+        if k not in d:
+            return None
+        dt = np.int32 if k.endswith("seg") else np.float32
+        return [d[k][i].astype(dt) for i in range(len(d[k]))]
+    ctx = {"SHORT": S.SHORT, "OFFS": S.OFFS, "mutex_watershed": S.mutex_watershed,
+           "seg_metrics": S.seg_metrics, "erl_proxy": S.erl_proxy}
+    args = [unstack("tr_aff"), unstack("tr_seg"), unstack("ev_aff"), unstack("ev_seg")]
+    kw = dict(train_lsds=unstack("tr_lsd"), eval_lsds=unstack("ev_lsd"),
+              train_jepas=unstack("tr_jepa"), eval_jepas=unstack("ev_jepa"))
+    mb = float(os.environ.get("WORM_S3_MERGE_BIAS", "1.25"))
+    r = DBG.run(*args, ctx, merge_bias=mb, **kw)
+    print(json.dumps({"seed": seed, **r}, indent=2))
+    return {"seed": seed, **r}
 
 
 def _merge(dicts):
@@ -185,12 +219,21 @@ def _merge(dicts):
 @app.local_entrypoint()
 def main():
     if os.environ.get("WORM_S3_MODE") == "rerun":              # FREE agglo sweep from saved checkpoint (CPU)
-        print("[modal] rerun_agglo merge-bias sweep (no training) ...", flush=True)
+        print("[modal] rerun_agglo merge_bias x seed_q sweep (no training) ...", flush=True)
         results = list(rerun_agglo.map(SEEDS))
         art = os.path.join(HERE, "artifacts"); os.makedirs(art, exist_ok=True)
         with open(os.path.join(art, "agglo_sweep.json"), "w") as f:
             json.dump({"seeds": SEEDS, "results": results}, f, indent=2)
         print(f"[modal] wrote {os.path.join(art, 'agglo_sweep.json')}", flush=True)
+        print(json.dumps(results, indent=2))
+        return
+    if os.environ.get("WORM_S3_MODE") == "debug":              # FREE error debug from saved checkpoint (CPU)
+        print("[modal] debug_errors: confidence + structure + clustering (no training) ...", flush=True)
+        results = list(debug_errors.map(SEEDS))
+        art = os.path.join(HERE, "artifacts"); os.makedirs(art, exist_ok=True)
+        with open(os.path.join(art, "debug_errors.json"), "w") as f:
+            json.dump({"seeds": SEEDS, "results": results}, f, indent=2)
+        print(f"[modal] wrote {os.path.join(art, 'debug_errors.json')}", flush=True)
         print(json.dumps(results, indent=2))
         return
     print("[modal] preparing CREMI cache (once) ...", flush=True)
