@@ -5,8 +5,8 @@
     "mode": "debug",
     "cost": {
       "per_stage_s": {
-        "scf": 558.5,
-        "nscf": 600.1
+        "scf": 726.2,
+        "nscf": 1500.2
       },
       "note": "aborted at qe_scf_nscf"
     },
@@ -20,7 +20,7 @@
       "source": "",
       "uncertainty": null,
       "converged": null,
-      "notes": "qe_scf_nscf: QE rc=124, save_exists=True, npool=24",
+      "notes": "qe_scf_nscf: QE rc=124, save_exists=True, npool=16",
       "computed": false,
       "is_model_estimate": false
     },
@@ -28,20 +28,20 @@
     "error": {
       "ok": false,
       "stage_failed": "qe_scf_nscf",
-      "note": "QE rc=124, save_exists=True, npool=24",
+      "note": "QE rc=124, save_exists=True, npool=16",
       "per_stage_s": {
-        "scf": 558.5,
-        "nscf": 600.1
+        "scf": 726.2,
+        "nscf": 1500.2
       },
       "vacuum": 10.0,
-      "scf_tail": "\n     General routines\n     calbec       :    135.23s CPU     67.20s WALL (    1363 calls)\n     fft          :      2.47s CPU      3.22s WALL (     194 calls)\n     ffts         :      0.31s CPU      0.36s WALL (      30 calls)\n     fftw         :     80.90s CPU     46.84s WALL (    1903 calls)\n     interpolate  :      0.52s CPU      0.64s WALL (      15 calls)\n\n     Parallel routines\n\n     PWSCF        :  17m16.04s CPU   9m15.41s WALL\n\n\n   This run was terminated on:   1:27: 6   4Aug2026            \n\n=------------------------------------------------------------------------------=\n   JOB DONE.\n=------------------------------------------------------------------------------=\nNote: The following floating-point exceptions are signalling: IEEE_DENORMAL\nNote: The following floating-point exceptions are signalling: IEEE_DENORMAL\nNote: The following floating-point exceptions are signalling: IEEE_DENORMAL\nNote: The following floating-point exceptions are signalling: IEEE_DENORMAL\nNote: The following floating-point exceptions are signalling: IEEE_DENORMAL\nNote: The following floating-point exceptions are signalling: IEEE_DENORMAL\nNote: The following floating-point exceptions are signalling: IEEE_DENORMAL\nNote: The following floating-point exceptions are signalling: IEEE_DENORMAL\nNote: The following floating-point exceptions are signalling: IEEE_DENORMAL\nNote: The following floating-point exceptions are signalling: IEEE_DENORMAL\nNote: The following floating-point exceptions are signalling: IEEE_DENORMAL\nNote: The following floating-point exceptions are signalling: IEEE_DENORMAL",
-      "nscf_tail": "        k(   20) = (  -0.5000000  -0.8660254   0.0000000), wk =   0.0555556\n\n     Dense  grid:   302753 G-vectors     FFT dimensions: (  45,  45, 360)\n\n     Smooth grid:   106889 G-vectors     FFT dimensions: (  32,  32, 240)\n\n     Estimated max dynamical RAM per process >      83.49 MB\n\n     Estimated total dynamical RAM >       3.91 GB\n ----2D----2D----2D----2D----2D----2D----2D----2D----2D----2D----2D----2D\n  The code is running with the 2D cutoff\n  Please refer to:\n  Sohier, T., Calandra, M., & Mauri, F. (2017), \n  Density functional perturbation theory for gated two-dimensional heterostructures:\n  Theoretical developments and application to flexural phonons in graphene.\n  Physical Review B, 96(7), 75448. https://doi.org/10.1103/PhysRevB.96.075448\n ----2D----2D----2D----2D----2D----2D----2D----2D----2D----2D----2D----2D\n\n     The potential is recalculated from file :\n     ./out/mos2.save/charge-density\n\n\n     negative rho (up, down):  1.903E-04 0.000E+00\n     Starting wfcs are   18 randomized atomic wfcs +   42 random wfcs\n     Checking if some PAW data can be deallocated... \n\n     Band Structure Calculation\n     CG style diagonalization\n[modal:02473] 47 more processes have sent help message help-btl-vader.txt / cma-permission-denied\n[modal:02473] Set MCA parameter \"orte_base_help_aggregate\" to 0 to see all help / error messages"
+      "scf_tail": "     wfcrot       :     48.36s CPU     19.03s WALL (      34 calls)\n\n     Called by *cgdiagg:\n     h_psi        :    497.67s CPU    212.25s WALL (    1206 calls)\n     s_psi        :    374.01s CPU    124.60s WALL (    2378 calls)\n\n     Called by h_psi:\n     h_psi:calbec :    157.33s CPU     82.96s WALL (    1206 calls)\n     vloc_psi     :    268.82s CPU     94.03s WALL (    1206 calls)\n     add_vuspsi   :     42.88s CPU     24.00s WALL (    1206 calls)\n     hs_1psi      :    703.24s CPU    286.42s WALL (    1172 calls)\n     s_1psi       :    448.98s CPU    136.73s WALL (    1172 calls)\n\n     General routines\n     calbec       :    381.51s CPU    153.31s WALL (    2413 calls)\n     fft          :      3.99s CPU      4.43s WALL (     454 calls)\n     ffts         :      0.83s CPU      0.58s WALL (      70 calls)\n     fftw         :    238.09s CPU     82.37s WALL (    3693 calls)\n     interpolate  :      0.94s CPU      0.95s WALL (      35 calls)\n\n     Parallel routines\n\n     PWSCF        :  31m15.59s CPU  12m 2.82s WALL\n\n\n   This run was terminated on:   2:13: 1   4Aug2026            \n\n=------------------------------------------------------------------------------=\n   JOB DONE.\n=------------------------------------------------------------------------------=",
+      "nscf_tail": "        k(   10) = (  -0.5000000  -0.8660254   0.0000000), wk =   0.1250000\n\n     Dense  grid:   302753 G-vectors     FFT dimensions: (  45,  45, 360)\n\n     Smooth grid:   106889 G-vectors     FFT dimensions: (  32,  32, 240)\n\n     Estimated max dynamical RAM per process >      62.92 MB\n\n     Estimated total dynamical RAM >       2.95 GB\n ----2D----2D----2D----2D----2D----2D----2D----2D----2D----2D----2D----2D\n  The code is running with the 2D cutoff\n  Please refer to:\n  Sohier, T., Calandra, M., & Mauri, F. (2017), \n  Density functional perturbation theory for gated two-dimensional heterostructures:\n  Theoretical developments and application to flexural phonons in graphene.\n  Physical Review B, 96(7), 75448. https://doi.org/10.1103/PhysRevB.96.075448\n ----2D----2D----2D----2D----2D----2D----2D----2D----2D----2D----2D----2D\n\n     The potential is recalculated from file :\n     ./out/mos2.save/charge-density\n\n\n     negative rho (up, down):  1.905E-04 0.000E+00\n[modal:02473] 46 more processes have sent help message help-btl-vader.txt / cma-permission-denied\n[modal:02473] Set MCA parameter \"orte_base_help_aggregate\" to 0 to see all help / error messages\n     Starting wfcs are   18 randomized atomic wfcs +   42 random wfcs\n     Checking if some PAW data can be deallocated... \n\n     Band Structure Calculation\n     CG style diagonalization"
     }
   },
   "vac16": null,
   "verdict": {
     "E_b_vac10_eV": null,
     "debug_pass": false,
-    "reason": "vac10 aborted at qe_scf_nscf: QE rc=124, save_exists=True, npool=24 \u2014 skipped vac16 (no spend)"
+    "reason": "vac10 aborted at qe_scf_nscf: QE rc=124, save_exists=True, npool=16 \u2014 skipped vac16 (no spend)"
   }
 }
