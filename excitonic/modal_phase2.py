@@ -741,7 +741,10 @@ BSENGBlk= {p['ng_x']}    Ry
 %
 """
     open(os.path.join(ydir, "bse.in"), "w").write(bse_in)
-    rc_bse = sh("bse", MPI_Y + ["yambo", "-F", "bse.in", "-J", "BSE"], cwd=ydir,
+    # -J "BSE,GW": write to BSE, but READ the GW databases (ndb.QP for KfnQP_E="GW"
+    # and the screening) from the GW folder. Without the GW read dir the BSE has no
+    # QP correction and exits in seconds (the 3.2 s no-op we saw).
+    rc_bse = sh("bse", MPI_Y + ["yambo", "-F", "bse.in", "-J", "BSE,GW"], cwd=ydir,
                 outfile="bse_run.log")
     if rc_bse == 124:
         return _fail("bse", "yambo BSE (kernel/diagonalization) exceeded its wall cap",
@@ -773,10 +776,13 @@ BSENGBlk= {p['ng_x']}    Ry
             if len(nums) >= 2:
                 exc_f = float(nums[1].replace("D", "E").replace("d", "e"))
             break
-    gw_gap = None
-    mgw = _re.search(r"GW.*?gap.*?([-+]?\d+\.\d+)\s*eV", reports, _re.I | _re.S)
-    if mgw:
-        gw_gap = float(mgw.group(1))
+    # Direct gap: parse the explicit "Direct Gap : X [eV]" lines (NOT a loose
+    # GW…gap…eV span, which grabbed the 27.211 eV = 1 Hartree constant). Yambo
+    # reports the gap in the [X] setup (KS) and, after the QP run, the GW-corrected
+    # value; take the LAST occurrence (GW-corrected if present, else KS).
+    gaps = _re.findall(r"Direct Gap\s*:\s*([-+]?\d+\.\d+)\s*\[?eV\]?", reports, _re.I)
+    gw_gap = float(gaps[-1]) if gaps else None
+    ks_gap = float(gaps[0]) if gaps else None
 
     total_s = round(time.time() - t_start, 1)
     core_hours = round(total_s * GWBSE_CORES / 3600, 3)
@@ -806,7 +812,7 @@ BSENGBlk= {p['ng_x']}    Ry
     print(f"[phase2/gwbse] mode={mode} E_b={lab.value} gw_gap={gw_gap} exc={exc_e} "
           f"f_osc={exc_f} cost={cost['usd_estimate']} stages={stages}")
     return {"material": material, "mode": mode, "vacuum": vacuum, "cost": cost,
-            "gw_gap_eV": gw_gap, "exciton_eV": exc_e,
+            "gw_gap_eV": gw_gap, "ks_gap_eV": ks_gap, "exciton_eV": exc_e,
             "oscillator_strength": exc_f, "E_b": lab.to_dict(),
             "report_tail": reports[-1500:] if reports else ""}
 
