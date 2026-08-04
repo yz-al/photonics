@@ -732,6 +732,85 @@ def main():
             json.dump(out, f, indent=2)
         return
 
+    # ---- STAGE 0a IDENTIFIABILITY (profile likelihood) on the mechinterp-pulled model ----
+    # The mechanistic model = a compact top-K-channel logistic readout of the membrane
+    # (short-range boundary) decision -- the parametric instantiation of what mechinterp
+    # pulled out ("boundaries = sparse readout of a few membrane features"). Feasibility gate
+    # per the scaffolding: fix each readout weight off optimum, RE-OPTIMISE the others
+    # (offset-logistic refit), sweep, read the profile. Flat both sides = structurally
+    # non-identifiable -> STOP. Prior: mechinterp found the features DIFFUSE/redundant
+    # (collinear) -> expect flat directions; those weights are non-identifiable individually,
+    # only their co-moving combination is. NOTE: no physical constants here, so this is the
+    # honest (analogy) reading of Stage 0a for a learned readout, not physics.
+    if os.environ.get("WORM_S3_STAGE0A", "0") == "1":
+        seed = SEEDS[0]; torch.manual_seed(seed)
+        S0STEPS = int(os.environ.get("WORM_S3_STAGE0A_STEPS", "6000"))
+        K = int(os.environ.get("WORM_S3_STAGE0A_K", "6"))
+        GAP = int(os.environ.get("WORM_S3_AUDIT_ZGAP", str(ZC)))
+        NPOOL = int(os.environ.get("WORM_S3_CURVE_POOL", "64"))
+        trm_raw = tr_raw[:max(ZC + 1, tr_raw.shape[0] - GAP)]; trm_seg = tr_seg[:trm_raw.shape[0]]
+        pool = [sample_sub(trm_raw, trm_seg, CROP, 20000 + i) for i in range(NPOOL)]
+        best = train_dec("sota", None, pool, steps=S0STEPS, augment=True, seed=seed)
+        C = best.head.in_channels; rng = np.random.default_rng(seed)
+
+        def logfit(X, y, offset=None, iters=400, lr=0.3, l2=1e-3):   # logistic fit w/ fixed offset (re-opt primitive)
+            w = np.zeros(X.shape[1]); b = 0.0; off = 0.0 if offset is None else offset
+            for _ in range(iters):
+                p = 1 / (1 + np.exp(-(X @ w + b + off)))
+                w -= lr * (X.T @ (p - y) / len(y) + l2 * w); b -= lr * (p - y).mean()
+            p = 1 / (1 + np.exp(-(X @ w + b + off)))
+            return w, b, float(-np.mean(y * np.log(p + 1e-9) + (1 - y) * np.log(1 - p + 1e-9)))
+
+        Xs, ys = [], []
+        for sub, seg in pool[:8]:
+            with torch.no_grad():
+                f = best.features(torch.tensor(sub, device=DEV)[None, None].float())[0].reshape(C, -1).T.cpu().numpy()
+            ga, val = gt_affinity(seg, OFFS)
+            y = (ga[:ns] < 0.5).any(0).reshape(-1).astype(np.float64); m = (val[:ns] > 0).all(0).reshape(-1)
+            f = f[m]; y = y[m]; idx = rng.choice(len(f), min(6000, len(f)), replace=False)
+            Xs.append(f[idx]); ys.append(y[idx])
+        X = np.concatenate(Xs); ytr = np.concatenate(ys)
+        mu, sdv = X.mean(0), X.std(0) + 1e-6; Xn = (X - mu) / sdv
+        wfull, _, _ = logfit(Xn, ytr)
+        topK = [int(c) for c in np.argsort(-np.abs(wfull))[:K]]      # compact model = top-K channels
+        Xk = Xn[:, topK]
+        cond = float(np.linalg.cond(np.corrcoef(Xk.T)))             # analytic pass: collinearity
+
+        def vif(Z, j):
+            oth = [c for c in range(Z.shape[1]) if c != j]
+            co, _, _, _ = np.linalg.lstsq(Z[:, oth], Z[:, j], rcond=None)
+            r2 = 1 - (Z[:, j] - Z[:, oth] @ co).var() / (Z[:, j].var() + 1e-9)
+            return round(float(1 / max(1 - r2, 1e-6)), 2)
+        w0, _, l0 = logfit(Xk, ytr)
+        profiles = []
+        for j in range(K):
+            grid = w0[j] + np.linspace(-3, 3, 13); losses = []; comove = []
+            for v in grid:
+                oth = [c for c in range(K) if c != j]
+                wj, _, ll = logfit(Xk[:, oth], ytr, offset=v * Xk[:, j]); losses.append(ll); comove.append(wj)
+            losses = np.array(losses); rlo = float(losses[0] - losses.min()); rhi = float(losses[-1] - losses.min())
+            tag = ("identifiable" if rlo > 0.02 and rhi > 0.02 else
+                   "structurally_non_identifiable" if rlo <= 0.02 and rhi <= 0.02 else
+                   "practically_non_identifiable")
+            cm = np.array(comove); oth = [c for c in range(K) if c != j]
+            top_co = int(topK[oth[int(np.argmax(np.abs(cm[-1] - cm[0])))]]) if oth else -1
+            profiles.append({"channel": topK[j], "weight_opt": round(float(w0[j]), 3),
+                             "profile_rise_low": round(rlo, 4), "profile_rise_high": round(rhi, 4),
+                             "verdict": tag, "vif": vif(Xk, j), "top_comover_channel": top_co})
+        n_struct = sum(p["verdict"] == "structurally_non_identifiable" for p in profiles)
+        gate = ("STOP: structurally non-identifiable (flat profile direction) -> Stage 7: design a NEW observable"
+                if n_struct > 0 else "PASS: compact model identifiable -> proceed to Stage 1")
+        out = {"stage": "0a identifiability (profile likelihood) on mechinterp-pulled compact model",
+               "model": f"top-{K}-channel logistic readout of membrane (short-range boundary)",
+               "gram_condition_number": round(cond, 1), "observables_per_param": round(len(ytr) / K, 1),
+               "profiles": profiles, "n_structurally_non_identifiable": n_struct, "GATE": gate,
+               "note": "diffuse/collinear features (per mechinterp) => flat directions expected; "
+                       "a flat weight is non-identifiable alone -- only its co-moving combination is."}
+        print(json.dumps(out, indent=2))
+        with open(os.path.join(H.HERE, "segment3d.json"), "w") as f:
+            json.dump({"stage0a": out}, f, indent=2)
+        return
+
     # ---- FIRST BLACK BOX: mechinterp the best model, STOP before synthesis (gated) ----
     if os.environ.get("WORM_S3_MECHINTERP", "0") == "1":
         seed = SEEDS[0]; torch.manual_seed(seed)
