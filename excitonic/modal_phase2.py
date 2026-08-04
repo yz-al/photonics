@@ -723,7 +723,15 @@ NGsBlkXp= {p['ng_x']}     Ry
     rc |= rc_gw
 
     # --- BSE input (use GW db) + run ---
-    bse_in = f"""optics
+    # v/c band window for both the DIPOLES and the BSE kernel (must match). Yambo
+    # needs the dipoles database before the BSE solver; omitting the `dipoles`
+    # runlevel + DipBands makes BSE exit in ~1 s (the no-op we saw). The GW QP
+    # correction is read via -J BSE,GW (ndb.QP), so KfnQP_E="GW" (a numeric field
+    # given a string — an input-parse bail) is dropped.
+    v_lo = max(1, p['nbnd'] // 2 - p['bse_v'] + 1)
+    c_hi = p['nbnd'] // 2 + p['bse_c']
+    bse_in = f"""dipoles
+optics
 bss
 bse
 bsk
@@ -731,14 +739,21 @@ CUTGeo= "slab z"
 BSEmod= "resonant"
 BSKmod= "SEX"
 BSSmod= "d"
-KfnQP_E= "GW"
+Chimod= "HARTREE"
+% DipBands
+  {v_lo} | {c_hi} |
+%
 % BSEBands
-  {max(1, p['nbnd'] // 2 - p['bse_v'] + 1)} | {p['nbnd'] // 2 + p['bse_c']} |
+  {v_lo} | {c_hi} |
 %
 BSENGBlk= {p['ng_x']}    Ry
 % BEnRange
   0.0 | 5.0 |  eV
 %
+% BDmRange
+  0.1 | 0.1 |  eV
+%
+BEnSteps= 100
 """
     open(os.path.join(ydir, "bse.in"), "w").write(bse_in)
     # -J "BSE,GW": write to BSE, but READ the GW databases (ndb.QP for KfnQP_E="GW"
@@ -780,9 +795,12 @@ BSENGBlk= {p['ng_x']}    Ry
     # GW…gap…eV span, which grabbed the 27.211 eV = 1 Hartree constant). Yambo
     # reports the gap in the [X] setup (KS) and, after the QP run, the GW-corrected
     # value; take the LAST occurrence (GW-corrected if present, else KS).
-    gaps = _re.findall(r"Direct Gap\s*:\s*([-+]?\d+\.\d+)\s*\[?eV\]?", reports, _re.I)
+    # leading [^a-zA-Z] so "Direct" does NOT match inside "In-direct Gap" (that bug
+    # made gw_gap the indirect gap 2.239 instead of the direct 2.660).
+    gaps = _re.findall(r"[^a-zA-Z]Direct Gap\s*:\s*([-+]?\d+\.\d+)\s*\[?eV\]?", reports, _re.I)
     gw_gap = float(gaps[-1]) if gaps else None
     ks_gap = float(gaps[0]) if gaps else None
+    bse_log_tail = _tail("yambo/bse_run.log", 40)   # so a BSE no-op is diagnosable
 
     total_s = round(time.time() - t_start, 1)
     core_hours = round(total_s * GWBSE_CORES / 3600, 3)
@@ -814,6 +832,7 @@ BSENGBlk= {p['ng_x']}    Ry
     return {"material": material, "mode": mode, "vacuum": vacuum, "cost": cost,
             "gw_gap_eV": gw_gap, "ks_gap_eV": ks_gap, "exciton_eV": exc_e,
             "oscillator_strength": exc_f, "E_b": lab.to_dict(),
+            "bse_log_tail": bse_log_tail,
             "report_tail": reports[-1500:] if reports else ""}
 
 
