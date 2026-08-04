@@ -388,7 +388,7 @@ def run(train_affs, train_segs, eval_affs, eval_segs, ctx, thr_over=0.9, seed_q=
             "features_available": names, "n_train_pairs": int(len(ysame)),
             "same_rate": round(float(ysame.mean()), 3),
             "mean_fragments": round(float(np.mean([r[0].max() + 1 for r in ev])), 1),
-            "mws_baseline": M, **variants,
+            "mws_baseline": M, "mws": M, **variants,   # "mws" alias so r[name] works for every method
             "best_by_voi": best[0],
             "best_by_erl": best_erl[0],                          # ERL-first (merge-averse) winner
             "best_by_merge_weighted_voi": best_mw[0], "merge_w": merge_w,
