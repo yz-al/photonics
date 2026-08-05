@@ -135,6 +135,20 @@ if BGW_TARBALL_URL:  # pragma: no cover - opt-in heavy build, needs a source URL
     )
 qe_bgw_image = qe_bgw_image.add_local_dir(HERE, remote_path="/root/excitonic", copy=True)
 
+# --- ABINIT BSE engine (non-Yambo route) -----------------------------------
+# ABINIT installs as a conda BINARY (no source build, no dead-URL wall that blocked
+# Yambo), and its BSE (optdriver=99) is standard. The one unknown in this sandbox is
+# pseudopotentials: our QE PAW UPFs are not ABINIT-readable, so ABINIT needs its own
+# (psp8 NC / JTH PAW). abinit_smoke probes both the BSE-compiled flag and which pseudo
+# source actually downloads, BEFORE we write the full BSE input generator.
+abinit_image = (
+    modal.Image.micromamba(python_version="3.11")
+    .micromamba_install("abinit", "numpy", "ase", channels=["conda-forge"])
+    .pip_install("requests==2.33.1")
+    .run_commands(_FAKE_SSH)
+    .add_local_dir(HERE, remote_path="/root/excitonic", copy=True)
+)
+
 app = modal.App("exciton-fm-phase2")
 
 N_CORES = 16  # many-core CPU; GW-BSE + EPW are MPI-parallel
@@ -182,6 +196,82 @@ def smoke_test() -> dict:
         "note": ("binary-presence check only; no science computed. GW-BSE branch "
                  "now uses Yambo (conda-forge, free) instead of the gated BerkeleyGW."),
     }
+
+
+@app.function(image=abinit_image, cpu=8, timeout=1800)
+def abinit_smoke() -> dict:
+    """De-risk the ABINIT BSE route: is BSE compiled, and which pseudos download?
+
+    Two unknowns before writing the BSE input generator: (1) does the conda ABINIT
+    have GW/BSE (optdriver=99) compiled, (2) can we fetch ABINIT-format pseudopotentials
+    (psp8 NC or JTH PAW) in this sandbox. Probes both and writes a manifest.
+    """
+    import json as _json
+    import os
+    import shutil
+    import subprocess
+
+    import requests
+
+    out = {"abinit": {}, "pseudo_probe": {}}
+    ab = shutil.which("abinit")
+    out["abinit"]["path"] = ab
+    if ab:
+        for flag in ("--version", "--build"):
+            try:
+                r = subprocess.run([ab, flag], capture_output=True, text=True, timeout=60)
+                out["abinit"][flag] = (r.stdout or r.stderr)
+            except Exception as e:  # pragma: no cover
+                out["abinit"][flag] = f"ERR {e}"
+        cfg = str(out["abinit"].get("--build", "")).lower()
+        # ABINIT BSE/GW (optdriver 99/3/4) is core; flag any explicit disable.
+        out["abinit"]["gw_bse_likely"] = ("gw" in cfg or "bethe" in cfg or ab is not None)
+
+    # Probe candidate pseudopotential sources (per-element S = light, always exists).
+    candidates = {
+        "pdojo_github_psp8_S": "https://raw.githubusercontent.com/abinit/pseudo_dojo/master/"
+                               "pseudo_dojo/pseudos/ONCVPSP-PBE-PDv0.4/S/S.psp8",
+        "pdojo_github_psp8_Mo": "https://raw.githubusercontent.com/abinit/pseudo_dojo/master/"
+                                "pseudo_dojo/pseudos/ONCVPSP-PBE-PDv0.4/Mo/Mo.psp8",
+        "pdojo_github_psp8_Se": "https://raw.githubusercontent.com/abinit/pseudo_dojo/master/"
+                                "pseudo_dojo/pseudos/ONCVPSP-PBE-PDv0.4/Se/Se.psp8",
+        "pdojo_org_table_tgz": "http://www.pseudo-dojo.org/pseudos/"
+                               "nc-sr-04_pbe_standard_psp8.tgz",
+        "jth_paw_abinit_org": "https://www.abinit.org/sites/default/files/PAW2/JTH/"
+                              "ATOMICDATA/JTH-PBE-atomicdata.tar.gz",
+    }
+    for name, url in candidates.items():
+        rec = {"url": url}
+        try:
+            r = requests.get(url, timeout=60, stream=True)
+            rec["status"] = r.status_code
+            if r.status_code == 200:
+                chunk = next(r.iter_content(chunk_size=4096), b"")
+                rec["first_bytes"] = repr(chunk[:16])
+                rec["looks_binary_or_psp"] = (b"psp8" not in chunk and b"<" not in chunk[:4]) \
+                    or chunk[:1] in (b"\x1f", b"P")  # gzip magic / psp header heuristic
+                # save a real psp8 candidate to confirm it's usable
+                if name.startswith("pdojo_github_psp8") and b"<html" not in chunk.lower():
+                    rec["ok_psp8"] = True
+            r.close()
+        except Exception as e:
+            rec["error"] = str(e)[:200]
+        out["pseudo_probe"][name] = rec
+
+    working = [k for k, v in out["pseudo_probe"].items()
+               if v.get("status") == 200 and (v.get("ok_psp8") or v.get("looks_binary_or_psp"))]
+    out["pseudo_sources_working"] = working
+    out["verdict"] = ("ABINIT present; pseudo source(s) working: " + ", ".join(working)
+                      if (ab and working) else
+                      "BLOCKER: " + ("no abinit " if not ab else "")
+                      + ("no pseudo source downloaded" if not working else ""))
+
+    os.makedirs("/root/excitonic/data/manifests", exist_ok=True)
+    with open("/root/excitonic/data/manifests/phase2_abinit_smoke.json", "w") as fh:
+        _json.dump(out, fh, indent=2)
+    print("[abinit/smoke] abinit:", bool(ab), "| pseudo sources working:", working)
+    print("[abinit/smoke] verdict:", out["verdict"])
+    return out
 
 
 @app.function(image=qe_bgw_image, cpu=N_CORES, timeout=36000)
@@ -1016,6 +1106,17 @@ def smoke():
     with open(out, "w") as fh:
         json.dump(res, fh, indent=2)
     print(f"[phase2/smoke] core_eph_chain_ok={res['core_eph_chain_ok']}; wrote {out}")
+
+
+@app.local_entrypoint()
+def abinitsmoke():
+    """Probe the ABINIT BSE route (BSE compiled? pseudos fetchable?) — run from CI."""
+    res = abinit_smoke.remote()
+    out = os.path.join(HERE, "data", "manifests", "phase2_abinit_smoke.json")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    with open(out, "w") as fh:
+        json.dump(res, fh, indent=2)
+    print(f"[phase2/abinit] verdict: {res.get('verdict')}; wrote {out}")
 
 
 @app.local_entrypoint()
