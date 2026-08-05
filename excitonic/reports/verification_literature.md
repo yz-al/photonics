@@ -82,9 +82,33 @@ any current hBN platform.
   photon–photon gate), not an AI-accelerator one, and even that has reached only RT *strong
   coupling*, not blockade.
 
-## Not independently verified (next verification pass)
-- The moiré single-trap U ≈ 8–60 meV (model/proxy tier) — the number behind the single-emitter
-  U/Γ > 1. Worth a primary-source check of moiré-trapped-exciton on-site interaction energies.
-- The next-phase hBN defect-supercell cooperativity C = g²/κγ — and, more importantly for
-  compute, the *distribution* of ZPL/coupling across a realistic strained ensemble (the array
-  question), not a single perfect emitter.
+## 6. Moiré single-trap U — CHECKED, and it's weaker than the 8–60 meV claim
+
+Measured moiré-trapped interlayer-exciton on-site interaction is **~2 meV** (second-excitation
+blueshift; ~7 nm inter-dipole distance), with a **100 µeV linewidth at cryogenic temperature**
+([Nat. Commun. 2023](https://www.nature.com/articles/s41467-023-42710-8); [Sci. Adv. 2020](https://www.science.org/doi/10.1126/sciadv.aba8526)):
+
+| Regime | U | Γ | U/Γ | Blockade? |
+|---|---|---|---|---|
+| **Cryo** (measured) | ~2 meV | ~0.1 meV | **~20** | ✅ (antibunching shown) |
+| **RT** (measured U, phonon floor) | ~2 meV | ~10 meV | **~0.2** | ❌ fails |
+
+So on **measured** numbers the moiré route gives single-emitter blockade only *cold*; at RT it
+**fails** (U/Γ ~ 0.2). The project's **8–60 meV is an extrapolation** to deeper-than-demonstrated
+traps, not a measured value — flag it as such.
+
+The *stronger* single-emitter case is therefore not moiré but the **hBN color center**: a deep
+defect is a genuine two-level system (large effective anharmonicity), and RT *strong coupling*
+(~4 meV Rabi) is demonstrated — so single-emitter blockade is most plausible there. But that
+route's killer is the **array-uniformity wall** (§4): the compute case dies on σ_inhom ≈ ±37 meV
+≫ Γ, not on the single-emitter physics.
+
+**Updated single-emitter verdict:** cold single-emitter blockade is real (moiré, measured
+U/Γ~20); *room-temperature* single-emitter blockade is unbuilt and, on measured moiré numbers,
+*fails* (U/Γ~0.2) — the RT-open claim rests on an unmeasured deep-trap extrapolation. The hBN
+two-level route is the better RT bet but is array-uniformity-limited for compute.
+
+## Still open (next pass, needs Modal DFT)
+- Next-phase hBN defect-supercell cooperativity C = g²/κγ — a single-emitter *device* number.
+  For compute, the number that matters is the **distribution** of ZPL/coupling across a realistic
+  strained ensemble (the array question, §4), not one perfect emitter.
