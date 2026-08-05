@@ -247,6 +247,45 @@ the analogous problem: a noninstantaneous χ³ causally precludes high-fidelity 
 Kerr phase shifts (Shapiro 2006; Gea-Banacloche 2010). So "close it with a KK bound" is
 grounded, not speculative — a genuine alternative to the BSE for the dipolar leg.
 
+## The sum-rule bound, worked out (the analytic attempt)
+
+I took the crack. The KK linkage has an exact discrete form — a **two-site oscillator-
+strength-borrowing model**. An interlayer exciton has the hole in layer B and the electron in
+`|ψ_e⟩ = √(1−x)|A⟩ + √x|B⟩`, where `x` is the electron weight in the hole's layer (set by
+tunneling/offset). Two consequences follow at leading order:
+
+- **Brightness is borrowed:** `f(x) = x·f₀` — the transition is bright only through the
+  layer-B amplitude (a sum-rule budget: f is taken from the intralayer transition).
+- **At the cost of the dipole:** `d_eff = (1−x)·d₀ ⇒ U(x) = (1−x)²·U_max`.
+
+So brightening (needed to strong-couple) directly kills the dipole (needed to blockade) — the
+KK trade-off, in one parameter. A usable exciton needs **both**: strong coupling
+`Ω₀√x > sc·Γ` (⇒ `x > (sc·Γ/Ω₀)²`) and blockade `(1−x)²U_max > 0.71·Γ`
+(⇒ `x < 1−√(0.71Γ/U_max)`). A window exists iff
+
+> **(★)  (sc·Γ/Ω₀)² < 1 − √(0.71·Γ/U_max)**
+
+with a hard **necessary condition**: even the max-dipole `x→0` exciton needs `U_max > 0.71·Γ`,
+or the leg is closed at *every* brightness.
+
+**Result** (literature box: Γ∈[6,15], U_max∈[8,20], Ω₀∈[20,50] meV; `phase2_dipolar_sumrule.json`):
+
+| strong-coupling criterion | open fraction of box | nominal (Γ10,U14,Ω35) |
+|---|:--:|:--:|
+| bare onset `Ω>Γ` (sc=1) | **76 %** | OPEN (window x≈0.09–0.27) |
+| resolved doublet `Ω>2Γ` (sc=2, device-real) | **37 %** | **CLOSED** |
+
+So the sum rule does **not** cleanly close the dipolar leg — but it converts "undetermined"
+into a sharp, criterion-sensitive knife-edge: the route survives only on the favorable corner
+(low Γ≈6, high U_max≈20, high Ω₀≈50 meV) **and** only if a bare Rabi onset counts as usable;
+demand a resolved polariton and the nominal case closes. The pessimistic corner is closed
+outright (`U_max < 0.71·Γ`). This is a stronger statement than the search could make: the leg
+is closed *except on a thin, explicitly named corner*, and (★) says exactly which two numbers
+keep it alive — `U_max` (the dark, max-dipole interaction) and whether an interlayer exciton
+in the x≈0.1–0.3 sliver actually reaches `Ω>Γ` at 300 K. Those are precisely what the source-
+built BSE (absolute f, hence Ω) and a DFPT dipole (U_max) would nail. Tier: **model + measured**,
+not GW-BSE.
+
 **Alternative engines** if the absolute f is wanted rigorously: Yambo-from-source (pinned
 MPI/ScaLAPACK/FFTW/HDF5 — in progress), BerkeleyGW (gated source, layer wired), or **ABINIT
 BSE** (conda-forge, an independent second engine).

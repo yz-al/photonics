@@ -1,0 +1,98 @@
+{
+  "question": "Does the KK / oscillator-strength sum rule CLOSE the dipolar leg analytically (no BSE)?",
+  "model": "Two-site: f(x)=x\u00b7f0 (brightness borrowed via layer-B weight x), U(x)=(1-x)\u00b2\u00b7U_max (dipole \u221d 1-x). One parameter x\u2208[0,1].",
+  "master_inequality": "OPEN iff (\u0393/\u03a90)\u00b2 < 1 \u2212 \u221a(0.71\u00b7\u0393/U_max)   ... (\u2605)",
+  "necessary_condition": "Even the max-dipole (x\u21920) exciton needs U_max > 0.71\u00b7\u0393; else CLOSED at every x with no strong-coupling analysis.",
+  "parameter_box_meV": {
+    "gamma_floor": [
+      6.0,
+      15.0
+    ],
+    "U_max_dipolar": [
+      8.0,
+      20.0
+    ],
+    "omega0_intralayer_Rabi": [
+      20.0,
+      50.0
+    ]
+  },
+  "provenance": "model (two-site trade-off) + measured (\u0393, U_max, \u03a90). NOT GW-BSE.",
+  "scan_onset_sc_OmegaGtGamma": {
+    "sc_margin": 1.0,
+    "open_fraction": 0.758,
+    "n_grid": 9261,
+    "nominal_midpoint": {
+      "verdict": "open",
+      "open": true,
+      "x_lo_strong_coupling": 0.09,
+      "x_hi_blockade": 0.2703,
+      "window_width": 0.1803,
+      "U_at_best_meV": 11.593,
+      "f_at_best_over_f0": 0.09,
+      "reason": "OPEN in a window x\u2208(0.090, 0.270) (width 0.180): a brightness fraction exists that is both bright enough to strong-couple and separated enough to blockade."
+    },
+    "optimistic_corner": {
+      "verdict": "open",
+      "open": true,
+      "x_lo_strong_coupling": 0.0144,
+      "x_hi_blockade": 0.5385,
+      "window_width": 0.5241,
+      "U_at_best_meV": 19.428,
+      "f_at_best_over_f0": 0.0144,
+      "reason": "OPEN in a window x\u2208(0.014, 0.538) (width 0.524): a brightness fraction exists that is both bright enough to strong-couple and separated enough to blockade."
+    },
+    "pessimistic_corner": {
+      "verdict": "closed",
+      "open": false,
+      "x_lo_strong_coupling": 0.5625,
+      "x_hi_blockade": null,
+      "window_width": 0.0,
+      "U_at_best_meV": 1.531,
+      "f_at_best_over_f0": 0.5625,
+      "reason": "CLOSED at every x: even the maximum-dipole (x\u21920) exciton has U_max=8 < threshold\u00b7\u0393=10.6 meV."
+    }
+  },
+  "scan_resolved_sc_OmegaGt2Gamma": {
+    "sc_margin": 2.0,
+    "open_fraction": 0.372,
+    "n_grid": 9261,
+    "nominal_midpoint": {
+      "verdict": "closed",
+      "open": false,
+      "x_lo_strong_coupling": 0.36,
+      "x_hi_blockade": 0.2703,
+      "window_width": 0.0,
+      "U_at_best_meV": 5.734,
+      "f_at_best_over_f0": 0.36,
+      "reason": "CLOSED: strong-coupling floor x_lo=0.360 \u2265 blockade ceiling x_hi=0.270 \u2014 brightening past the SC threshold already kills the dipole below blockade."
+    },
+    "optimistic_corner": {
+      "verdict": "open",
+      "open": true,
+      "x_lo_strong_coupling": 0.0576,
+      "x_hi_blockade": 0.5385,
+      "window_width": 0.4809,
+      "U_at_best_meV": 17.762,
+      "f_at_best_over_f0": 0.0576,
+      "reason": "OPEN in a window x\u2208(0.058, 0.538) (width 0.481): a brightness fraction exists that is both bright enough to strong-couple and separated enough to blockade."
+    },
+    "pessimistic_corner": {
+      "verdict": "closed",
+      "open": false,
+      "x_lo_strong_coupling": 2.25,
+      "x_hi_blockade": null,
+      "window_width": 0.0,
+      "U_at_best_meV": 12.5,
+      "f_at_best_over_f0": 2.25,
+      "reason": "CLOSED at every x: even the maximum-dipole (x\u21920) exciton has U_max=8 < threshold\u00b7\u0393=10.6 meV."
+    }
+  },
+  "verdict": "The bound does NOT cleanly close the leg, but it is CRITERION-SENSITIVE. Under bare strong-coupling onset (\u03a9>\u0393) it is open in 76% of the literature box (nominal OPEN); under a resolved doublet (\u03a9>2\u0393, device-realistic) it collapses to 37% (nominal CLOSED). So the dipolar route lives ONLY on the favorable corner (low \u0393\u22486, high U_max\u224820, high \u03a90\u224850 meV) AND only if a bare Rabi onset counts as usable. The pessimistic corner is CLOSED outright (U_max<0.71\u00b7\u0393 \u2014 blockade fails at every brightness). Honest state: not a clean analytic 'no', but 'closed except on a thin corner that a resolved-polariter criterion erases'.",
+  "what_the_bse_or_experiment_must_show": [
+    "U_max \u2014 the x\u21920 (dark, max-dipole) on-site interaction. If U_max \u2272 0.71\u00b7\u0393_floor the leg is CLOSED with no further work (necessary condition fails).",
+    "Whether an interlayer exciton in the thin open window (x\u22480.1\u20130.3) reaches \u03a9>\u0393 at 300 K \u2014 i.e. is bright enough to strong-couple while still dipolar enough to blockade. \u03a90\u00b7\u221ax vs \u0393."
+  ],
+  "relation_to_KK": "The two-site trade-off is the discrete realization of the Kramers-Kronig linkage: layer-B weight x raises the imaginary part (absorption/f) and lowers the static real part (dipole/U). The single-photon-\u03c7\u00b3 causality bound (Shapiro 2006; Gea-Banacloche 2010) is the continuum analog \u2014 precedent that this closure shape is real.",
+  "rigor": "Leading-order two-site model; a stricter strong-coupling criterion (\u03a9>2\u0393 for a well-resolved doublet) shrinks the window further, tightening toward CLOSED. This bound REPLACES 'undetermined' with 'closed except in a thin, named corner' \u2014 the honest analytic state of the dipolar leg."
+}
