@@ -1240,7 +1240,7 @@ getwfk3 2
 nband3 {nband}
 ecuteps3 4
 ecutwfn3 {ecut - 5}
-awtr3 1
+awtr3 0
 inclvkb3 2
 
 # DS4: BSE (optdriver=99), reads W from the SCR; direct diag prints exciton E + f.
