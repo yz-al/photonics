@@ -1,32 +1,33 @@
 {
   "sample": "A",
   "chunk": [
-    30,
-    90,
-    300,
-    940
+    0,
+    125,
+    0,
+    1250
   ],
   "cleft_dtype": "uint64",
   "cleft_bg_value": 18446744073709551615,
-  "n_synaptic_clefts": 7,
-  "neuron_bg_value": 191973,
-  "n_neurons": 4833,
+  "n_synaptic_clefts": 123,
+  "neuron_bg_value": 191978,
+  "n_neurons": 37365,
   "gt_connectome": {
-    "n_edges": 6,
+    "n_edges": 115,
     "structure": {
-      "n_nodes": 4833,
-      "n_edges": 6,
-      "mean_degree": 0.0,
-      "max_degree": 2,
+      "n_nodes_total": 37365,
+      "n_wired_nodes": 95,
+      "n_edges": 115,
+      "mean_degree_wired": 2.59,
+      "max_degree": 12,
       "spectral_gap_fiedler": 0.0,
       "hub_nodes_top5": [
-        50,
-        33,
-        34,
-        65,
-        72
+        206,
+        142,
+        296,
+        253,
+        133
       ],
-      "note": "adjacency of the connectome; spectral gap ~ modular separability (stage-2 input)"
+      "note": "adjacency of the WIRED subgraph; spectral gap ~ modular separability (stage-2 input)"
     }
   },
   "merge_corruption_curve": [
@@ -35,72 +36,255 @@
       "precision": 1.0,
       "recall": 1.0,
       "f1": 1.0,
-      "tp": 6,
-      "n_pred_edges": 6,
-      "n_gt_edges": 6
+      "tp": 115,
+      "n_pred_edges": 115,
+      "n_gt_edges": 115
     },
     {
       "merge_rate": 0.05,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0,
-      "tp": 6,
-      "n_pred_edges": 6,
-      "n_gt_edges": 6
+      "precision": 0.8957,
+      "recall": 0.8957,
+      "f1": 0.8957,
+      "tp": 103,
+      "n_pred_edges": 115,
+      "n_gt_edges": 115
     },
     {
       "merge_rate": 0.1,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0,
-      "tp": 6,
-      "n_pred_edges": 6,
-      "n_gt_edges": 6
+      "precision": 0.8174,
+      "recall": 0.8174,
+      "f1": 0.8174,
+      "tp": 94,
+      "n_pred_edges": 115,
+      "n_gt_edges": 115
     },
     {
       "merge_rate": 0.2,
-      "precision": 1.0,
-      "recall": 1.0,
-      "f1": 1.0,
-      "tp": 6,
-      "n_pred_edges": 6,
-      "n_gt_edges": 6
+      "precision": 0.8957,
+      "recall": 0.8957,
+      "f1": 0.8957,
+      "tp": 103,
+      "n_pred_edges": 115,
+      "n_gt_edges": 115
     },
     {
       "merge_rate": 0.4,
-      "precision": 0.5,
-      "recall": 0.5,
-      "f1": 0.5,
-      "tp": 3,
-      "n_pred_edges": 6,
-      "n_gt_edges": 6
+      "precision": 0.5913,
+      "recall": 0.5913,
+      "f1": 0.5913,
+      "tp": 68,
+      "n_pred_edges": 115,
+      "n_gt_edges": 115
     }
   ],
   "reading": "connectome edge-F1 vs segmentation merge rate: this is the wiring-level cost of merges -> sets how merge-safe the labeling must be for the mechanistic model to be correct. The gt_connectome adjacency is the stage-2 input.",
   "edges_sample": [
     [
-      50,
+      22,
+      263
+    ],
+    [
+      260,
+      398
+    ],
+    [
+      3,
       65
     ],
     [
-      50,
-      96
+      248,
+      456
     ],
     [
-      75,
-      87
+      309,
+      343
     ],
     [
-      34,
-      82
+      133,
+      299
     ],
     [
-      19,
-      72
+      140,
+      287
     ],
     [
-      33,
-      92
+      333,
+      454
+    ],
+    [
+      12,
+      281
+    ],
+    [
+      299,
+      36249
+    ],
+    [
+      3,
+      743
+    ],
+    [
+      270,
+      281
+    ],
+    [
+      252,
+      257
+    ],
+    [
+      333,
+      472
+    ],
+    [
+      327,
+      333
+    ],
+    [
+      218,
+      333
+    ],
+    [
+      252,
+      333
+    ],
+    [
+      206,
+      257
+    ],
+    [
+      252,
+      425
+    ],
+    [
+      206,
+      454
+    ],
+    [
+      206,
+      502
+    ],
+    [
+      259,
+      36249
+    ],
+    [
+      206,
+      218
+    ],
+    [
+      257,
+      270
+    ],
+    [
+      270,
+      682
+    ],
+    [
+      9,
+      218
+    ],
+    [
+      218,
+      252
+    ],
+    [
+      149,
+      301
+    ],
+    [
+      252,
+      267
+    ],
+    [
+      282,
+      36977
+    ],
+    [
+      301,
+      36977
+    ],
+    [
+      9,
+      36977
+    ],
+    [
+      10,
+      137
+    ],
+    [
+      309,
+      381
+    ],
+    [
+      136,
+      343
+    ],
+    [
+      82,
+      296
+    ],
+    [
+      267,
+      36249
+    ],
+    [
+      156,
+      411
+    ],
+    [
+      296,
+      425
+    ],
+    [
+      133,
+      425
+    ],
+    [
+      206,
+      449
+    ],
+    [
+      142,
+      429
+    ],
+    [
+      252,
+      327
+    ],
+    [
+      133,
+      454
+    ],
+    [
+      406,
+      442
+    ],
+    [
+      287,
+      435
+    ],
+    [
+      299,
+      514
+    ],
+    [
+      206,
+      36461
+    ],
+    [
+      218,
+      650
+    ],
+    [
+      206,
+      422
     ]
+  ],
+  "full_volume_total_clefts": 123,
+  "full_volume_nonbg_cleft_voxels": 440599,
+  "full_volume_shape": [
+    125,
+    1250,
+    1250
   ]
 }
