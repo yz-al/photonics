@@ -30,6 +30,84 @@
       "note": "adjacency of the WIRED subgraph; spectral gap ~ modular separability (stage-2 input)"
     }
   },
+  "connectome_mechanism": {
+    "n_wired_nodes": 95,
+    "n_edges": 115,
+    "components": {
+      "n_components": 10,
+      "largest_sizes_top8": [
+        65,
+        10,
+        5,
+        3,
+        2,
+        2,
+        2,
+        2
+      ],
+      "reading": "separable connected components = anatomically distinct circuits"
+    },
+    "modularity": {
+      "Q_whole": 0.6755,
+      "n_communities": 16,
+      "community_sizes": [
+        14,
+        13,
+        11,
+        10,
+        9,
+        7,
+        6,
+        5
+      ],
+      "Q_within_largest_component": 0.5843,
+      "largest_component_n": 65,
+      "n_communities_in_largest": 9,
+      "reading": "Q_whole is inflated by fragmentation (components ARE modules); Q_within_largest_component is the non-trivial signal -- real sub-modules inside a single circuit = candidate functional groups"
+    },
+    "recurrence": {
+      "mean_clustering": 0.0782,
+      "transitivity": 0.0898,
+      "n_triangles": 10,
+      "reading": "triangles/transitivity = recurrent (vs feed-forward) wiring motifs"
+    },
+    "rich_club": {
+      "phi_by_k": {
+        "1": 0.056,
+        "2": 0.099,
+        "3": 0.17,
+        "4": 0.227,
+        "5": 0.286,
+        "6": 0.4,
+        "7": 0.333
+      },
+      "rising_core": true,
+      "reading": "rising Phi(k) => hubs interconnect = an integrative CORE that routes signals between modules"
+    },
+    "hub_structure": {
+      "max_degree": 10,
+      "hub_nodes_top5": [
+        206,
+        142,
+        253,
+        296,
+        650
+      ],
+      "degree_assortativity": 0.0411,
+      "reading": "hubs + (dis)assortativity = who the integrators are and how they wire"
+    },
+    "node_roles": {
+      "connector_hub_neurons": [
+        142,
+        206,
+        253,
+        296
+      ],
+      "n_connector_hubs": 4,
+      "reading": "connector hubs (high within-module degree AND high cross-module participation) = the mechanistically load-bearing neurons"
+    },
+    "caveat": "CREMI's cleft sampling wires ~95 neurons of ~37k -- this is a PROOF of the graph->mechanism hop on fly, not a whole-brain claim. Full extraction wants a denser connectome (FlyWire/hemibrain) and, for dynamics, paired activity."
+  },
   "merge_corruption_curve": [
     {
       "merge_rate": 0.0,
@@ -77,207 +155,582 @@
       "n_gt_edges": 115
     }
   ],
-  "reading": "connectome edge-F1 vs segmentation merge rate: this is the wiring-level cost of merges -> sets how merge-safe the labeling must be for the mechanistic model to be correct. The gt_connectome adjacency is the stage-2 input.",
-  "edges_sample": [
+  "reading": "connectome edge-F1 vs segmentation merge rate: this is the wiring-level cost of merges -> sets how merge-safe the labeling must be for the mechanistic model to be correct. connectome_mechanism is the graph->mechanism extraction (the stage-2 structural readout).",
+  "gt_edges_full": [
     [
       22,
-      263
+      263,
+      1
     ],
     [
       260,
-      398
+      398,
+      1
     ],
     [
       3,
-      65
+      65,
+      1
     ],
     [
       248,
-      456
+      456,
+      1
     ],
     [
       309,
-      343
+      343,
+      1
     ],
     [
       133,
-      299
+      299,
+      1
     ],
     [
       140,
-      287
+      287,
+      1
     ],
     [
       333,
-      454
+      454,
+      1
     ],
     [
       12,
-      281
+      281,
+      1
     ],
     [
       299,
-      36249
+      36249,
+      1
     ],
     [
       3,
-      743
+      743,
+      1
     ],
     [
       270,
-      281
+      281,
+      1
     ],
     [
       252,
-      257
+      257,
+      1
     ],
     [
       333,
-      472
+      472,
+      1
     ],
     [
       327,
-      333
+      333,
+      1
     ],
     [
       218,
-      333
+      333,
+      1
     ],
     [
       252,
-      333
+      333,
+      2
     ],
     [
       206,
-      257
+      257,
+      1
     ],
     [
       252,
-      425
+      425,
+      1
     ],
     [
       206,
-      454
+      454,
+      1
     ],
     [
       206,
-      502
+      502,
+      2
     ],
     [
       259,
-      36249
+      36249,
+      1
     ],
     [
       206,
-      218
+      218,
+      1
     ],
     [
       257,
-      270
+      270,
+      1
     ],
     [
       270,
-      682
+      682,
+      1
     ],
     [
       9,
-      218
+      218,
+      2
     ],
     [
       218,
-      252
+      252,
+      1
     ],
     [
       149,
-      301
+      301,
+      1
     ],
     [
       252,
-      267
+      267,
+      1
     ],
     [
       282,
-      36977
+      36977,
+      1
     ],
     [
       301,
-      36977
+      36977,
+      1
     ],
     [
       9,
-      36977
+      36977,
+      1
     ],
     [
       10,
-      137
+      137,
+      1
     ],
     [
       309,
-      381
+      381,
+      1
     ],
     [
       136,
-      343
+      343,
+      1
     ],
     [
       82,
-      296
+      296,
+      1
     ],
     [
       267,
-      36249
+      36249,
+      1
     ],
     [
       156,
-      411
+      411,
+      1
     ],
     [
       296,
-      425
+      425,
+      1
     ],
     [
       133,
-      425
+      425,
+      2
     ],
     [
       206,
-      449
+      449,
+      1
     ],
     [
       142,
-      429
+      429,
+      1
     ],
     [
       252,
-      327
+      327,
+      1
     ],
     [
       133,
-      454
+      454,
+      1
     ],
     [
       406,
-      442
+      442,
+      1
     ],
     [
       287,
-      435
+      435,
+      1
     ],
     [
       299,
-      514
+      514,
+      1
     ],
     [
       206,
-      36461
+      36461,
+      2
     ],
     [
       218,
-      650
+      650,
+      1
     ],
     [
       206,
-      422
+      422,
+      1
+    ],
+    [
+      193,
+      386,
+      1
+    ],
+    [
+      325,
+      378,
+      1
+    ],
+    [
+      193,
+      378,
+      1
+    ],
+    [
+      137,
+      378,
+      1
+    ],
+    [
+      325,
+      381,
+      1
+    ],
+    [
+      133,
+      606,
+      1
+    ],
+    [
+      454,
+      682,
+      1
+    ],
+    [
+      296,
+      404,
+      1
+    ],
+    [
+      142,
+      650,
+      1
+    ],
+    [
+      222,
+      363,
+      1
+    ],
+    [
+      25,
+      363,
+      1
+    ],
+    [
+      296,
+      650,
+      1
+    ],
+    [
+      342,
+      36461,
+      1
+    ],
+    [
+      142,
+      190,
+      2
+    ],
+    [
+      302,
+      342,
+      1
+    ],
+    [
+      342,
+      363,
+      1
+    ],
+    [
+      287,
+      342,
+      1
+    ],
+    [
+      435,
+      454,
+      1
+    ],
+    [
+      206,
+      1302,
+      1
+    ],
+    [
+      296,
+      1302,
+      1
+    ],
+    [
+      363,
+      1513,
+      1
+    ],
+    [
+      206,
+      222,
+      1
+    ],
+    [
+      222,
+      1302,
+      1
+    ],
+    [
+      257,
+      682,
+      1
+    ],
+    [
+      140,
+      650,
+      1
+    ],
+    [
+      25,
+      650,
+      1
+    ],
+    [
+      142,
+      253,
+      1
+    ],
+    [
+      140,
+      142,
+      1
+    ],
+    [
+      336,
+      340,
+      1
+    ],
+    [
+      25,
+      255,
+      1
+    ],
+    [
+      296,
+      435,
+      2
+    ],
+    [
+      223,
+      558,
+      1
+    ],
+    [
+      142,
+      454,
+      1
+    ],
+    [
+      222,
+      650,
+      1
+    ],
+    [
+      222,
+      377,
+      1
+    ],
+    [
+      117,
+      341,
+      1
+    ],
+    [
+      181,
+      326,
+      1
+    ],
+    [
+      24,
+      117,
+      1
+    ],
+    [
+      24,
+      427,
+      1
+    ],
+    [
+      253,
+      318,
+      1
+    ],
+    [
+      253,
+      440,
+      1
+    ],
+    [
+      50,
+      650,
+      1
+    ],
+    [
+      490,
+      668,
+      1
+    ],
+    [
+      253,
+      278,
+      1
+    ],
+    [
+      44,
+      222,
+      1
+    ],
+    [
+      249,
+      253,
+      1
+    ],
+    [
+      73,
+      454,
+      1
+    ],
+    [
+      255,
+      318,
+      1
+    ],
+    [
+      73,
+      253,
+      1
+    ],
+    [
+      50,
+      668,
+      1
+    ],
+    [
+      133,
+      340,
+      2
+    ],
+    [
+      278,
+      440,
+      1
+    ],
+    [
+      142,
+      411,
+      1
+    ],
+    [
+      82,
+      342,
+      1
+    ],
+    [
+      142,
+      235,
+      1
+    ],
+    [
+      137,
+      193,
+      1
+    ],
+    [
+      50,
+      278,
+      1
+    ],
+    [
+      117,
+      152,
+      1
+    ],
+    [
+      253,
+      349,
+      1
+    ],
+    [
+      340,
+      490,
+      1
+    ],
+    [
+      253,
+      340,
+      1
+    ],
+    [
+      149,
+      36362,
+      1
+    ],
+    [
+      10,
+      378,
+      1
+    ],
+    [
+      206,
+      296,
+      1
+    ],
+    [
+      435,
+      682,
+      1
     ]
   ],
   "full_volume_total_clefts": 123,
