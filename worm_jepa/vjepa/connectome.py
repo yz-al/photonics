@@ -136,10 +136,17 @@ def run(neuron_ids, clefts, merge_rates=(0.0, 0.05, 0.1, 0.2, 0.4)):
         me = edges_from_regions(mseg, regions)
         # merged seg reuses compacted ids (fused), so edges live in a GT-derived space; compare to GT.
         corruption.append({"merge_rate": r, **_f1(me, gt_edges)})
+    try:
+        import mech_connectome
+        mechanism = mech_connectome.run(gt_edges)
+    except Exception as e:                                    # never let the mech pass break the build
+        mechanism = {"error": f"{type(e).__name__}: {e}"}
     return {**diag,
             "gt_connectome": {"n_edges": len(gt_edges), "structure": struct},
+            "connectome_mechanism": mechanism,
             "merge_corruption_curve": corruption,
             "reading": ("connectome edge-F1 vs segmentation merge rate: this is the wiring-level "
                         "cost of merges -> sets how merge-safe the labeling must be for the mechanistic "
-                        "model to be correct. The gt_connectome adjacency is the stage-2 input."),
-            "edges_sample": [list(k) for k in list(gt_edges.keys())[:50]]}
+                        "model to be correct. connectome_mechanism is the graph->mechanism extraction "
+                        "(the stage-2 structural readout)."),
+            "gt_edges_full": [[a, b, w] for (a, b), w in gt_edges.items()]}
