@@ -1,0 +1,44 @@
+{
+  "abinit": {
+    "path": "/opt/conda/bin/abinit",
+    "--version": "[1785904192.031799] [modal:18   :0]       tcp_iface.c:941  UCX  ERROR scandir(/sys/class/net) failed: No such file or directory\n10.0.3\n",
+    "--build": "[1785904192.171340] [modal:27   :0]       tcp_iface.c:941  UCX  ERROR scandir(/sys/class/net) failed: No such file or directory\n DATA TYPE INFORMATION: \n REAL:      Data type name: REAL(DP) \n            Kind value:      8\n            Precision:      15\n            Smallest nonnegligible quantity relative to 1:  0.22204460E-015\n            Smallest positive number:                       0.22250739E-307\n            Largest representable number:                   0.17976931E+309\n INTEGER:   Data type name: INTEGER(default) \n            Kind value: 4\n            Bit size:   32\n            Largest representable number: 2147483647\n LOGICAL:   Data type name: LOGICAL \n            Kind value: 4\n CHARACTER: Data type name: CHARACTER             Kind value: 1\n  ==== Using MPI-2 specifications ==== \n  MPI-IO support is ON\n  xmpi_tag_ub ................   1073741823\n  xmpi_bsize_ch ..............            1\n  xmpi_bsize_int .............            4\n  xmpi_bsize_sp ..............            4\n  xmpi_bsize_dp ..............            8\n  xmpi_bsize_spc .............            8\n  xmpi_bsize_dpc .............           16\n  xmpio_bsize_frm ............            4\n  xmpi_address_kind ..........            8\n  xmpi_offset_kind ...........            8\n  MPI_WTICK ..................    1.0000000000000001E-009\n\n ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n CPP options activated during the build:\n\n                    CC_GNU                   CXX_GNU                    FC_GNU\n \n HAVE_FC_ALLOCATABLE_DT...             HAVE_FC_ASYNC         HAVE_FC_BACKTRACE\n \n  HAVE_FC_COMMAND_ARGUMENT      HAVE_FC_COMMAND_LINE        HAVE_FC_CONTIGUOUS\n \n           HAVE_FC_CPUTIME              HAVE_FC_EXIT             HAVE_FC_FLUSH\n \n             HAVE_FC_GAMMA            HAVE_FC_GETENV   HAVE_FC_IEEE_ARITHMETIC\n \n   HAVE_FC_IEEE_EXCEPTIONS          HAVE_FC_INT_QUAD             HAVE_FC_IOMSG\n \n     HAVE_FC_ISO_C_BINDING  HAVE_FC_ISO_FORTRAN_2008        HAVE_FC_LONG_LINES\n \n        HAVE_FC_MOVE_ALLOC  HAVE_FC_ON_THE_FLY_SHAPE           HAVE_FC_PRIVATE\n \n         HAVE_FC_PROTECTED           HAVE_FC_SHIFTLR         HAVE_FC_STREAM_IO\n \n            HAVE_FC_SYSTEM                HAVE_FFTW3          HAVE_FORTRAN2003\n \n                 HAVE_HDF5             HAVE_HDF5_MPI        HAVE_LIBPAW_ABINIT\n \n      HAVE_LIBTETRA_ABINIT                HAVE_LIBXC                  HAVE_MPI\n \n                 HAVE_MPI2         HAVE_MPI2_INPLACE       HAVE_MPI_IALLGATHER\n \n       HAVE_MPI_IALLREDUCE        HAVE_MPI_IALLTOALL       HAVE_MPI_IALLTOALLV\n \n           HAVE_MPI_IBCAST         HAVE_MPI_IGATHERV        HAVE_MPI_INTEGER16\n \n               HAVE_MPI_IO HAVE_MPI_TYPE_CREATE_S...               HAVE_NETCDF\n \n       HAVE_NETCDF_FORTRAN   HAVE_NETCDF_FORTRAN_MPI           HAVE_NETCDF_MPI\n \n             HAVE_OS_LINUX         HAVE_TIMER_ABINIT                            \n ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n\n ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n === Build Information === \n  Version       : 10.0.3\n  Build target  : x86_64_linux_gnu13.3\n  Build date    : 20241210\n\n === Compiler Suite === \n  C compiler       : gnu\n  C++ compiler     : gnu13.3\n  Fortran compiler : gnu13.3\n  CFLAGS           : -march=nocona -mtune=haswell -ftree-vectorize -fPIC -fstack-protect ...\n  CXXFLAGS         : -fvisibility-inlines-hidden -fmessage-length=0 -march=nocona -mtune ...\n  FCFLAGS          : -g -ffree-line-length-none -fallow-argument-mismatch   -fallow-argument-mismatch\n  FC_LDFLAGS       : \n\n === Optimizations === \n  Debug level        : basic\n  Optimization level : standard\n  Architecture       : intel_xeon\n\n === Multicore === \n  Parallel build : yes\n  Parallel I/O   : yes\n  openMP support : \n  GPU support    : \n\n === Connectors / Fallbacks === \n  LINALG flavor  : netlib\n  FFT flavor     : fftw3\n  HDF5           : yes\n  NetCDF         : yes\n  NetCDF Fortran : yes\n  LibXC          : yes\n  Wannier90      : no\n\n === Experimental features === \n  Exports             : \n  GW double-precision : \n\n ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n\n ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n Default optimizations:\n   -O2 -march=nocona -mtune=haswell\n\n\n Optimizations for 43_ptgroups:\n   -O0\n\n\n ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n",
+    "gw_bse_likely": true
+  },
+  "pseudo_probe": {
+    "pdojo_github_psp8_S": {
+      "url": "https://raw.githubusercontent.com/abinit/pseudo_dojo/master/pseudo_dojo/pseudos/ONCVPSP-PBE-PDv0.4/S/S.psp8",
+      "status": 200,
+      "first_bytes": "b'S     ONCVPSP-3.'",
+      "looks_binary_or_psp": true,
+      "ok_psp8": true
+    },
+    "pdojo_github_psp8_Mo": {
+      "url": "https://raw.githubusercontent.com/abinit/pseudo_dojo/master/pseudo_dojo/pseudos/ONCVPSP-PBE-PDv0.4/Mo/Mo.psp8",
+      "status": 404
+    },
+    "pdojo_github_psp8_Se": {
+      "url": "https://raw.githubusercontent.com/abinit/pseudo_dojo/master/pseudo_dojo/pseudos/ONCVPSP-PBE-PDv0.4/Se/Se.psp8",
+      "status": 200,
+      "first_bytes": "b'Se    ONCVPSP-3.'",
+      "looks_binary_or_psp": true,
+      "ok_psp8": true
+    },
+    "pdojo_org_table_tgz": {
+      "url": "http://www.pseudo-dojo.org/pseudos/nc-sr-04_pbe_standard_psp8.tgz",
+      "status": 200,
+      "first_bytes": "b'\\x1f\\x8b\\x08\\x00\\xf9\\xda\\nZ\\x00\\x03\\xc4\\xfdK\\xaf\\xad;'",
+      "looks_binary_or_psp": true
+    },
+    "jth_paw_abinit_org": {
+      "url": "https://www.abinit.org/sites/default/files/PAW2/JTH/ATOMICDATA/JTH-PBE-atomicdata.tar.gz",
+      "status": 404
+    }
+  },
+  "pseudo_sources_working": [
+    "pdojo_github_psp8_S",
+    "pdojo_github_psp8_Se",
+    "pdojo_org_table_tgz"
+  ],
+  "verdict": "ABINIT present; pseudo source(s) working: pdojo_github_psp8_S, pdojo_github_psp8_Se, pdojo_org_table_tgz"
+}
