@@ -30,17 +30,28 @@ def compact(vol):
     return out, int(len(uniq)), int(bg)
 
 
-def build_edges(seg, clefts, cleft_bg=0, dil=2, pad=3):
+def cleft_regions(clefts, dil=2, pad=3):
+    """Precompute, ONCE, each cleft's padded bounding box + dilated boolean mask. The clefts
+    never change across simulated segmentation merges, so we pay find_objects/dilation once and
+    reuse the regions for every merge rate (the expensive full-volume scan happens a single
+    time, not once per merge rate)."""
     from scipy.ndimage import find_objects, binary_dilation
     lab = clefts.astype(np.int32)                            # already compacted: 0=bg, 1..K
-    slices = find_objects(lab)                               # bounding box per cleft (one pass)
-    edges = defaultdict(int)
-    for i, sl in enumerate(slices):
+    regions = []
+    for i, sl in enumerate(find_objects(lab)):               # bounding box per cleft (one pass)
         if sl is None:
             continue
         psl = tuple(slice(max(0, s.start - pad), s.stop + pad) for s in sl)   # pad the bbox
-        d = binary_dilation(lab[psl] == (i + 1), iterations=dil)
-        neigh = seg[psl][d]; neigh = neigh[neigh > 0]
+        mask = binary_dilation(lab[psl] == (i + 1), iterations=dil)
+        regions.append((psl, mask))
+    return regions
+
+
+def edges_from_regions(seg, regions):
+    """Read the two dominant neuron ids each cleft touches -> an undirected weighted edge."""
+    edges = defaultdict(int)
+    for psl, mask in regions:
+        neigh = seg[psl][mask]; neigh = neigh[neigh > 0]
         if len(neigh) < 2:
             continue
         v, ct = np.unique(neigh, return_counts=True)
@@ -50,6 +61,10 @@ def build_edges(seg, clefts, cleft_bg=0, dil=2, pad=3):
             if a != b:
                 edges[(a, b)] += 1
     return dict(edges)
+
+
+def build_edges(seg, clefts, cleft_bg=0, dil=2, pad=3):
+    return edges_from_regions(seg, cleft_regions(clefts, dil=dil, pad=pad))
 
 
 def merge_neurons(seg, rate, rng):
@@ -75,21 +90,27 @@ def _f1(pred, gt):
 
 
 def spectral(edges, nodes):
+    """Structure of the connectome graph. Restrict to nodes INCIDENT to at least one edge --
+    isolated neurons carry no wiring info and building a dense NxN over all ~37k neurons is an
+    11GB, O(N^3) trap. The wired subgraph is tiny (a few hundred nodes for CREMI)."""
     from scipy.linalg import eigh
-    idx = {n: i for i, n in enumerate(nodes)}; N = len(nodes)
+    n_total = len(nodes)
+    wired = sorted({a for (a, b) in edges} | {b for (a, b) in edges})
+    idx = {n: i for i, n in enumerate(wired)}; N = len(wired)
     if N < 3:
-        return {"n_nodes": N, "note": "too few nodes"}
+        return {"n_nodes_total": n_total, "n_wired_nodes": N, "n_edges": len(edges),
+                "note": "too few wired nodes for a spectral gap"}
     A = np.zeros((N, N))
     for (a, b), w in edges.items():
-        if a in idx and b in idx:
-            A[idx[a], idx[b]] = A[idx[b], idx[a]] = w
+        A[idx[a], idx[b]] = A[idx[b], idx[a]] = w
     deg = A.sum(1); order = np.argsort(-deg)
     d = np.clip(deg, 1e-6, None); Dm = np.diag(1 / np.sqrt(d))
     ev = np.sort(np.clip(eigh(Dm @ (np.diag(deg) - A) @ Dm, eigvals_only=True), 0, 2))
-    return {"n_nodes": N, "n_edges": len(edges), "mean_degree": round(float(deg.mean()), 2),
-            "max_degree": int(deg.max()), "spectral_gap_fiedler": round(float(ev[2] - ev[1]), 4) if N > 2 else None,
-            "hub_nodes_top5": [int(nodes[i]) for i in order[:5]],
-            "note": "adjacency of the connectome; spectral gap ~ modular separability (stage-2 input)"}
+    return {"n_nodes_total": n_total, "n_wired_nodes": N, "n_edges": len(edges),
+            "mean_degree_wired": round(float(deg.mean()), 2), "max_degree": int(deg.max()),
+            "spectral_gap_fiedler": round(float(ev[2] - ev[1]), 4),
+            "hub_nodes_top5": [int(wired[i]) for i in order[:5]],
+            "note": "adjacency of the WIRED subgraph; spectral gap ~ modular separability (stage-2 input)"}
 
 
 def run(neuron_ids, clefts, merge_rates=(0.0, 0.05, 0.1, 0.2, 0.4)):
@@ -105,13 +126,14 @@ def run(neuron_ids, clefts, merge_rates=(0.0, 0.05, 0.1, 0.2, 0.4)):
                                  "Cannot build a connectome from clefts here."),
                 "gt_connectome": {"n_edges": 0}, "merge_corruption_curve": []}
     nodes = [int(i) for i in np.unique(seg) if i > 0]
-    gt_edges = build_edges(seg, cl, cleft_bg=0)
+    regions = cleft_regions(cl)                               # find_objects/dilation ONCE
+    gt_edges = edges_from_regions(seg, regions)
     struct = spectral(gt_edges, nodes)
     rng = np.random.default_rng(0)
     corruption = []
     for r in merge_rates:
         mseg = seg if r == 0 else merge_neurons(seg, r, rng)
-        me = build_edges(mseg, cl, cleft_bg=0)
+        me = edges_from_regions(mseg, regions)
         # merged seg reuses compacted ids (fused), so edges live in a GT-derived space; compare to GT.
         corruption.append({"merge_rate": r, **_f1(me, gt_edges)})
     return {**diag,
