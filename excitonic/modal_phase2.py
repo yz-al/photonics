@@ -1199,10 +1199,10 @@ def abinit_bse(material: str = "MoS2", mode: str = "debug") -> dict:
     bs_lo = 8
     eps_model = 13.0
 
-    abi = f"""# {material} 2D BSE (model dielectric, Tamm-Dancoff, direct diag)
+    abi = f"""# {material} 2D BSE (full RPA screening, Tamm-Dancoff, direct diag)
 pp_dirpath "{psp_dir}"
 pseudos "{pseudos}"
-ndtset 3
+ndtset 4
 
 acell 1 1 1
 rprim
@@ -1233,27 +1233,33 @@ tolwfr2 1.0d-8
 nband2 {nband + 6}
 nbdbuf2 6
 
-# DS3: BSE (model dielectric function, direct diagonalization)
-# MBPT G-sphere cutoffs MUST be set (unset ⇒ ecutwfn→0 ⇒ SIGSEGV): ecutwfn (BSE basis),
-# ecuteps (screening — model here but ABINIT still wants it), ecutsigx (bare exchange).
-optdriver3 99
+# DS3: SCREENING (optdriver=3) -> SCR file (RPA dielectric matrix)
+optdriver3 3
 getwfk3 2
-getden3 1
-bs_calctype3 1
-ecutwfn3 {ecut - 5}
-ecuteps3 4
-ecutsigx3 {ecut - 5}
-mbpt_sciss3 0.0 eV
-bs_exchange_term3 1
-bs_coulomb_term3 21
-mdf_epsilon3 {eps_model}
-bs_coupling3 0
-bs_loband3 {bs_lo}
 nband3 {nband}
-bs_freq_mesh3 0.0 8.0 0.02 eV
-bs_algorithm3 1
+ecuteps3 4
+ecutwfn3 {ecut - 5}
+awtr3 1
 inclvkb3 2
-gw_icutcoul3 6
+
+# DS4: BSE (optdriver=99), reads W from the SCR; direct diag prints exciton E + f.
+# G-sphere cutoffs MUST be set (unset ⇒ SIGSEGV): ecutwfn/ecuteps/ecutsigx.
+optdriver4 99
+getwfk4 2
+getscr4 3
+bs_calctype4 1
+ecutwfn4 {ecut - 5}
+ecuteps4 4
+ecutsigx4 {ecut - 5}
+mbpt_sciss4 0.0 eV
+bs_exchange_term4 1
+bs_coulomb_term4 11
+bs_coupling4 0
+bs_loband4 {bs_lo}
+nband4 {nband}
+bs_freq_mesh4 0.0 8.0 0.02 eV
+bs_algorithm4 1
+inclvkb4 2
 """
     open(os.path.join(wd, "run.abi"), "w").write(abi)
 
