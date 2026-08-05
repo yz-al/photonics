@@ -1,0 +1,13 @@
+&input_pw2bgw
+  prefix = 'WSe2'
+  outdir = './out'
+  real_or_complex = 2
+  wfng_flag = .true.
+  wfng_file = 'WFN'
+  rhog_flag = .true.
+  rhog_file = 'RHO'
+  wfng_kgrid = .true.
+  wfng_nk1 = 12
+  wfng_nk2 = 12
+  wfng_nk3 = 1
+/

@@ -1,0 +1,2332 @@
+{
+  "purpose": "GW-BSE + DFPT/EPW label-generation seed set (targets: Gamma(300K), U)",
+  "note": "All listed materials carry a C2DB BSE E_b but NO Gamma or U label; they are the candidates to run first-principles on. Ranking is a static priority score; the active-learning loop (Phase 3) replaces it with surrogate uncertainty.",
+  "n_selected": 120,
+  "family_counts": {
+    "halide": 50,
+    "chalcogenide_2D": 25,
+    "TMD_group6": 16,
+    "other": 4,
+    "organic_like": 1,
+    "oxide": 8,
+    "halide_perovskite_like": 10,
+    "TMD_other": 6
+  },
+  "score_weights": "binding .34 / low_frohlich .24 / gap_window .16 / oscillator .12 / stability .14",
+  "seed_set": [
+    {
+      "formula": "TiCl2",
+      "family": "halide",
+      "E_b_eV": 0.826,
+      "score": 0.8063,
+      "subscores": {
+        "binding": 0.519,
+        "low_frohlich": 0.988,
+        "gap_window": 0.985,
+        "oscillator": 0.82,
+        "stability": 0.977
+      },
+      "frohlich_proxy_ratio": 0.012,
+      "gap_used_eV": 1.636,
+      "reasons": [
+        "large E_b=0.83 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.01)",
+        "gap 1.64 eV in window"
+      ]
+    },
+    {
+      "formula": "ZrBr2",
+      "family": "halide",
+      "E_b_eV": 0.827,
+      "score": 0.7854,
+      "subscores": {
+        "binding": 0.519,
+        "low_frohlich": 0.981,
+        "gap_window": 0.908,
+        "oscillator": 0.734,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.019,
+      "gap_used_eV": 1.737,
+      "reasons": [
+        "large E_b=0.83 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.02)",
+        "gap 1.74 eV in window"
+      ]
+    },
+    {
+      "formula": "ZrIBr",
+      "family": "halide",
+      "E_b_eV": 0.76,
+      "score": 0.7689,
+      "subscores": {
+        "binding": 0.471,
+        "low_frohlich": 0.988,
+        "gap_window": 0.937,
+        "oscillator": 0.832,
+        "stability": 0.87
+      },
+      "frohlich_proxy_ratio": 0.012,
+      "gap_used_eV": 1.59,
+      "reasons": [
+        "large E_b=0.76 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.01)",
+        "gap 1.59 eV in window"
+      ]
+    },
+    {
+      "formula": "Pd2S4",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 1.113,
+      "score": 0.7645,
+      "subscores": {
+        "binding": 0.724,
+        "low_frohlich": 0.926,
+        "gap_window": 0.616,
+        "oscillator": 0.489,
+        "stability": 0.993
+      },
+      "frohlich_proxy_ratio": 0.074,
+      "gap_used_eV": 2.015,
+      "reasons": [
+        "large E_b=1.11 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.07)",
+        "gap 2.02 eV in window"
+      ]
+    },
+    {
+      "formula": "CoBr2",
+      "family": "halide",
+      "E_b_eV": 2.211,
+      "score": 0.7609,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.5,
+        "gap_window": 0.738,
+        "oscillator": 0.446,
+        "stability": 0.923
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 1.401,
+      "reasons": [
+        "large E_b=2.21 eV",
+        "gap 1.40 eV in window"
+      ]
+    },
+    {
+      "formula": "ZrBrCl",
+      "family": "halide",
+      "E_b_eV": 0.873,
+      "score": 0.7589,
+      "subscores": {
+        "binding": 0.552,
+        "low_frohlich": 0.968,
+        "gap_window": 0.76,
+        "oscillator": 0.682,
+        "stability": 0.967
+      },
+      "frohlich_proxy_ratio": 0.032,
+      "gap_used_eV": 1.878,
+      "reasons": [
+        "large E_b=0.87 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.03)",
+        "gap 1.88 eV in window"
+      ]
+    },
+    {
+      "formula": "Au2Se2",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 0.965,
+      "score": 0.7576,
+      "subscores": {
+        "binding": 0.618,
+        "low_frohlich": 0.897,
+        "gap_window": 0.906,
+        "oscillator": 0.421,
+        "stability": 0.977
+      },
+      "frohlich_proxy_ratio": 0.103,
+      "gap_used_eV": 1.561,
+      "reasons": [
+        "large E_b=0.96 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.10)",
+        "gap 1.56 eV in window"
+      ]
+    },
+    {
+      "formula": "HfBr2",
+      "family": "halide",
+      "E_b_eV": 0.808,
+      "score": 0.756,
+      "subscores": {
+        "binding": 0.506,
+        "low_frohlich": 0.949,
+        "gap_window": 0.885,
+        "oscillator": 0.649,
+        "stability": 0.977
+      },
+      "frohlich_proxy_ratio": 0.051,
+      "gap_used_eV": 1.759,
+      "reasons": [
+        "large E_b=0.81 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.05)",
+        "gap 1.76 eV in window"
+      ]
+    },
+    {
+      "formula": "Ag2S2",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 1.187,
+      "score": 0.748,
+      "subscores": {
+        "binding": 0.776,
+        "low_frohlich": 0.858,
+        "gap_window": 0.902,
+        "oscillator": 0.416,
+        "stability": 0.6
+      },
+      "frohlich_proxy_ratio": 0.142,
+      "gap_used_eV": 1.557,
+      "reasons": [
+        "large E_b=1.19 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.14)",
+        "gap 1.56 eV in window"
+      ]
+    },
+    {
+      "formula": "ZrCl2",
+      "family": "halide",
+      "E_b_eV": 0.909,
+      "score": 0.7456,
+      "subscores": {
+        "binding": 0.578,
+        "low_frohlich": 0.958,
+        "gap_window": 0.639,
+        "oscillator": 0.641,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.042,
+      "gap_used_eV": 1.993,
+      "reasons": [
+        "large E_b=0.91 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.04)",
+        "gap 1.99 eV in window"
+      ]
+    },
+    {
+      "formula": "ZrICl",
+      "family": "halide",
+      "E_b_eV": 0.8,
+      "score": 0.7429,
+      "subscores": {
+        "binding": 0.5,
+        "low_frohlich": 0.97,
+        "gap_window": 0.901,
+        "oscillator": 0.777,
+        "stability": 0.733
+      },
+      "frohlich_proxy_ratio": 0.03,
+      "gap_used_eV": 1.744,
+      "reasons": [
+        "large E_b=0.80 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.03)",
+        "gap 1.74 eV in window"
+      ]
+    },
+    {
+      "formula": "TiBrCl",
+      "family": "halide",
+      "E_b_eV": 0.687,
+      "score": 0.7427,
+      "subscores": {
+        "binding": 0.419,
+        "low_frohlich": 0.992,
+        "gap_window": 0.814,
+        "oscillator": 0.902,
+        "stability": 0.883
+      },
+      "frohlich_proxy_ratio": 0.008,
+      "gap_used_eV": 1.473,
+      "reasons": [
+        "large E_b=0.69 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.01)",
+        "gap 1.47 eV in window"
+      ]
+    },
+    {
+      "formula": "Cu2S2",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 0.949,
+      "score": 0.7297,
+      "subscores": {
+        "binding": 0.606,
+        "low_frohlich": 0.937,
+        "gap_window": 0.931,
+        "oscillator": 0.576,
+        "stability": 0.577
+      },
+      "frohlich_proxy_ratio": 0.063,
+      "gap_used_eV": 1.584,
+      "reasons": [
+        "large E_b=0.95 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.06)",
+        "gap 1.58 eV in window"
+      ]
+    },
+    {
+      "formula": "ZrI2",
+      "family": "halide",
+      "E_b_eV": 0.644,
+      "score": 0.7295,
+      "subscores": {
+        "binding": 0.389,
+        "low_frohlich": 1.0,
+        "gap_window": 0.766,
+        "oscillator": 0.902,
+        "stability": 0.903
+      },
+      "frohlich_proxy_ratio": 0.0,
+      "gap_used_eV": 1.428,
+      "reasons": [
+        "large E_b=0.64 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.00)",
+        "gap 1.43 eV in window"
+      ]
+    },
+    {
+      "formula": "RuI2",
+      "family": "halide",
+      "E_b_eV": 0.994,
+      "score": 0.7265,
+      "subscores": {
+        "binding": 0.639,
+        "low_frohlich": 0.994,
+        "gap_window": 0.644,
+        "oscillator": 0.628,
+        "stability": 0.66
+      },
+      "frohlich_proxy_ratio": 0.006,
+      "gap_used_eV": 1.988,
+      "reasons": [
+        "large E_b=0.99 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.01)",
+        "gap 1.99 eV in window"
+      ]
+    },
+    {
+      "formula": "TiBr2",
+      "family": "halide",
+      "E_b_eV": 0.591,
+      "score": 0.7218,
+      "subscores": {
+        "binding": 0.351,
+        "low_frohlich": 0.997,
+        "gap_window": 0.759,
+        "oscillator": 0.977,
+        "stability": 0.89
+      },
+      "frohlich_proxy_ratio": 0.003,
+      "gap_used_eV": 1.421,
+      "reasons": [
+        "large E_b=0.59 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.00)",
+        "gap 1.42 eV in window"
+      ]
+    },
+    {
+      "formula": "HfIBr",
+      "family": "halide",
+      "E_b_eV": 0.7,
+      "score": 0.7205,
+      "subscores": {
+        "binding": 0.429,
+        "low_frohlich": 0.972,
+        "gap_window": 0.96,
+        "oscillator": 0.745,
+        "stability": 0.703
+      },
+      "frohlich_proxy_ratio": 0.028,
+      "gap_used_eV": 1.612,
+      "reasons": [
+        "large E_b=0.70 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.03)",
+        "gap 1.61 eV in window"
+      ]
+    },
+    {
+      "formula": "HfBrCl",
+      "family": "halide",
+      "E_b_eV": 0.845,
+      "score": 0.7201,
+      "subscores": {
+        "binding": 0.532,
+        "low_frohlich": 0.928,
+        "gap_window": 0.709,
+        "oscillator": 0.596,
+        "stability": 0.94
+      },
+      "frohlich_proxy_ratio": 0.072,
+      "gap_used_eV": 1.926,
+      "reasons": [
+        "large E_b=0.84 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.07)",
+        "gap 1.93 eV in window"
+      ]
+    },
+    {
+      "formula": "Ni2S4",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 1.13,
+      "score": 0.7194,
+      "subscores": {
+        "binding": 0.736,
+        "low_frohlich": 0.892,
+        "gap_window": 0.388,
+        "oscillator": 0.578,
+        "stability": 0.883
+      },
+      "frohlich_proxy_ratio": 0.108,
+      "gap_used_eV": 2.231,
+      "reasons": [
+        "large E_b=1.13 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.11)",
+        "gap 2.23 eV in window"
+      ]
+    },
+    {
+      "formula": "Au2S2",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 1.039,
+      "score": 0.7176,
+      "subscores": {
+        "binding": 0.671,
+        "low_frohlich": 0.856,
+        "gap_window": 0.621,
+        "oscillator": 0.372,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.144,
+      "gap_used_eV": 2.01,
+      "reasons": [
+        "large E_b=1.04 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.14)",
+        "gap 2.01 eV in window"
+      ]
+    },
+    {
+      "formula": "CrS2",
+      "family": "TMD_group6",
+      "E_b_eV": 0.534,
+      "score": 0.7129,
+      "subscores": {
+        "binding": 0.31,
+        "low_frohlich": 0.923,
+        "gap_window": 0.787,
+        "oscillator": 1.0,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.077,
+      "gap_used_eV": 1.448,
+      "reasons": [
+        "large E_b=0.53 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.08)",
+        "gap 1.45 eV in window"
+      ]
+    },
+    {
+      "formula": "As4",
+      "family": "other",
+      "E_b_eV": 0.566,
+      "score": 0.7126,
+      "subscores": {
+        "binding": 0.333,
+        "low_frohlich": 1.0,
+        "gap_window": 0.845,
+        "oscillator": 0.865,
+        "stability": 0.86
+      },
+      "frohlich_proxy_ratio": 0.0,
+      "gap_used_eV": 1.797,
+      "reasons": [
+        "large E_b=0.57 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.00)",
+        "gap 1.80 eV in window"
+      ]
+    },
+    {
+      "formula": "MoTe2",
+      "family": "TMD_group6",
+      "E_b_eV": 0.455,
+      "score": 0.7054,
+      "subscores": {
+        "binding": 0.254,
+        "low_frohlich": 0.891,
+        "gap_window": 0.908,
+        "oscillator": 1.0,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.109,
+      "gap_used_eV": 1.563,
+      "reasons": [
+        "large E_b=0.46 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.11)",
+        "gap 1.56 eV in window"
+      ]
+    },
+    {
+      "formula": "Pd2Se4",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 0.891,
+      "score": 0.7045,
+      "subscores": {
+        "binding": 0.565,
+        "low_frohlich": 0.892,
+        "gap_window": 0.581,
+        "oscillator": 0.559,
+        "stability": 0.987
+      },
+      "frohlich_proxy_ratio": 0.108,
+      "gap_used_eV": 2.048,
+      "reasons": [
+        "large E_b=0.89 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.11)",
+        "gap 2.05 eV in window"
+      ]
+    },
+    {
+      "formula": "H2C2",
+      "family": "organic_like",
+      "E_b_eV": 1.387,
+      "score": 0.7042,
+      "subscores": {
+        "binding": 0.919,
+        "low_frohlich": 1.0,
+        "gap_window": 0.0,
+        "oscillator": 0.113,
+        "stability": 0.987
+      },
+      "frohlich_proxy_ratio": 0.0,
+      "gap_used_eV": 6.416,
+      "reasons": [
+        "large E_b=1.39 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.00)"
+      ]
+    },
+    {
+      "formula": "HfCl2",
+      "family": "halide",
+      "E_b_eV": 0.914,
+      "score": 0.7036,
+      "subscores": {
+        "binding": 0.581,
+        "low_frohlich": 0.909,
+        "gap_window": 0.535,
+        "oscillator": 0.546,
+        "stability": 0.977
+      },
+      "frohlich_proxy_ratio": 0.091,
+      "gap_used_eV": 2.092,
+      "reasons": [
+        "large E_b=0.91 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.09)",
+        "gap 2.09 eV in window"
+      ]
+    },
+    {
+      "formula": "PdSe2",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 0.398,
+      "score": 0.6984,
+      "subscores": {
+        "binding": 0.213,
+        "low_frohlich": 0.934,
+        "gap_window": 0.963,
+        "oscillator": 1.0,
+        "stability": 0.913
+      },
+      "frohlich_proxy_ratio": 0.066,
+      "gap_used_eV": 1.615,
+      "reasons": [
+        "large E_b=0.40 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.07)",
+        "gap 1.61 eV in window"
+      ]
+    },
+    {
+      "formula": "Ag2Se2",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 1.091,
+      "score": 0.6968,
+      "subscores": {
+        "binding": 0.708,
+        "low_frohlich": 0.903,
+        "gap_window": 0.504,
+        "oscillator": 0.501,
+        "stability": 0.703
+      },
+      "frohlich_proxy_ratio": 0.097,
+      "gap_used_eV": 1.179,
+      "reasons": [
+        "large E_b=1.09 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.10)",
+        "gap 1.18 eV in window"
+      ]
+    },
+    {
+      "formula": "NiO2",
+      "family": "oxide",
+      "E_b_eV": 1.212,
+      "score": 0.6937,
+      "subscores": {
+        "binding": 0.794,
+        "low_frohlich": 0.724,
+        "gap_window": 0.267,
+        "oscillator": 0.558,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.276,
+      "gap_used_eV": 2.346,
+      "reasons": [
+        "large E_b=1.21 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.28)",
+        "gap 2.35 eV in window"
+      ]
+    },
+    {
+      "formula": "MoTeSe",
+      "family": "TMD_group6",
+      "E_b_eV": 0.475,
+      "score": 0.6858,
+      "subscores": {
+        "binding": 0.268,
+        "low_frohlich": 0.913,
+        "gap_window": 0.796,
+        "oscillator": 1.0,
+        "stability": 0.917
+      },
+      "frohlich_proxy_ratio": 0.087,
+      "gap_used_eV": 1.844,
+      "reasons": [
+        "large E_b=0.47 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.09)",
+        "gap 1.84 eV in window"
+      ]
+    },
+    {
+      "formula": "WTeSe",
+      "family": "TMD_group6",
+      "E_b_eV": 0.455,
+      "score": 0.6843,
+      "subscores": {
+        "binding": 0.254,
+        "low_frohlich": 0.942,
+        "gap_window": 0.842,
+        "oscillator": 0.973,
+        "stability": 0.86
+      },
+      "frohlich_proxy_ratio": 0.058,
+      "gap_used_eV": 1.8,
+      "reasons": [
+        "large E_b=0.46 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.06)",
+        "gap 1.80 eV in window"
+      ]
+    },
+    {
+      "formula": "Ag2O2",
+      "family": "oxide",
+      "E_b_eV": 1.179,
+      "score": 0.6838,
+      "subscores": {
+        "binding": 0.771,
+        "low_frohlich": 0.759,
+        "gap_window": 0.448,
+        "oscillator": 0.458,
+        "stability": 0.807
+      },
+      "frohlich_proxy_ratio": 0.241,
+      "gap_used_eV": 1.126,
+      "reasons": [
+        "large E_b=1.18 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.24)",
+        "gap 1.13 eV in window"
+      ]
+    },
+    {
+      "formula": "RuBr2",
+      "family": "halide",
+      "E_b_eV": 1.353,
+      "score": 0.6784,
+      "subscores": {
+        "binding": 0.895,
+        "low_frohlich": 0.956,
+        "gap_window": 0.207,
+        "oscillator": 0.489,
+        "stability": 0.377
+      },
+      "frohlich_proxy_ratio": 0.044,
+      "gap_used_eV": 2.403,
+      "reasons": [
+        "large E_b=1.35 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.04)",
+        "gap 2.40 eV in window"
+      ]
+    },
+    {
+      "formula": "HfICl",
+      "family": "halide",
+      "E_b_eV": 0.739,
+      "score": 0.6778,
+      "subscores": {
+        "binding": 0.456,
+        "low_frohlich": 0.946,
+        "gap_window": 0.86,
+        "oscillator": 0.695,
+        "stability": 0.533
+      },
+      "frohlich_proxy_ratio": 0.054,
+      "gap_used_eV": 1.783,
+      "reasons": [
+        "large E_b=0.74 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.05)",
+        "gap 1.78 eV in window"
+      ]
+    },
+    {
+      "formula": "NiS2",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 0.45,
+      "score": 0.6774,
+      "subscores": {
+        "binding": 0.25,
+        "low_frohlich": 0.966,
+        "gap_window": 0.771,
+        "oscillator": 1.0,
+        "stability": 0.837
+      },
+      "frohlich_proxy_ratio": 0.034,
+      "gap_used_eV": 1.868,
+      "reasons": [
+        "large E_b=0.45 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.03)",
+        "gap 1.87 eV in window"
+      ]
+    },
+    {
+      "formula": "Au2Te2",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 0.863,
+      "score": 0.6739,
+      "subscores": {
+        "binding": 0.545,
+        "low_frohlich": 0.945,
+        "gap_window": 0.386,
+        "oscillator": 0.5,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.055,
+      "gap_used_eV": 1.067,
+      "reasons": [
+        "large E_b=0.86 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.06)",
+        "gap 1.07 eV in window"
+      ]
+    },
+    {
+      "formula": "CrSeS",
+      "family": "TMD_group6",
+      "E_b_eV": 0.508,
+      "score": 0.6711,
+      "subscores": {
+        "binding": 0.291,
+        "low_frohlich": 0.902,
+        "gap_window": 0.625,
+        "oscillator": 1.0,
+        "stability": 0.967
+      },
+      "frohlich_proxy_ratio": 0.098,
+      "gap_used_eV": 1.294,
+      "reasons": [
+        "large E_b=0.51 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.10)",
+        "gap 1.29 eV in window"
+      ]
+    },
+    {
+      "formula": "PtO2",
+      "family": "oxide",
+      "E_b_eV": 1.503,
+      "score": 0.6705,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.63,
+        "gap_window": 0.0,
+        "oscillator": 0.35,
+        "stability": 0.98
+      },
+      "frohlich_proxy_ratio": 0.37,
+      "gap_used_eV": 3.593,
+      "reasons": [
+        "large E_b=1.50 eV"
+      ]
+    },
+    {
+      "formula": "TiICl",
+      "family": "halide",
+      "E_b_eV": 0.562,
+      "score": 0.6678,
+      "subscores": {
+        "binding": 0.33,
+        "low_frohlich": 0.982,
+        "gap_window": 0.719,
+        "oscillator": 1.0,
+        "stability": 0.607
+      },
+      "frohlich_proxy_ratio": 0.018,
+      "gap_used_eV": 1.383,
+      "reasons": [
+        "large E_b=0.56 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.02)",
+        "gap 1.38 eV in window"
+      ]
+    },
+    {
+      "formula": "VIBr",
+      "family": "halide",
+      "E_b_eV": 2.937,
+      "score": 0.6677,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.682,
+        "gap_window": 0.0,
+        "oscillator": 0.279,
+        "stability": 0.933
+      },
+      "frohlich_proxy_ratio": 0.318,
+      "gap_used_eV": 3.5,
+      "reasons": [
+        "large E_b=2.94 eV"
+      ]
+    },
+    {
+      "formula": "HfI2",
+      "family": "halide",
+      "E_b_eV": 0.571,
+      "score": 0.6637,
+      "subscores": {
+        "binding": 0.336,
+        "low_frohlich": 0.997,
+        "gap_window": 0.759,
+        "oscillator": 0.848,
+        "stability": 0.62
+      },
+      "frohlich_proxy_ratio": 0.003,
+      "gap_used_eV": 1.421,
+      "reasons": [
+        "large E_b=0.57 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.00)",
+        "gap 1.42 eV in window"
+      ]
+    },
+    {
+      "formula": "WTe2",
+      "family": "TMD_group6",
+      "E_b_eV": 0.42,
+      "score": 0.6628,
+      "subscores": {
+        "binding": 0.229,
+        "low_frohlich": 0.93,
+        "gap_window": 0.713,
+        "oscillator": 1.0,
+        "stability": 0.913
+      },
+      "frohlich_proxy_ratio": 0.07,
+      "gap_used_eV": 1.377,
+      "reasons": [
+        "large E_b=0.42 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.07)",
+        "gap 1.38 eV in window"
+      ]
+    },
+    {
+      "formula": "Cu2Se2",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 0.859,
+      "score": 0.6596,
+      "subscores": {
+        "binding": 0.542,
+        "low_frohlich": 0.96,
+        "gap_window": 0.438,
+        "oscillator": 0.683,
+        "stability": 0.663
+      },
+      "frohlich_proxy_ratio": 0.04,
+      "gap_used_eV": 1.116,
+      "reasons": [
+        "large E_b=0.86 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.04)",
+        "gap 1.12 eV in window"
+      ]
+    },
+    {
+      "formula": "Ni2Se4",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 0.881,
+      "score": 0.6592,
+      "subscores": {
+        "binding": 0.558,
+        "low_frohlich": 0.853,
+        "gap_window": 0.439,
+        "oscillator": 0.715,
+        "stability": 0.777
+      },
+      "frohlich_proxy_ratio": 0.147,
+      "gap_used_eV": 2.183,
+      "reasons": [
+        "large E_b=0.88 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.15)",
+        "gap 2.18 eV in window"
+      ]
+    },
+    {
+      "formula": "NiBr2",
+      "family": "halide",
+      "E_b_eV": 2.414,
+      "score": 0.6576,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.585,
+        "gap_window": 0.0,
+        "oscillator": 0.31,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.415,
+      "gap_used_eV": 2.611,
+      "reasons": [
+        "large E_b=2.41 eV"
+      ]
+    },
+    {
+      "formula": "MoSe2",
+      "family": "TMD_group6",
+      "E_b_eV": 0.5,
+      "score": 0.6575,
+      "subscores": {
+        "binding": 0.286,
+        "low_frohlich": 0.959,
+        "gap_window": 0.506,
+        "oscillator": 0.91,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.041,
+      "gap_used_eV": 2.119,
+      "reasons": [
+        "large E_b=0.50 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.04)",
+        "gap 2.12 eV in window"
+      ]
+    },
+    {
+      "formula": "P4",
+      "family": "other",
+      "E_b_eV": 0.624,
+      "score": 0.6561,
+      "subscores": {
+        "binding": 0.374,
+        "low_frohlich": 0.962,
+        "gap_window": 0.605,
+        "oscillator": 0.662,
+        "stability": 0.87
+      },
+      "frohlich_proxy_ratio": 0.038,
+      "gap_used_eV": 2.025,
+      "reasons": [
+        "large E_b=0.62 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.04)",
+        "gap 2.02 eV in window"
+      ]
+    },
+    {
+      "formula": "VBr2",
+      "family": "halide",
+      "E_b_eV": 3.292,
+      "score": 0.652,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.601,
+        "gap_window": 0.0,
+        "oscillator": 0.231,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.399,
+      "gap_used_eV": 3.35,
+      "reasons": [
+        "large E_b=3.29 eV"
+      ]
+    },
+    {
+      "formula": "RuCl2",
+      "family": "halide",
+      "E_b_eV": 1.663,
+      "score": 0.6519,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.918,
+        "gap_window": 0.0,
+        "oscillator": 0.397,
+        "stability": 0.313
+      },
+      "frohlich_proxy_ratio": 0.082,
+      "gap_used_eV": 2.624,
+      "reasons": [
+        "large E_b=1.66 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.08)"
+      ]
+    },
+    {
+      "formula": "WSe2",
+      "family": "TMD_group6",
+      "E_b_eV": 0.48,
+      "score": 0.6499,
+      "subscores": {
+        "binding": 0.271,
+        "low_frohlich": 0.98,
+        "gap_window": 0.522,
+        "oscillator": 0.824,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.02,
+      "gap_used_eV": 2.104,
+      "reasons": [
+        "large E_b=0.48 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.02)",
+        "gap 2.10 eV in window"
+      ]
+    },
+    {
+      "formula": "MoTeS",
+      "family": "TMD_group6",
+      "E_b_eV": 0.509,
+      "score": 0.6492,
+      "subscores": {
+        "binding": 0.292,
+        "low_frohlich": 0.905,
+        "gap_window": 0.644,
+        "oscillator": 1.0,
+        "stability": 0.783
+      },
+      "frohlich_proxy_ratio": 0.095,
+      "gap_used_eV": 1.988,
+      "reasons": [
+        "large E_b=0.51 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.10)",
+        "gap 1.99 eV in window"
+      ]
+    },
+    {
+      "formula": "TiIBr",
+      "family": "halide",
+      "E_b_eV": 0.498,
+      "score": 0.6449,
+      "subscores": {
+        "binding": 0.284,
+        "low_frohlich": 0.993,
+        "gap_window": 0.524,
+        "oscillator": 1.0,
+        "stability": 0.757
+      },
+      "frohlich_proxy_ratio": 0.007,
+      "gap_used_eV": 1.198,
+      "reasons": [
+        "large E_b=0.50 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.01)",
+        "gap 1.20 eV in window"
+      ]
+    },
+    {
+      "formula": "CrSe2",
+      "family": "TMD_group6",
+      "E_b_eV": 0.479,
+      "score": 0.6443,
+      "subscores": {
+        "binding": 0.271,
+        "low_frohlich": 0.891,
+        "gap_window": 0.489,
+        "oscillator": 1.0,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.109,
+      "gap_used_eV": 1.165,
+      "reasons": [
+        "large E_b=0.48 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.11)",
+        "gap 1.17 eV in window"
+      ]
+    },
+    {
+      "formula": "CrO2",
+      "family": "oxide",
+      "E_b_eV": 0.776,
+      "score": 0.6389,
+      "subscores": {
+        "binding": 0.483,
+        "low_frohlich": 0.978,
+        "gap_window": 0.558,
+        "oscillator": 0.743,
+        "stability": 0.44
+      },
+      "frohlich_proxy_ratio": 0.022,
+      "gap_used_eV": 1.23,
+      "reasons": [
+        "large E_b=0.78 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.02)",
+        "gap 1.23 eV in window"
+      ]
+    },
+    {
+      "formula": "VI2",
+      "family": "halide",
+      "E_b_eV": 2.566,
+      "score": 0.6384,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.32,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 3.395,
+      "reasons": [
+        "large E_b=2.57 eV"
+      ]
+    },
+    {
+      "formula": "CoCl2",
+      "family": "halide",
+      "E_b_eV": 2.383,
+      "score": 0.6361,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.383,
+        "stability": 0.93
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 3.799,
+      "reasons": [
+        "large E_b=2.38 eV"
+      ]
+    },
+    {
+      "formula": "PtTe2",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 0.347,
+      "score": 0.6345,
+      "subscores": {
+        "binding": 0.176,
+        "low_frohlich": 0.983,
+        "gap_window": 0.571,
+        "oscillator": 1.0,
+        "stability": 0.91
+      },
+      "frohlich_proxy_ratio": 0.017,
+      "gap_used_eV": 1.242,
+      "reasons": [
+        "large E_b=0.35 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.02)",
+        "gap 1.24 eV in window"
+      ]
+    },
+    {
+      "formula": "VICl",
+      "family": "halide",
+      "E_b_eV": 3.14,
+      "score": 0.6306,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.608,
+        "gap_window": 0.0,
+        "oscillator": 0.262,
+        "stability": 0.81
+      },
+      "frohlich_proxy_ratio": 0.392,
+      "gap_used_eV": 3.537,
+      "reasons": [
+        "large E_b=3.14 eV"
+      ]
+    },
+    {
+      "formula": "PdO2",
+      "family": "oxide",
+      "E_b_eV": 1.278,
+      "score": 0.6291,
+      "subscores": {
+        "binding": 0.841,
+        "low_frohlich": 0.61,
+        "gap_window": 0.0,
+        "oscillator": 0.471,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.39,
+      "gap_used_eV": 2.903,
+      "reasons": [
+        "large E_b=1.28 eV"
+      ]
+    },
+    {
+      "formula": "VBrCl",
+      "family": "halide",
+      "E_b_eV": 3.585,
+      "score": 0.6289,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.538,
+        "gap_window": 0.0,
+        "oscillator": 0.208,
+        "stability": 0.963
+      },
+      "frohlich_proxy_ratio": 0.462,
+      "gap_used_eV": 3.751,
+      "reasons": [
+        "large E_b=3.58 eV"
+      ]
+    },
+    {
+      "formula": "TiI2",
+      "family": "halide",
+      "E_b_eV": 0.444,
+      "score": 0.6244,
+      "subscores": {
+        "binding": 0.246,
+        "low_frohlich": 0.998,
+        "gap_window": 0.411,
+        "oscillator": 1.0,
+        "stability": 0.827
+      },
+      "frohlich_proxy_ratio": 0.002,
+      "gap_used_eV": 1.09,
+      "reasons": [
+        "large E_b=0.44 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.00)",
+        "gap 1.09 eV in window"
+      ]
+    },
+    {
+      "formula": "WTeS",
+      "family": "TMD_group6",
+      "E_b_eV": 0.502,
+      "score": 0.6225,
+      "subscores": {
+        "binding": 0.287,
+        "low_frohlich": 0.93,
+        "gap_window": 0.563,
+        "oscillator": 0.93,
+        "stability": 0.713
+      },
+      "frohlich_proxy_ratio": 0.07,
+      "gap_used_eV": 2.065,
+      "reasons": [
+        "large E_b=0.50 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.07)",
+        "gap 2.06 eV in window"
+      ]
+    },
+    {
+      "formula": "ScSe2",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 1.057,
+      "score": 0.6199,
+      "subscores": {
+        "binding": 0.684,
+        "low_frohlich": 0.559,
+        "gap_window": 0.832,
+        "oscillator": 0.327,
+        "stability": 0.58
+      },
+      "frohlich_proxy_ratio": 0.441,
+      "gap_used_eV": 1.49,
+      "reasons": [
+        "large E_b=1.06 eV",
+        "gap 1.49 eV in window"
+      ]
+    },
+    {
+      "formula": "MoSeS",
+      "family": "TMD_group6",
+      "E_b_eV": 0.527,
+      "score": 0.6193,
+      "subscores": {
+        "binding": 0.305,
+        "low_frohlich": 0.967,
+        "gap_window": 0.286,
+        "oscillator": 0.849,
+        "stability": 0.97
+      },
+      "frohlich_proxy_ratio": 0.033,
+      "gap_used_eV": 2.328,
+      "reasons": [
+        "large E_b=0.53 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.03)",
+        "gap 2.33 eV in window"
+      ]
+    },
+    {
+      "formula": "BN",
+      "family": "other",
+      "E_b_eV": 2.001,
+      "score": 0.6152,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.503,
+        "gap_window": 0.0,
+        "oscillator": 0.12,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.497,
+      "gap_used_eV": 7.117,
+      "reasons": [
+        "large E_b=2.00 eV"
+      ]
+    },
+    {
+      "formula": "SnCl2",
+      "family": "halide_perovskite_like",
+      "E_b_eV": 1.923,
+      "score": 0.6142,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.2,
+        "stability": 0.93
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 4.553,
+      "reasons": [
+        "large E_b=1.92 eV"
+      ]
+    },
+    {
+      "formula": "OsCl2",
+      "family": "halide",
+      "E_b_eV": 1.473,
+      "score": 0.6138,
+      "subscores": {
+        "binding": 0.981,
+        "low_frohlich": 0.979,
+        "gap_window": 0.0,
+        "oscillator": 0.379,
+        "stability": 0.0
+      },
+      "frohlich_proxy_ratio": 0.021,
+      "gap_used_eV": 2.881,
+      "reasons": [
+        "large E_b=1.47 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.02)"
+      ]
+    },
+    {
+      "formula": "VCl2",
+      "family": "halide",
+      "E_b_eV": 3.827,
+      "score": 0.6137,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.466,
+        "gap_window": 0.0,
+        "oscillator": 0.182,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.534,
+      "gap_used_eV": 3.459,
+      "reasons": [
+        "large E_b=3.83 eV"
+      ]
+    },
+    {
+      "formula": "SnBr2",
+      "family": "halide_perovskite_like",
+      "E_b_eV": 1.423,
+      "score": 0.6131,
+      "subscores": {
+        "binding": 0.945,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.265,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 4.003,
+      "reasons": [
+        "large E_b=1.42 eV"
+      ]
+    },
+    {
+      "formula": "HgCl2",
+      "family": "halide",
+      "E_b_eV": 1.565,
+      "score": 0.6102,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.186,
+        "stability": 0.913
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 4.618,
+      "reasons": [
+        "large E_b=1.56 eV"
+      ]
+    },
+    {
+      "formula": "WSeS",
+      "family": "TMD_group6",
+      "E_b_eV": 0.507,
+      "score": 0.6098,
+      "subscores": {
+        "binding": 0.291,
+        "low_frohlich": 0.983,
+        "gap_window": 0.301,
+        "oscillator": 0.762,
+        "stability": 0.967
+      },
+      "frohlich_proxy_ratio": 0.017,
+      "gap_used_eV": 2.314,
+      "reasons": [
+        "large E_b=0.51 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.02)",
+        "gap 2.31 eV in window"
+      ]
+    },
+    {
+      "formula": "PtSe2",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 0.511,
+      "score": 0.6088,
+      "subscores": {
+        "binding": 0.294,
+        "low_frohlich": 0.942,
+        "gap_window": 0.231,
+        "oscillator": 0.883,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.058,
+      "gap_used_eV": 2.381,
+      "reasons": [
+        "large E_b=0.51 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.06)",
+        "gap 2.38 eV in window"
+      ]
+    },
+    {
+      "formula": "Pt2S4",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 0.986,
+      "score": 0.6077,
+      "subscores": {
+        "binding": 0.633,
+        "low_frohlich": 0.939,
+        "gap_window": 0.0,
+        "oscillator": 0.42,
+        "stability": 0.833
+      },
+      "frohlich_proxy_ratio": 0.061,
+      "gap_used_eV": 2.787,
+      "reasons": [
+        "large E_b=0.99 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.06)"
+      ]
+    },
+    {
+      "formula": "Ag2Te2",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 0.94,
+      "score": 0.6066,
+      "subscores": {
+        "binding": 0.6,
+        "low_frohlich": 0.953,
+        "gap_window": 0.059,
+        "oscillator": 0.632,
+        "stability": 0.633
+      },
+      "frohlich_proxy_ratio": 0.047,
+      "gap_used_eV": 0.756,
+      "reasons": [
+        "large E_b=0.94 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.05)",
+        "gap 0.76 eV in window"
+      ]
+    },
+    {
+      "formula": "NiCl2",
+      "family": "halide",
+      "E_b_eV": 3.35,
+      "score": 0.606,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.41,
+        "gap_window": 0.0,
+        "oscillator": 0.229,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.59,
+      "gap_used_eV": 3.413,
+      "reasons": [
+        "large E_b=3.35 eV"
+      ]
+    },
+    {
+      "formula": "PdBr2",
+      "family": "halide",
+      "E_b_eV": 0.878,
+      "score": 0.604,
+      "subscores": {
+        "binding": 0.556,
+        "low_frohlich": 0.658,
+        "gap_window": 0.868,
+        "oscillator": 0.395,
+        "stability": 0.507
+      },
+      "frohlich_proxy_ratio": 0.342,
+      "gap_used_eV": 1.525,
+      "reasons": [
+        "large E_b=0.88 eV",
+        "gap 1.52 eV in window"
+      ]
+    },
+    {
+      "formula": "Pt2Se4",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 0.837,
+      "score": 0.6014,
+      "subscores": {
+        "binding": 0.526,
+        "low_frohlich": 0.913,
+        "gap_window": 0.319,
+        "oscillator": 0.504,
+        "stability": 0.657
+      },
+      "frohlich_proxy_ratio": 0.087,
+      "gap_used_eV": 2.297,
+      "reasons": [
+        "large E_b=0.84 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.09)",
+        "gap 2.30 eV in window"
+      ]
+    },
+    {
+      "formula": "VTeSe",
+      "family": "TMD_other",
+      "E_b_eV": 0.462,
+      "score": 0.6009,
+      "subscores": {
+        "binding": 0.259,
+        "low_frohlich": 0.987,
+        "gap_window": 0.138,
+        "oscillator": 1.0,
+        "stability": 0.957
+      },
+      "frohlich_proxy_ratio": 0.013,
+      "gap_used_eV": 0.831,
+      "reasons": [
+        "large E_b=0.46 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.01)",
+        "gap 0.83 eV in window"
+      ]
+    },
+    {
+      "formula": "Au2O2",
+      "family": "oxide",
+      "E_b_eV": 0.76,
+      "score": 0.5991,
+      "subscores": {
+        "binding": 0.471,
+        "low_frohlich": 0.809,
+        "gap_window": 0.284,
+        "oscillator": 0.521,
+        "stability": 0.977
+      },
+      "frohlich_proxy_ratio": 0.191,
+      "gap_used_eV": 0.97,
+      "reasons": [
+        "large E_b=0.76 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.19)",
+        "gap 0.97 eV in window"
+      ]
+    },
+    {
+      "formula": "GeBr2",
+      "family": "halide_perovskite_like",
+      "E_b_eV": 1.338,
+      "score": 0.5979,
+      "subscores": {
+        "binding": 0.884,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.311,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 4.13,
+      "reasons": [
+        "large E_b=1.34 eV"
+      ]
+    },
+    {
+      "formula": "MoO2",
+      "family": "oxide",
+      "E_b_eV": 0.788,
+      "score": 0.5948,
+      "subscores": {
+        "binding": 0.491,
+        "low_frohlich": 0.804,
+        "gap_window": 0.298,
+        "oscillator": 0.501,
+        "stability": 0.907
+      },
+      "frohlich_proxy_ratio": 0.196,
+      "gap_used_eV": 2.317,
+      "reasons": [
+        "large E_b=0.79 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.20)",
+        "gap 2.32 eV in window"
+      ]
+    },
+    {
+      "formula": "Ag2Cl2",
+      "family": "halide_perovskite_like",
+      "E_b_eV": 1.744,
+      "score": 0.5945,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.141,
+        "stability": 0.84
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 3.462,
+      "reasons": [
+        "large E_b=1.74 eV"
+      ]
+    },
+    {
+      "formula": "FeCl2",
+      "family": "halide",
+      "E_b_eV": 0.584,
+      "score": 0.5939,
+      "subscores": {
+        "binding": 0.346,
+        "low_frohlich": 0.96,
+        "gap_window": 0.233,
+        "oscillator": 0.833,
+        "stability": 0.777
+      },
+      "frohlich_proxy_ratio": 0.04,
+      "gap_used_eV": 0.921,
+      "reasons": [
+        "large E_b=0.58 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.04)",
+        "gap 0.92 eV in window"
+      ]
+    },
+    {
+      "formula": "Al2S2",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 1.33,
+      "score": 0.592,
+      "subscores": {
+        "binding": 0.879,
+        "low_frohlich": 0.456,
+        "gap_window": 0.0,
+        "oscillator": 0.388,
+        "stability": 0.98
+      },
+      "frohlich_proxy_ratio": 0.544,
+      "gap_used_eV": 3.774,
+      "reasons": [
+        "large E_b=1.33 eV"
+      ]
+    },
+    {
+      "formula": "SnBr2",
+      "family": "halide_perovskite_like",
+      "E_b_eV": 1.575,
+      "score": 0.5918,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.266,
+        "stability": 0.713
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 4.268,
+      "reasons": [
+        "large E_b=1.57 eV"
+      ]
+    },
+    {
+      "formula": "VSe2",
+      "family": "TMD_other",
+      "E_b_eV": 0.484,
+      "score": 0.5905,
+      "subscores": {
+        "binding": 0.274,
+        "low_frohlich": 0.989,
+        "gap_window": 0.0,
+        "oscillator": 1.0,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.011,
+      "gap_used_eV": 0.179,
+      "reasons": [
+        "large E_b=0.48 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.01)"
+      ]
+    },
+    {
+      "formula": "MoS2",
+      "family": "TMD_group6",
+      "E_b_eV": 0.547,
+      "score": 0.589,
+      "subscores": {
+        "binding": 0.319,
+        "low_frohlich": 0.984,
+        "gap_window": 0.071,
+        "oscillator": 0.774,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.016,
+      "gap_used_eV": 2.533,
+      "reasons": [
+        "large E_b=0.55 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.02)",
+        "gap 2.53 eV in window"
+      ]
+    },
+    {
+      "formula": "TiSe2",
+      "family": "TMD_other",
+      "E_b_eV": 0.716,
+      "score": 0.587,
+      "subscores": {
+        "binding": 0.44,
+        "low_frohlich": 0.479,
+        "gap_window": 0.822,
+        "oscillator": 0.914,
+        "stability": 0.58
+      },
+      "frohlich_proxy_ratio": 0.521,
+      "gap_used_eV": 1.481,
+      "reasons": [
+        "large E_b=0.72 eV",
+        "gap 1.48 eV in window"
+      ]
+    },
+    {
+      "formula": "PtS2",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 0.714,
+      "score": 0.5862,
+      "subscores": {
+        "binding": 0.439,
+        "low_frohlich": 0.904,
+        "gap_window": 0.0,
+        "oscillator": 0.667,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.096,
+      "gap_used_eV": 2.945,
+      "reasons": [
+        "large E_b=0.71 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.10)"
+      ]
+    },
+    {
+      "formula": "Ag2F2",
+      "family": "halide_perovskite_like",
+      "E_b_eV": 2.37,
+      "score": 0.5853,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.5,
+        "gap_window": 0.132,
+        "oscillator": 0.095,
+        "stability": 0.663
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 2.475,
+      "reasons": [
+        "large E_b=2.37 eV",
+        "gap 2.48 eV in window"
+      ]
+    },
+    {
+      "formula": "Cu2Cl2",
+      "family": "halide_perovskite_like",
+      "E_b_eV": 1.581,
+      "score": 0.5843,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.18,
+        "stability": 0.733
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 3.448,
+      "reasons": [
+        "large E_b=1.58 eV"
+      ]
+    },
+    {
+      "formula": "YBr2",
+      "family": "halide",
+      "E_b_eV": 0.536,
+      "score": 0.5767,
+      "subscores": {
+        "binding": 0.311,
+        "low_frohlich": 0.6,
+        "gap_window": 0.92,
+        "oscillator": 0.393,
+        "stability": 0.947
+      },
+      "frohlich_proxy_ratio": 0.4,
+      "gap_used_eV": 1.574,
+      "reasons": [
+        "large E_b=0.54 eV",
+        "gap 1.57 eV in window"
+      ]
+    },
+    {
+      "formula": "WS2",
+      "family": "TMD_group6",
+      "E_b_eV": 0.516,
+      "score": 0.575,
+      "subscores": {
+        "binding": 0.297,
+        "low_frohlich": 0.995,
+        "gap_window": 0.072,
+        "oscillator": 0.697,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.005,
+      "gap_used_eV": 2.532,
+      "reasons": [
+        "large E_b=0.52 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.00)",
+        "gap 2.53 eV in window"
+      ]
+    },
+    {
+      "formula": "GeBr2",
+      "family": "halide_perovskite_like",
+      "E_b_eV": 1.455,
+      "score": 0.5734,
+      "subscores": {
+        "binding": 0.968,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.305,
+        "stability": 0.627
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 4.288,
+      "reasons": [
+        "large E_b=1.46 eV"
+      ]
+    },
+    {
+      "formula": "GeCl2",
+      "family": "halide_perovskite_like",
+      "E_b_eV": 1.832,
+      "score": 0.573,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.234,
+        "stability": 0.607
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 4.93,
+      "reasons": [
+        "large E_b=1.83 eV"
+      ]
+    },
+    {
+      "formula": "PdCl2",
+      "family": "halide",
+      "E_b_eV": 1.559,
+      "score": 0.5722,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.496,
+        "gap_window": 0.093,
+        "oscillator": 0.298,
+        "stability": 0.447
+      },
+      "frohlich_proxy_ratio": 0.504,
+      "gap_used_eV": 2.512,
+      "reasons": [
+        "large E_b=1.56 eV",
+        "gap 2.51 eV in window"
+      ]
+    },
+    {
+      "formula": "ScBr2",
+      "family": "halide",
+      "E_b_eV": 0.78,
+      "score": 0.5714,
+      "subscores": {
+        "binding": 0.486,
+        "low_frohlich": 0.808,
+        "gap_window": 0.06,
+        "oscillator": 0.523,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.192,
+      "gap_used_eV": 0.757,
+      "reasons": [
+        "large E_b=0.78 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.19)",
+        "gap 0.76 eV in window"
+      ]
+    },
+    {
+      "formula": "SnCl2",
+      "family": "halide_perovskite_like",
+      "E_b_eV": 1.879,
+      "score": 0.5704,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.208,
+        "stability": 0.61
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 4.772,
+      "reasons": [
+        "large E_b=1.88 eV"
+      ]
+    },
+    {
+      "formula": "Ga2I2",
+      "family": "halide",
+      "E_b_eV": 1.345,
+      "score": 0.5699,
+      "subscores": {
+        "binding": 0.889,
+        "low_frohlich": 0.5,
+        "gap_window": 0.212,
+        "oscillator": 0.228,
+        "stability": 0.617
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 2.399,
+      "reasons": [
+        "large E_b=1.34 eV",
+        "gap 2.40 eV in window"
+      ]
+    },
+    {
+      "formula": "TiSeS",
+      "family": "TMD_other",
+      "E_b_eV": 0.69,
+      "score": 0.5685,
+      "subscores": {
+        "binding": 0.421,
+        "low_frohlich": 0.546,
+        "gap_window": 0.666,
+        "oscillator": 0.893,
+        "stability": 0.573
+      },
+      "frohlich_proxy_ratio": 0.454,
+      "gap_used_eV": 1.333,
+      "reasons": [
+        "large E_b=0.69 eV",
+        "gap 1.33 eV in window"
+      ]
+    },
+    {
+      "formula": "VTe2",
+      "family": "TMD_other",
+      "E_b_eV": 0.415,
+      "score": 0.5682,
+      "subscores": {
+        "binding": 0.225,
+        "low_frohlich": 0.996,
+        "gap_window": 0.0,
+        "oscillator": 1.0,
+        "stability": 0.947
+      },
+      "frohlich_proxy_ratio": 0.004,
+      "gap_used_eV": 4.001,
+      "reasons": [
+        "large E_b=0.41 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.00)"
+      ]
+    },
+    {
+      "formula": "FeBr2",
+      "family": "halide",
+      "E_b_eV": 0.505,
+      "score": 0.5678,
+      "subscores": {
+        "binding": 0.289,
+        "low_frohlich": 0.989,
+        "gap_window": 0.062,
+        "oscillator": 1.0,
+        "stability": 0.73
+      },
+      "frohlich_proxy_ratio": 0.011,
+      "gap_used_eV": 0.759,
+      "reasons": [
+        "large E_b=0.51 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.01)",
+        "gap 0.76 eV in window"
+      ]
+    },
+    {
+      "formula": "TiO2",
+      "family": "oxide",
+      "E_b_eV": 1.536,
+      "score": 0.5668,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.248,
+        "stability": 0.55
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 5.752,
+      "reasons": [
+        "large E_b=1.54 eV"
+      ]
+    },
+    {
+      "formula": "PdS2",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 0.593,
+      "score": 0.5659,
+      "subscores": {
+        "binding": 0.352,
+        "low_frohlich": 0.889,
+        "gap_window": 0.167,
+        "oscillator": 0.943,
+        "stability": 0.663
+      },
+      "frohlich_proxy_ratio": 0.111,
+      "gap_used_eV": 2.441,
+      "reasons": [
+        "large E_b=0.59 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.11)",
+        "gap 2.44 eV in window"
+      ]
+    },
+    {
+      "formula": "Al2Se2",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 1.096,
+      "score": 0.5615,
+      "subscores": {
+        "binding": 0.711,
+        "low_frohlich": 0.521,
+        "gap_window": 0.0,
+        "oscillator": 0.454,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.479,
+      "gap_used_eV": 3.537,
+      "reasons": [
+        "large E_b=1.10 eV"
+      ]
+    },
+    {
+      "formula": "C2F2",
+      "family": "halide",
+      "E_b_eV": 1.94,
+      "score": 0.5606,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.831,
+        "gap_window": 0.0,
+        "oscillator": 0.118,
+        "stability": 0.05
+      },
+      "frohlich_proxy_ratio": 0.169,
+      "gap_used_eV": 7.198,
+      "reasons": [
+        "large E_b=1.94 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.17)"
+      ]
+    },
+    {
+      "formula": "Zn2Se4",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 1.467,
+      "score": 0.5592,
+      "subscores": {
+        "binding": 0.976,
+        "low_frohlich": 0.5,
+        "gap_window": 0.406,
+        "oscillator": 0.352,
+        "stability": 0.0
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 2.214,
+      "reasons": [
+        "large E_b=1.47 eV",
+        "gap 2.21 eV in window"
+      ]
+    },
+    {
+      "formula": "CdCl2",
+      "family": "halide",
+      "E_b_eV": 1.618,
+      "score": 0.5581,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.157,
+        "stability": 0.567
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 5.816,
+      "reasons": [
+        "large E_b=1.62 eV"
+      ]
+    },
+    {
+      "formula": "In2Cl2",
+      "family": "halide",
+      "E_b_eV": 1.799,
+      "score": 0.5563,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.153,
+        "stability": 0.557
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 2.997,
+      "reasons": [
+        "large E_b=1.80 eV"
+      ]
+    },
+    {
+      "formula": "HgCl2",
+      "family": "halide",
+      "E_b_eV": 1.464,
+      "score": 0.556,
+      "subscores": {
+        "binding": 0.974,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.215,
+        "stability": 0.563
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 4.19,
+      "reasons": [
+        "large E_b=1.46 eV"
+      ]
+    },
+    {
+      "formula": "ScCl2",
+      "family": "halide",
+      "E_b_eV": 0.865,
+      "score": 0.5548,
+      "subscores": {
+        "binding": 0.546,
+        "low_frohlich": 0.726,
+        "gap_window": 0.038,
+        "oscillator": 0.441,
+        "stability": 0.97
+      },
+      "frohlich_proxy_ratio": 0.274,
+      "gap_used_eV": 0.736,
+      "reasons": [
+        "large E_b=0.86 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.27)",
+        "gap 0.74 eV in window"
+      ]
+    },
+    {
+      "formula": "Cs2F2",
+      "family": "halide",
+      "E_b_eV": 2.09,
+      "score": 0.5486,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.042,
+        "stability": 0.597
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 6.059,
+      "reasons": [
+        "large E_b=2.09 eV"
+      ]
+    },
+    {
+      "formula": "TiS2",
+      "family": "TMD_other",
+      "E_b_eV": 0.977,
+      "score": 0.5478,
+      "subscores": {
+        "binding": 0.626,
+        "low_frohlich": 0.5,
+        "gap_window": 0.413,
+        "oscillator": 0.637,
+        "stability": 0.517
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 2.208,
+      "reasons": [
+        "large E_b=0.98 eV",
+        "gap 2.21 eV in window"
+      ]
+    },
+    {
+      "formula": "HgBr2",
+      "family": "halide",
+      "E_b_eV": 1.216,
+      "score": 0.5432,
+      "subscores": {
+        "binding": 0.797,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.249,
+        "stability": 0.873
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 3.786,
+      "reasons": [
+        "large E_b=1.22 eV"
+      ]
+    },
+    {
+      "formula": "CrTeSe",
+      "family": "TMD_group6",
+      "E_b_eV": 0.448,
+      "score": 0.5431,
+      "subscores": {
+        "binding": 0.249,
+        "low_frohlich": 0.851,
+        "gap_window": 0.288,
+        "oscillator": 1.0,
+        "stability": 0.63
+      },
+      "frohlich_proxy_ratio": 0.149,
+      "gap_used_eV": 0.974,
+      "reasons": [
+        "large E_b=0.45 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.15)",
+        "gap 0.97 eV in window"
+      ]
+    },
+    {
+      "formula": "Cs2Br2",
+      "family": "halide",
+      "E_b_eV": 1.638,
+      "score": 0.5425,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.058,
+        "stability": 0.54
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 5.145,
+      "reasons": [
+        "large E_b=1.64 eV"
+      ]
+    },
+    {
+      "formula": "Rb2F2",
+      "family": "halide",
+      "E_b_eV": 2.344,
+      "score": 0.5409,
+      "subscores": {
+        "binding": 1.0,
+        "low_frohlich": 0.5,
+        "gap_window": 0.0,
+        "oscillator": 0.033,
+        "stability": 0.55
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 6.553,
+      "reasons": [
+        "large E_b=2.34 eV"
+      ]
+    },
+    {
+      "formula": "Al2Te2",
+      "family": "chalcogenide_2D",
+      "E_b_eV": 0.799,
+      "score": 0.5393,
+      "subscores": {
+        "binding": 0.499,
+        "low_frohlich": 0.669,
+        "gap_window": 0.0,
+        "oscillator": 0.576,
+        "stability": 1.0
+      },
+      "frohlich_proxy_ratio": 0.331,
+      "gap_used_eV": 3.016,
+      "reasons": [
+        "large E_b=0.80 eV"
+      ]
+    },
+    {
+      "formula": "In2I2",
+      "family": "halide",
+      "E_b_eV": 1.197,
+      "score": 0.5373,
+      "subscores": {
+        "binding": 0.784,
+        "low_frohlich": 0.5,
+        "gap_window": 0.266,
+        "oscillator": 0.222,
+        "stability": 0.583
+      },
+      "frohlich_proxy_ratio": null,
+      "gap_used_eV": 2.347,
+      "reasons": [
+        "large E_b=1.20 eV",
+        "gap 2.35 eV in window"
+      ]
+    },
+    {
+      "formula": "BP",
+      "family": "other",
+      "E_b_eV": 0.494,
+      "score": 0.5353,
+      "subscores": {
+        "binding": 0.281,
+        "low_frohlich": 0.97,
+        "gap_window": 0.84,
+        "oscillator": 0.604,
+        "stability": 0.0
+      },
+      "frohlich_proxy_ratio": 0.03,
+      "gap_used_eV": 1.802,
+      "reasons": [
+        "large E_b=0.49 eV",
+        "low Fr\u00f6hlich proxy (\u03b1_lat/\u03b1_el=0.03)",
+        "gap 1.80 eV in window"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+# Phase 0 (data inventory)
+requests==2.33.1
+
+# Phase 1 (baseline multi-task surrogate + uncertainty)
+numpy
+pandas
+scikit-learn
+scipy
+mendeleev        # vetted periodic-table element data for composition features
+joblib
+matplotlib       # parity figure (optional at runtime)
+
+# Phase 1b (GNN upgrade, Modal GPU) — deferred:
+#   torch, ase, jarvis-tools, alignn / mace-torch / nequip  (needs structures)
+# Phase 2 (label generation, Modal CPU/MPI):
+#   quantum-espresso, epw, berkeleygw / yambo  (containerized on Modal)

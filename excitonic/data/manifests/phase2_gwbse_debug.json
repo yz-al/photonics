@@ -1,0 +1,59 @@
+{
+  "mode": "debug",
+  "vac10": {
+    "material": "MoS2",
+    "mode": "debug",
+    "vacuum": 10.0,
+    "cost": {
+      "mode": "debug",
+      "total_wall_s": 585.2,
+      "cores": 48,
+      "core_hours": 7.803,
+      "usd_estimate": [
+        0.39,
+        1.17
+      ],
+      "per_stage_s": {
+        "scf": 156.6,
+        "nscf": 361.9,
+        "p2y": 1.2,
+        "y_setup": 0.7,
+        "gw": 61.0,
+        "bse": 1.6
+      },
+      "wall_cap_s": 86400,
+      "spend_ceiling_usd": 400,
+      "hit_wall_cap": false,
+      "over_ceiling": false
+    },
+    "gw_gap_eV": 2.870142,
+    "ks_gap_eV": 2.870142,
+    "exciton_eV": null,
+    "oscillator_strength": null,
+    "E_b": {
+      "name": "E_b",
+      "value": null,
+      "unit": "eV",
+      "tier": "not_run",
+      "source": "",
+      "uncertainty": null,
+      "converged": null,
+      "notes": "Yambo chain incomplete (exc_e=None, gw_gap=2.870142); stages={'scf': 156.6, 'nscf': 361.9, 'p2y': 1.2, 'y_setup': 0.7, 'gw': 61.0, 'bse': 1.6}; needs input tuning",
+      "computed": false,
+      "is_model_estimate": false
+    },
+    "bse_log_tail": "[modal:05395] mca_base_component_repository_open: unable to open mca_btl_openib: librdmacm.so.1: cannot open shared object file: No such file or directory (ignored)\nfree(): invalid next size (fast)\n[modal:05395] *** Process received signal ***\n[modal:05395] Signal: Aborted (6)\n[modal:05395] Signal code:  (-6)\n[modal:05395] [ 0] /lib/x86_64-linux-gnu/libc.so.6(+0x3c050)[0x2b39ea656050]\n[modal:05395] [ 1] /lib/x86_64-linux-gnu/libc.so.6(+0x8aeec)[0x2b39ea6a4eec]\n[modal:05395] [ 2] /lib/x86_64-linux-gnu/libc.so.6(gsignal+0x12)[0x2b39ea655fb2]\n[modal:05395] [ 3] /lib/x86_64-linux-gnu/libc.so.6(abort+0xd3)[0x2b39ea640472]\n[modal:05395] [ 4] /lib/x86_64-linux-gnu/libc.so.6(+0x7f42f)[0x2b39ea69942f]\n[modal:05395] [ 5] /lib/x86_64-linux-gnu/libc.so.6(+0x9486a)[0x2b39ea6ae86a]\n[modal:05395] [ 6] /lib/x86_64-linux-gnu/libc.so.6(+0x966da)[0x2b39ea6b06da]\n[modal:05395] [ 7] /lib/x86_64-linux-gnu/libc.so.6(__libc_free+0x6f)[0x2b39ea6b2f4f]\n[modal:05395] [ 8] /opt/conda/bin/../lib/libhdf5.so.310(H5MM_xfree+0xa)[0x2b39e9548bfa]\n[modal:05395] [ 9] /opt/conda/bin/../lib/libhdf5.so.310(+0x24d14b)[0x2b39e95ed14b]\n[modal:05395] [10] /opt/conda/bin/../lib/libhdf5.so.310(H5SL_destroy+0x9)[0x2b39e95f7aa9]\n[modal:05395] [11] /opt/conda/bin/../lib/libhdf5.so.310(H5P_close+0x2c5)[0x2b39e95b0c35]\n[modal:05395] [12] /opt/conda/bin/../lib/libhdf5.so.310(+0x210d9a)[0x2b39e95b0d9a]\n[modal:05395] [13] /opt/conda/bin/../lib/libhdf5.so.310(+0x1950fb)[0x2b39e95350fb]\n[modal:05395] [14] /opt/conda/bin/../lib/libhdf5.so.310(+0x195209)[0x2b39e9535209]\n[modal:05395] [15] /opt/conda/bin/../lib/libhdf5.so.310(H5I_dec_app_ref+0xb)[0x2b39e95352bb]\n[modal:05395] [16] /opt/conda/bin/../lib/libhdf5.so.310(H5Pclose+0xfb)[0x2b39e95862fb]\n[modal:05395] [17] yambo(+0x3d29df)[0x56493abd79df]\n[modal:05395] [18] yambo(+0x38645c)[0x56493ab8b45c]\n[modal:05395] [19] yambo(+0x386526)[0x56493ab8b526]\n[modal:05395] [20] yambo(+0x374478)[0x56493ab79478]\n[modal:05395] [21] yambo(+0x372f1e)[0x56493ab77f1e]\n[modal:05395] [22] yambo(+0x1cc183)[0x56493a9d1183]\n[modal:05395] [23] yambo(+0x1c5fc4)[0x56493a9cafc4]\n[modal:05395] [24] yambo(+0xec54c)[0x56493a8f154c]\n[modal:05395] [25] yambo(+0xf1d16)[0x56493a8f6d16]\n[modal:05395] [26] yambo(+0x3e254)[0x56493a843254]\n[modal:05395] [27] yambo(+0x2e519c)[0x56493aaea19c]\n[modal:05395] [28] yambo(+0x3bf45)[0x56493a840f45]\n[modal:05395] [29] /lib/x86_64-linux-gnu/libc.so.6(+0x2724a)[0x2b39ea64124a]\n[modal:05395] *** End of error message ***",
+    "bse_errors": [
+      "bse_run.log: [modal:05395] Signal: Aborted (6)",
+      "bse_run.log: [modal:05395] [ 3] /lib/x86_64-linux-gnu/libc.so.6(abort+0xd3)[0x2b39ea640472]",
+      "bse_run.log: [modal:05395] *** End of error message ***"
+    ],
+    "report_tail": "se\n\n\n\n\n_|      _|   _|_|   _|      _|  _|_|_|     _|_|\n  _|  _|   _|    _| _|_|  _|_| _|    _| _|    _|\n    _|     _|_|_|_| _|  _|  _| _|_|_|   _|    _|\n    _|     _|    _| _|      _| _|    _| _|    _|\n    _|     _|    _| _|      _| _|_|_|     _|_|\n\n\n\n <---> [01] MPI/OPENMP structure, Files & I/O Directories\n <---> [02] CORE Variables Setup\n <---> [02.01] Unit cells\n <---> [02.02] Symmetries\n <---> [02.03] Reciprocal space\n <---> [02.04] K-grid lattice\n <---> Grid dimensions      :  2  2\n <---> [02.05] Energies & Occupations\n <---> [03] Transferred momenta grid and indexing\n <---> [BZ sampling] Q-grid is User defined and/or read from the database\n <---> [03.01] X + BSE indexes\n <---> X + BSE [eval] |                                        | [000%] --(E) --(X)\n <---> X + BSE [eval] |########################################| [100%] --(E) --(X)\n <---> X + BSE[REDUX] |                                        | [000%] --(E) --(X)\n <---> X + BSE[REDUX] |########################################| [100%] --(E) --(X)\n <---> [03.01.01] Sigma indexes\n <---> Sigma [eval] |                                        | [000%] --(E) --(X)\n <---> Sigma [eval] |########################################| [100%] --(E) --(X)\n <---> Sigma[REDUX] |                                        | [000%] --(E) --(X)\n <---> Sigma[REDUX] |########################################| [100%] --(E) --(X)\n <---> [04] Dipoles\n <---> [DIP] Checking dipoles header\n <---> [DIP] Database not correct or missing. To be computed\n"
+  },
+  "vac16": null,
+  "verdict": {
+    "E_b_vac10_eV": null,
+    "debug_pass": false,
+    "reason": "vac10 aborted at None: None \u2014 skipped vac16 (no spend)"
+  }
+}

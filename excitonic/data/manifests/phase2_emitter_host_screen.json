@@ -1,0 +1,214 @@
+{
+  "phase": "Phase 4 pivot \u2014 RT single-photon-emitter HOST screen (dissolve the uniformity wall by using identical-by-chemistry defects in a stiff host)",
+  "fom": "narrow-ZPL-at-300K (high Debye-temp: stiff+light) \u00d7 wide gap \u00d7 non-magnetic \u00d7 stable. A single two-level defect is an intrinsic photon blockade.",
+  "n_candidates": 71,
+  "top_hosts": [
+    {
+      "formula": "BN",
+      "gap_eV": 5.67,
+      "hform_eV_at": -1.292,
+      "mean_mass": 12.4,
+      "theta_proxy": 0.3227,
+      "covalency_factor": 1.0,
+      "score": 0.5602,
+      "layergroup": "p-6m2"
+    },
+    {
+      "formula": "GeO2",
+      "gap_eV": 5.36,
+      "hform_eV_at": -1.57,
+      "mean_mass": 34.9,
+      "theta_proxy": 0.2122,
+      "covalency_factor": 1.0,
+      "score": 0.356,
+      "layergroup": "p-3m1"
+    },
+    {
+      "formula": "H2C2",
+      "gap_eV": 4.42,
+      "hform_eV_at": -0.134,
+      "mean_mass": 6.5,
+      "theta_proxy": 0.1435,
+      "covalency_factor": 1.0,
+      "score": 0.2133,
+      "layergroup": "p-3m1"
+    },
+    {
+      "formula": "ZnCl2",
+      "gap_eV": 5.93,
+      "hform_eV_at": -1.107,
+      "mean_mass": 45.4,
+      "theta_proxy": 0.1561,
+      "covalency_factor": 0.7,
+      "score": 0.1945,
+      "layergroup": "p-3m1"
+    },
+    {
+      "formula": "NiO2",
+      "gap_eV": 3.31,
+      "hform_eV_at": -0.709,
+      "mean_mass": 30.2,
+      "theta_proxy": 0.1531,
+      "covalency_factor": 1.0,
+      "score": 0.1834,
+      "layergroup": "p-3m1"
+    },
+    {
+      "formula": "Al2S2",
+      "gap_eV": 2.88,
+      "hform_eV_at": -0.886,
+      "mean_mass": 29.5,
+      "theta_proxy": 0.1732,
+      "covalency_factor": 1.0,
+      "score": 0.1833,
+      "layergroup": "p-6m2"
+    },
+    {
+      "formula": "CaCl2",
+      "gap_eV": 7.44,
+      "hform_eV_at": -2.421,
+      "mean_mass": 37.0,
+      "theta_proxy": 0.2558,
+      "covalency_factor": 0.35,
+      "score": 0.1676,
+      "layergroup": "p-3m1"
+    },
+    {
+      "formula": "Ga2O2",
+      "gap_eV": 2.47,
+      "hform_eV_at": -1.45,
+      "mean_mass": 42.9,
+      "theta_proxy": 0.1839,
+      "covalency_factor": 1.0,
+      "score": 0.1665,
+      "layergroup": "p-6m2"
+    },
+    {
+      "formula": "MgCl2",
+      "gap_eV": 7.29,
+      "hform_eV_at": -1.887,
+      "mean_mass": 31.7,
+      "theta_proxy": 0.2438,
+      "covalency_factor": 0.35,
+      "score": 0.1598,
+      "layergroup": "p-3m1"
+    },
+    {
+      "formula": "CdCl2",
+      "gap_eV": 5.18,
+      "hform_eV_at": -1.117,
+      "mean_mass": 61.1,
+      "theta_proxy": 0.1352,
+      "covalency_factor": 0.7,
+      "score": 0.1556,
+      "layergroup": "p-3m1"
+    },
+    {
+      "formula": "SrCl2",
+      "gap_eV": 7.05,
+      "hform_eV_at": -2.468,
+      "mean_mass": 52.8,
+      "theta_proxy": 0.2161,
+      "covalency_factor": 0.35,
+      "score": 0.1416,
+      "layergroup": "p-3m1"
+    },
+    {
+      "formula": "ZrS2",
+      "gap_eV": 2.17,
+      "hform_eV_at": -1.585,
+      "mean_mass": 51.8,
+      "theta_proxy": 0.175,
+      "covalency_factor": 1.0,
+      "score": 0.1353,
+      "layergroup": "p-3m1"
+    },
+    {
+      "formula": "Ga2S2",
+      "gap_eV": 3.2,
+      "hform_eV_at": -0.664,
+      "mean_mass": 50.9,
+      "theta_proxy": 0.1142,
+      "covalency_factor": 1.0,
+      "score": 0.1328,
+      "layergroup": "p-6m2"
+    },
+    {
+      "formula": "WO2",
+      "gap_eV": 2.1,
+      "hform_eV_at": -2.017,
+      "mean_mass": 71.9,
+      "theta_proxy": 0.1674,
+      "covalency_factor": 1.0,
+      "score": 0.124,
+      "layergroup": "p-6m2"
+    },
+    {
+      "formula": "Al2Se2",
+      "gap_eV": 2.72,
+      "hform_eV_at": -0.717,
+      "mean_mass": 53.0,
+      "theta_proxy": 0.1163,
+      "covalency_factor": 1.0,
+      "score": 0.1165,
+      "layergroup": "p-6m2"
+    }
+  ],
+  "fom_validation_anchors_hBN_nitrides": [
+    {
+      "formula": "BN",
+      "gap_eV": 5.67,
+      "hform_eV_at": -1.292,
+      "mean_mass": 12.4,
+      "theta_proxy": 0.3227,
+      "covalency_factor": 1.0,
+      "score": 0.5602,
+      "layergroup": "p-6m2"
+    }
+  ],
+  "soft_wide_gap_low_rank_check": [
+    {
+      "formula": "CaCl2",
+      "gap_eV": 7.44,
+      "theta_proxy": 0.2558,
+      "score": 0.1676,
+      "rank": 7
+    },
+    {
+      "formula": "MgCl2",
+      "gap_eV": 7.29,
+      "theta_proxy": 0.2438,
+      "score": 0.1598,
+      "rank": 9
+    },
+    {
+      "formula": "SrCl2",
+      "gap_eV": 7.05,
+      "theta_proxy": 0.2161,
+      "score": 0.1416,
+      "rank": 11
+    },
+    {
+      "formula": "CaBr2",
+      "gap_eV": 6.29,
+      "theta_proxy": 0.1773,
+      "score": 0.1141,
+      "rank": 16
+    },
+    {
+      "formula": "SrBr2",
+      "gap_eV": 6.06,
+      "theta_proxy": 0.1616,
+      "score": 0.102,
+      "rank": 19
+    }
+  ],
+  "reading": "The FOM is sound if light, stiff, wide-gap covalent hosts (BN/C/nitride class) top the list while soft ultra-wide-gap ionic halides (CaCl2, MgCl2 \u2014 huge gap, low \u03b8_proxy) rank far down. Top hosts are the 2D platforms most likely to hold a bright, narrow-ZPL RT single-photon emitter \u2014 the disorder-free route to a single-emitter blockade device.",
+  "next_phase_to_confirm": [
+    "Defect-supercell DFT for the top 2\u20133 hosts: formation energy of candidate vacancies/substitutionals, in-gap level positions, spin state.",
+    "ZPL energy + Debye\u2013Waller factor + transition dipole (bright?) at the defect \u2014 ideally GW-BSE on the defect (the ABINIT engine we validated can do supercells).",
+    "Emitter\u2013cavity cooperativity C=g\u00b2/(\u03ba\u03b3) at 300 K > 1 \u21d2 blockade; g\u221d\u221af, \u03b3=ZPL width."
+  ],
+  "honest_limit": "Host-level proxy only. It points at platform families and ranks 2D hosts; it does NOT identify a specific working emitter \u2014 that is the defect-level next phase. No fabrication claim.",
+  "tier": "proxy (Debye-temp from hform+mass, gap). Anchored to known RT-emitter hosts."
+}

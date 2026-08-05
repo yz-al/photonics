@@ -1,0 +1,38 @@
+{
+  "headline": "Room-temperature blockade feasibility reduces to \u0393_floor(E_b) + TWO decisive exponents: q_sat (moir\u00e9 confinement-broadening) and \u03bb_f (interlayer oscillator-strength decay). Both unmeasured \u21d2 undetermined, but the question is now two targeted measurements from resolved.",
+  "leg_1_gamma_floor": {
+    "status": "DATA-DERIVED (binding-dependent)",
+    "robustly_bound_floor_meV": "\u22486-15 (the 4 DFPT TMDs)",
+    "source": "phase2_bound_alpha.json; E_b\u2194Fr\u00f6hlich \u03c1=0.62",
+    "target_U_to_blockade_meV": "0.71\u00b7\u0393_floor \u2248 4-11 (robustly bound)"
+  },
+  "leg_2_saturation_exponent_q_sat": {
+    "critical": "q_crit = 2 (since U_sat \u221d L^-2)",
+    "closes_iff": "q_sat > 2",
+    "status": "UNMEASURED \u2014 needs moir\u00e9-exciton linewidth vs confinement slope",
+    "demo_q1.5_open": {
+      "verdict": "leg_open (confinement wins)",
+      "F_tightest": 272.7273
+    },
+    "demo_q2.0_crit": {
+      "verdict": "leg_open (confinement wins)",
+      "F_tightest": 272.7273
+    },
+    "demo_q3.0_closed": {
+      "verdict": "leg_closed (\u0393_inh outruns U)",
+      "F_tightest": 272.7273
+    }
+  },
+  "leg_3_dipolar_exponent_lambda_f": {
+    "closes_iff": "f falls faster than U_dip rises with separation d",
+    "status": "UNMEASURED \u2014 needs interlayer GW-BSE at \u22652 separations (BSE build currently broken; see feasibility_bound.md fork)",
+    "machinery": "exciton_fm.dipolar_window (built, self-tested)"
+  },
+  "overall_verdict": "UNDETERMINED \u2014 but fully localized to two exponents.",
+  "what_closes_it": [
+    "q_sat > 2  (saturation/moir\u00e9 leg closed)  \u2014 measurable: moir\u00e9-exciton linewidth vs trap confinement (published data may already bound it).",
+    "f-decay faster than U-rise (dipolar leg closed) \u2014 measurable: the interlayer BSE flagship (once the BSE toolchain is fixed).",
+    "If BOTH close against the data-derived \u0393 floor \u21d2 feasible set empty \u21d2 Phase 3 never runs. If either stays open, that corner IS the search space."
+  ],
+  "rigor": "The saturation inputs (g_xx, \u0393_inh0) are order-of-magnitude/literature; the CRITICAL-EXPONENT structure (q_crit=2) is exact given U_sat \u221d L^-2. This reframes, it does not yet resolve \u2014 but it names the two numbers."
+}

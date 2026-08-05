@@ -1,0 +1,72 @@
+{
+  "target": "E_b (eV, GW-BSE)",
+  "n": 370,
+  "checks": {
+    "baseline_constant_mean": {
+      "n": 370,
+      "mae": 0.5120123447772097,
+      "rmse": 0.6646473400752474,
+      "r2": 0.0
+    },
+    "baseline_pbe_gap_only": {
+      "n": 370,
+      "mae": 0.33886043859200343,
+      "rmse": 0.5419324391879172,
+      "r2": 0.3351743699591505
+    },
+    "random_5fold": {
+      "n": 370,
+      "mae": 0.17202317870402295,
+      "rmse": 0.29204136787461316,
+      "r2": 0.8069338190829266
+    },
+    "group_by_family": {
+      "n": 370,
+      "mae": 0.23656140981456417,
+      "rmse": 0.38102853946370724,
+      "r2": 0.671350882835497,
+      "n_groups": 8,
+      "note": "leave-one-family-out: train on some families, predict held-out families"
+    },
+    "group_by_element_set": {
+      "n": 370,
+      "mae": 0.17257149955872136,
+      "rmse": 0.28206982365230376,
+      "r2": 0.8198929503945038,
+      "n_groups": 262,
+      "note": "no exact composition-family split across folds"
+    },
+    "gaas_out_of_distribution": {
+      "E_b_true_eV": 0.004,
+      "E_b_pred_eV": 0.28264198708755506,
+      "sigma_eV": 0.07823543690739036,
+      "abs_error_eV": 0.27864198708755505,
+      "note": "GaAs is a 3D material absent from C2DB; true E_b\u22484 meV, a_B\u224810 nm. A large predicted binding with small \u03c3 is the OOD failure \u2014 the surrogate is a 2D-monolayer interpolator, not a general model."
+    },
+    "calibration_curve": {
+      "bins_by_predicted_sigma": [
+        {
+          "mean_sigma": 0.04980163440891575,
+          "observed_rmse": 0.1038992692635352,
+          "n": 93
+        },
+        {
+          "mean_sigma": 0.07666841068161469,
+          "observed_rmse": 0.1519315970573516,
+          "n": 93
+        },
+        {
+          "mean_sigma": 0.1067653106962465,
+          "observed_rmse": 0.2387746009669089,
+          "n": 92
+        },
+        {
+          "mean_sigma": 0.21715237481962998,
+          "observed_rmse": 0.501743871108646,
+          "n": 92
+        }
+      ],
+      "note": "If calibrated, observed_rmse should rise with mean_sigma AND be \u2248 mean_sigma. Flat or non-monotonic \u21d2 \u03c3 is decorative for active-learning acquisition."
+    }
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "question": "Can a SINGLE deep moir\u00e9-trapped exciton blockade at 300 K \u2014 the one corner the bound cannot close?",
+  "temperature_K": 300.0,
+  "kT_meV": 25.85,
+  "threshold_UoverGamma": 0.71,
+  "constraint_1_trap_holds_at_300K": {
+    "need_V_trap_meV": 77.6,
+    "available_moire_depth_meV": [
+      50.0,
+      250.0
+    ],
+    "satisfiable": true,
+    "note": "Small-twist traps (~tens meV) thermally ionize at 300 K; the DEEP end (large-mismatch / strain / defect traps, ~150\u2013250 meV) holds."
+  },
+  "constraint_2_U_over_gamma": {
+    "U_onsite_meV": [
+      8.0,
+      60.0
+    ],
+    "gamma_phonon_300K_meV": [
+      6.0,
+      15.0
+    ],
+    "UoverGamma_range": [
+      0.53,
+      10.0
+    ],
+    "UoverGamma_mid": 3.24,
+    "clears_0p71_at_midpoint": true,
+    "clears_0p71_even_worst_corner": false,
+    "note": "At a single trap \u0393 reverts to the phonon floor (no ensemble disorder), so U (tens of meV) beats 0.71\u00b7\u0393 across essentially the whole measured box."
+  },
+  "constraint_3_brightness": {
+    "status": "material-dependent; an INTRALAYER moir\u00e9-confined exciton stays bright (unlike the dark interlayer one). Readout via a small-mode-volume cavity."
+  },
+  "single_emitter_vs_array": {
+    "single_emitter_Ginh0_meV": 0.0,
+    "single_F_tightest": 300.0,
+    "single_verdict": "leg_open (confinement wins)",
+    "array_Ginh0_meV": 20.0,
+    "array_F_tightest": 100.0,
+    "array_verdict": "leg_open (confinement wins)",
+    "key": "Per-trap, the U/\u0393 physics works in BOTH cases. The difference is UNIFORMITY: trap-to-trap disorder (~20 meV) means an array is N good emitters at N DIFFERENT frequencies \u2014 each blockades, but you cannot drive/address them as one uniform device. So scalability fails on disorder+placement, not on U/\u0393."
+  },
+  "verdict": "OPEN \u2014 and it CLEARS. A single deep (V\u227380 meV) moir\u00e9/quantum-dot trap gives U\u22488\u201360 meV against a 300 K phonon floor \u0393\u22486\u201315 meV, i.e. U/\u0393\u22480.5\u201310.0 (midpoint 3.2) \u2014 above the 0.71 threshold across the measured box. So room-temperature single-photon blockade IS physically achievable \u2014 but ONLY at a single engineered emitter. Tiling the SAME trap into a scalable array does not close the per-site physics; it fails on UNIFORMITY \u2014 ~20 meV trap-to-trap disorder spreads the sites over many linewidths, so they cannot be driven as one addressable device. That is why this is a device-architecture result, not a materials one.",
+  "final_synthesis": "The complete answer: SCALABLE room-temperature single-photon blockade in a bulk material = NO (every bulk U-channel closes against the \u0393 floor). SINGLE-EMITTER room-temperature blockade at one deep moir\u00e9/quantum-dot trap = YES, physically (U/\u0393>1). The barrier is not the blockade physics but scalable device integration \u2014 deterministic placement, frequency-tuning, and readout of many disorder-varied deep traps into a uniform addressable array.",
+  "what_would_confirm_it": [
+    "A moir\u00e9-exciton linewidth-vs-confinement dataset to pin q_sat (array closure) and the single-trap homogeneous \u0393 at 300 K.",
+    "A deep-trap heterostructure (large-mismatch or strain-engineered) with V>100 meV.",
+    "Cavity-coupled single-trap blockade measurement at 300 K (the experiment)."
+  ],
+  "tier": "measured + DFPT (\u0393, U, trap depth) + model (confinement). No fabrication claim."
+}

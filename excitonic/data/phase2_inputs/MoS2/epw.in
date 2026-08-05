@@ -1,0 +1,34 @@
+EPW: electron-phonon + Fröhlich linewidth for MoS2
+&inputepw
+  prefix      = 'MoS2'
+  outdir      = './out'
+  elph        = .true.
+  epbwrite    = .true.
+  epwwrite    = .true.
+  lpolar      = .true.          ! polar (Fröhlich) LO coupling — essential
+  vme         = 'wannier'
+  nbndsub     =  8
+  proj(1) = 'Mo'
+  proj(2) = 'S'
+  wannierize  = .true.
+  num_iter    = 500
+  dis_win_max = 20.0
+  ! coarse grids must match the ph.x q-grid and the nscf k-grid
+  nk1 = 12
+  nk2 = 12
+  nk3 = 1
+  nq1 = 6
+  nq2 = 6
+  nq3 = 1
+  ! fine interpolation grids (placeholder; converge before production)
+  nkf1 = 48
+  nkf2 = 48
+  nkf3 = 1
+  nqf1 = 48
+  nqf2 = 48
+  nqf3 = 1
+  ! finite-T carrier linewidth from the imaginary e-ph self-energy
+  degaussw    = 0.01
+  temps       = 300.0
+  efermi_read = .false.
+/

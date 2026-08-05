@@ -1,0 +1,96 @@
+{
+  "question": "Is the Rydberg (n\u22652) route \u2014 which raises U with no spatial-extent penalty, sidestepping both bound exponents \u2014 populated at RT?",
+  "series": "2D hydrogenic E_n=Ry/(n\u2212\u00bd)\u00b2; E_2=E_1/9",
+  "rt_threshold_eV": 0.1,
+  "n_total": 370,
+  "n_with_n2_above_RT_naive": 158,
+  "n_frenkel_like_Eb_gt_1p5eV": 75,
+  "n_wannier_plausible_survivors": 26,
+  "top_wannier_survivors": [
+    {
+      "formula": "RuI2",
+      "E1_eV": 0.994,
+      "E_n2_eV": 0.11044444444444444,
+      "is_magnetic": false,
+      "gap_eV": "1.022"
+    },
+    {
+      "formula": "Pt2S4",
+      "E1_eV": 0.986,
+      "E_n2_eV": 0.10955555555555554,
+      "is_magnetic": false,
+      "gap_eV": "1.802"
+    },
+    {
+      "formula": "HgI2",
+      "E1_eV": 0.98,
+      "E_n2_eV": 0.10888888888888888,
+      "is_magnetic": false,
+      "gap_eV": "1.199"
+    },
+    {
+      "formula": "TiS2",
+      "E1_eV": 0.977,
+      "E_n2_eV": 0.10855555555555554,
+      "is_magnetic": false,
+      "gap_eV": "0.734"
+    },
+    {
+      "formula": "ZrSeS",
+      "E1_eV": 0.977,
+      "E_n2_eV": 0.10855555555555554,
+      "is_magnetic": false,
+      "gap_eV": "0.829"
+    },
+    {
+      "formula": "AlAs",
+      "E1_eV": 0.966,
+      "E_n2_eV": 0.10733333333333332,
+      "is_magnetic": false,
+      "gap_eV": "1.237"
+    },
+    {
+      "formula": "Au2Se2",
+      "E1_eV": 0.965,
+      "E_n2_eV": 0.10722222222222222,
+      "is_magnetic": false,
+      "gap_eV": "0.956"
+    },
+    {
+      "formula": "SbSCl",
+      "E1_eV": 0.964,
+      "E_n2_eV": 0.1071111111111111,
+      "is_magnetic": false,
+      "gap_eV": "1.316"
+    },
+    {
+      "formula": "ZnI2",
+      "E1_eV": 0.961,
+      "E_n2_eV": 0.10677777777777776,
+      "is_magnetic": false,
+      "gap_eV": "1.749"
+    },
+    {
+      "formula": "Cu2S2",
+      "E1_eV": 0.949,
+      "E_n2_eV": 0.10544444444444444,
+      "is_magnetic": false,
+      "gap_eV": "0.624"
+    },
+    {
+      "formula": "ZnI2",
+      "E1_eV": 0.947,
+      "E_n2_eV": 0.10522222222222222,
+      "is_magnetic": false,
+      "gap_eV": "0.898"
+    },
+    {
+      "formula": "AsSCl",
+      "E1_eV": 0.947,
+      "E_n2_eV": 0.10522222222222222,
+      "is_magnetic": false,
+      "gap_eV": "1.535"
+    }
+  ],
+  "finding": "NAIVE: 158/370 have n=2 (E_1/9) above 0.1 eV. But 75 of those have E_b>1.5 eV = Frenkel/charge-transfer (d-electron halides/oxides), where the hydrogenic (n\u2212\u00bd)\u00b2 series is INVALID. Restricting to WANNIER-plausible (E_b<1 eV, non-magnetic) leaves only 26 \u2014 all at the Wannier/Frenkel edge (E_b\u22480.95-1.0 eV \u2192 n=2 barely at 0.10-0.11 eV). VERDICT: the Rydberg escape mostly CLOSES on character inspection; it is not a robust open door, just a few marginal cases worth a BSE check."
+}

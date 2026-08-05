@@ -1,0 +1,5 @@
+# kernel.inp — BSE kernel (electron-hole interaction)
+number_val_bands 4
+number_cond_bands 4
+cell_slab_truncation
+screening_semiconductor

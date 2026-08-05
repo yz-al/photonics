@@ -1,0 +1,32 @@
+{
+  "material": "MoSSe (Janus, solve-for-it candidate)",
+  "legs": {
+    "Gamma_floor_meV": {
+      "value": 10.5,
+      "tier": "dfpt (bracketed MoS2/MoSe2)",
+      "need_U_gt_meV": 7.46,
+      "status": "LOCKED"
+    },
+    "f_brightness": {
+      "status": "GW-BSE running (ABINIT); Janus exciton is intralayer \u21d2 expected BRIGHT (unlike the 10\u2013100\u00d7 dark interlayer exciton)",
+      "tier": "gw_bse (pending)"
+    },
+    "U_dipolar_meV": {
+      "range": [
+        0.0046,
+        0.093
+      ],
+      "tier": "proxy (Janus dipz \u2192 d \u2192 U\u221dd\u00b2)",
+      "interlayer_reference": "4\u201320 meV (measured, d\u22480.6 nm)",
+      "status": "\u226a threshold: Janus dipole ~15\u2013150\u00d7 smaller than interlayer \u21d2 U_dip ~2\u20134 orders below the 7.5 meV need"
+    },
+    "U_saturation": {
+      "status": "the moir\u00e9/single-emitter channel MoSSe shares with any bright TMD (E_b\u00b7a_B\u00b2/area); this is the leg that stays open, not the dipole",
+      "tier": "same as TMD saturation leg"
+    }
+  },
+  "forward_finding": "Before f even lands: the Janus does NOT escape the U\u2013f trade-off, it is the other END of it. Interlayer = dark + big dipole (fails on f). Janus = bright + tiny dipole (U_dip \u2248 0.005\u20130.09 meV \u226a 7.5 meV need). The BSE will confirm MoSSe is bright, but its DIPOLAR blockade U is structurally far too small. So Janus is not a new dipolar door \u2014 it's a bright TMD whose only blockade route is the same saturation/moir\u00e9 single-emitter leg as MoS2.",
+  "what_the_bse_still_adds": "MoSSe E_b + absolute f (brightness confirmation, and the exciton's own out-of-plane dipole if ABINIT reports it \u2014 the real U_dip rather than the dipz proxy).",
+  "verdict": "Janus dipolar-blockade route CLOSES on U (tiny dipole). MoSSe remains a bright, tightly-bound TMD \u2192 its blockade hope is the saturation/moir\u00e9 single-emitter leg, already characterized as open-but-single-emitter. The solve-for-it 'escape' was half right (bright \u2713) and half wrong (dipole \u2717).",
+  "tier": "dfpt (\u0393) + proxy (U) + gw_bse-pending (f). Honest partial verdict."
+}

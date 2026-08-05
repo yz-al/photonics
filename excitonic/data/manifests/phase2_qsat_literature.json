@@ -1,0 +1,16 @@
+{
+  "question": "q_sat: does moiré inhomogeneous broadening grow faster than U (∝L^-2) as you confine? Leg closes iff q>2.",
+  "literature_finding": "q_sat ≈ 0, NOT >2. Measured moiré inhomogeneous broadening is ~20-30 meV set by twist-angle/strain/electrostatic DISORDER, not by confinement. Deeper traps (smaller twist) NARROW the line, not broaden it. So the saturation leg does NOT close by the exponent.",
+  "key_numbers": {
+    "moire_level_spacing_meV": "22 (1° twist) to 27 (2° twist)",
+    "inhomogeneous_broadening_meV": "~20-30 (disorder-dominated; precludes resolving moiré without hBN encapsulation)",
+    "RT_survival": "moiré light-matter effects observed at room temperature in MoS2/WSe2"
+  },
+  "implication_for_bound": "Saturation/moiré leg is NOT fundamentally closed (q<2 → confinement formally wins). The real obstacle is the ABSOLUTE ~20 meV disorder floor (>> the ~6 meV phonon floor), which is a FABRICATION/materials-quality problem (twist/strain uniformity), not a fundamental cap. So the leg stays OPEN but disorder-gated: blockade needs U > 0.71·(Γ_phonon + Γ_disorder) ≈ 0.71·(6+20) ≈ 18 meV, and Γ_disorder can in principle be reduced with better samples.",
+  "sources": [
+    "Nature Communications s41467-024-53083-x (moiré at RT, MoS2/WSe2)",
+    "arxiv 2402.19236 (review: spatial inhomogeneities, moiré potential)",
+    "PMC11493145 (moiré exciton evidence; hBN reduces inhomogeneous broadening)"
+  ],
+  "rigor": "Literature-grounded ORDER-OF-MAGNITUDE reading, not a fitted q. It flips the saturation leg from 'unmeasured exponent' to 'disorder-limited engineering problem' — a materially different (and more hopeful) status."
+}

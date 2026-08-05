@@ -1,0 +1,10 @@
+# absorption.inp — BSE (exciton binding, wavefunction; U from the kernel)
+number_val_bands_coarse 4
+number_cond_bands_coarse 4
+number_val_bands_fine 4
+number_cond_bands_fine 4
+cell_slab_truncation
+screening_semiconductor
+use_velocity
+diagonalization
+write_eigenvectors 10          # exciton wavefunctions -> Bohr radius, and U kernel

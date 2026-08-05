@@ -1,0 +1,18 @@
+{
+  "gate": "shared-cavity blockade array works iff sigma_inhom <~ Gamma",
+  "Gamma_meV": 10.0,
+  "best_demonstrated": {
+    "source": "ACS Nano 2024 (structured-defect hBN), 85% within 580+/-10 nm",
+    "sigma_inhom_meV": 36.9,
+    "sigma_over_gamma": 3.7,
+    "verdict": "FAILS"
+  },
+  "typical": {
+    "source": "Sci.Rep.2021: hBN ZPL 1.5-2.2 eV (~700 meV), strain/Stark/dielectric",
+    "sigma_inhom_meV": 700.0,
+    "sigma_over_gamma": 70.0,
+    "verdict": "FAILS"
+  },
+  "disorder_origin": "environmental (strain/dielectric/Stark), NOT defect chemistry -> 'identical-by-chemistry' color centers do not remove the dominant term",
+  "verdict": "Array uniformity FAILS by ~4x (best demonstrated) to ~70x (typical). Single-emitter blockade does not scale to a compute array on any current hBN platform; the escape is unsolved, and the dominant disorder is not the one the identical-by-chemistry proposal removes."
+}

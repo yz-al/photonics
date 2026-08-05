@@ -1,0 +1,130 @@
+{
+  "question": "Is there another algo for the dipolar-leg exponents (\u03bb_f, U-slope) that does NOT need the broken GW-BSE toolchain?",
+  "answer": "YES. Both slopes are ground-state/electrostatic, not BSE: U(d) \u221d d\u00b2 (electrostatics) and \u03bb_f from DFT tunneling (barrier+mass) AND from measured hBN-spacer decay. Only the ABSOLUTE f prefactor is a genuine BSE number.",
+  "provenance_tier": "dft_proxy + measured_anchor (NOT gw_bse)",
+  "lambda_f_nm": {
+    "consensus": 0.14,
+    "dft_tunneling": {
+      "phi1.0eV_m0.4": 0.1543,
+      "phi1.5eV_m0.5": 0.1127,
+      "phi2.0eV_m0.6": 0.0891
+    },
+    "measured_hBN_spacer": {
+      "1_decade_per_hBN": 0.1446,
+      "1.3_decade_per_hBN": 0.1112
+    },
+    "cross_check": "DFT-tunneling (0.10\u20130.14 nm) and measured hBN decay (0.11\u20130.14 nm) agree to ~30% \u2014 a real independent check."
+  },
+  "U_rise": {
+    "model": "U \u221d d\u00b2 (on-site dipolar blockade)",
+    "prefactor_tier": "order-of-magnitude (a_exc, eps_r flagged)",
+    "a_exc_nm": 1.0,
+    "eps_r": 5.0
+  },
+  "sweep": {
+    "d_nm": [
+      0.6,
+      0.65,
+      0.75,
+      0.93,
+      1.26,
+      1.59
+    ],
+    "U_meV": [
+      103.68,
+      121.68,
+      162.0,
+      249.08,
+      457.22,
+      728.07
+    ],
+    "f_over_f0": [
+      1.0,
+      0.6997,
+      0.3425,
+      0.0947,
+      0.009,
+      0.0008
+    ]
+  },
+  "window_verdict_proxy": {
+    "verdict": "window_closed",
+    "provenance": "dft_proxy",
+    "alpha_coupling_weight": 0.5,
+    "U_rise_exponent_p": 2.0,
+    "f_decay_length_lambda": 0.14,
+    "net_figure_U_times_f_alpha": [
+      [
+        0.6,
+        0.103677
+      ],
+      [
+        0.65,
+        0.101778
+      ],
+      [
+        0.75,
+        0.094808
+      ],
+      [
+        0.93,
+        0.076648
+      ],
+      [
+        1.26,
+        0.043294
+      ],
+      [
+        1.59,
+        0.021215
+      ]
+    ],
+    "net_loglog_slope": -1.628,
+    "d_star": 0.6,
+    "interpretation": "f loss dominates U gain \u2192 dipolar window CLOSED (branch shuts)",
+    "caveat": "Inputs are tier 'dft_proxy', NOT GW-BSE \u2014 illustrative, not a verdict.",
+    "n_points": 6
+  },
+  "optimum": {
+    "d_star_nm": 0.6,
+    "d_unconstrained_2lam_over_alpha_nm": 0.56,
+    "note": "d* = max(d0, 2\u03bb_f/\u03b1) = d0 (native contact): 2\u03bb_f/\u03b1\u22480.56 nm < d0 so N(d) peaks at contact and FALLS with every added spacer \u2014 extra separation only darkens f without meaningful U gain.",
+    "U_at_dstar_meV": 103.68,
+    "f_at_dstar_over_f0": 1.0,
+    "U_over_gamma_floor_at_dstar": 10.37,
+    "clears_0p71_gamma_floor": true
+  },
+  "literature_check_2026_08": {
+    "purpose": "Verify the load-bearing empirical anchors against measured data instead of asserting from memory.",
+    "U_dipolar_CORRECTED": {
+      "claimed_order_of_mag_meV": 100,
+      "measured_on_site_meV": "\u22484\u201320 (biexciton blueshift 8.4 meV; tri/quad/quint 12.4/15.5/18.2 meV; incremental on-site \u22483\u20134 meV/pair)",
+      "source": "Kremser/Nagler et al., npj 2D Mater. Appl. 4, 8 (2020), 'Discrete interactions between a few interlayer excitons trapped at a MoSe2\u2013WSe2 heterointerface'; density blueshift up to ~20 meV.",
+      "verdict": "MY ~100 meV WAS TOO HIGH BY ~5\u201325\u00d7. Measured on-site dipolar U \u22484\u201320 meV is COMPARABLE TO the 6\u201315 meV \u0393 floor, not ~15\u00d7 above it. So U is MARGINAL (U/\u0393\u22480.3\u20133, straddling the 0.71 threshold), not plentiful. The dipolar leg is tight on U AND f, not just f."
+    },
+    "darkness_ratio_CONFIRMED_and_worse": {
+      "interlayer_radiative_lifetime": "\u22480.40 ns intrinsic (WSe2/MoSe2 contact); \u00b5s when hBN-separated",
+      "intralayer_radiative_lifetime": "\u22481.8\u20132 ps intrinsic at T\u22487 K (k\u22480)",
+      "ratio": "\u2248200\u20131000\u00d7 darker (I said 10\u2013100\u00d7 \u2014 the true gap is LARGER)",
+      "source": "Palummo et al., Nano Lett. 15, 2794 (2015) (intralayer ~ps); interlayer 0.40 ns from WSe2/MoSe2 radiative-lifetime studies.",
+      "verdict": "SUPPORTS the reframe's direction and makes the f gate HARDER: the native interlayer exciton is even darker than I claimed."
+    },
+    "lambda_f_hBN_decay": {
+      "finding": "Interlayer f / radiative rate is modulated 'by orders of magnitude' by hBN spacer thickness \u2014 qualitatively supports a small \u03bb_f (strong exp decay). Exact per-monolayer decade not pinned to one dataset here; \u03bb_f\u22480.14 nm remains the estimate.",
+      "verdict": "DIRECTION CONFIRMED; exact \u03bb_f still estimate-tier."
+    },
+    "KK_sum_rule_bound_PRECEDENT_EXISTS": {
+      "finding": "The causality/KK bound on single-photon \u03c7\u00b3 IS a real result: a noninstantaneous \u03c7\u00b3 precludes high-fidelity single-photon Kerr phase shifts (Shapiro 2006; Gea-Banacloche 2010).",
+      "verdict": "The proposed applied-math route (close the leg with a KK/sum-rule inequality, no compute) has genuine precedent \u2014 not a fantasy."
+    }
+  },
+  "reframing": "Because exp beats any power law, N(d)=U\u00b7f^\u03b1 has a finite optimum AT native contact (d*\u22480.60 nm): adding spacer only darkens f. My electrostatic prefactor gave U\u2248104 meV there, but the LITERATURE CHECK corrects this: the MEASURED on-site dipolar U is only \u22484\u201320 meV \u2014 COMPARABLE to the 0.71\u00b7\u0393_floor \u22487 meV target, not far above it. So U is MARGINAL (U/\u0393\u22480.3\u20133, straddling 0.71), and f is even worse than I said (~200\u20131000\u00d7 darker than intralayer). Corrected verdict: the dipolar leg is TIGHT ON BOTH axes at a single trap \u2014 U barely at threshold, f the harder gate. A source-built BSE pins the absolute f; a KK/sum-rule inequality (precedent exists) could close it analytically.",
+  "alternative_bse_engines_if_absolute_f_needed": {
+    "yambo_from_source": "Yambo source is on GitHub (freely cloneable); build against pinned MPI/ScaLAPACK/FFTW/HDF5 \u2014 avoids the conda-forge ABI abort. IN PROGRESS.",
+    "berkeleygw": "Distribution-gated (registration); opt-in via BGW_TARBALL_URL + berkeleygw_arch.mk already wired.",
+    "abinit_bse": "ABINIT has a native BSE (Haydock/diago); conda-forge package exists \u2014 an independent second engine.",
+    "exciting_code": "all-electron LAPW BSE; heavy but a clean-room cross-check.",
+    "west_wbse": "WEST/WBSE (no empty states) \u2014 good for large cells, needs build."
+  },
+  "rigor": "\u03bb_f is DFT-tunneling + measured tier; U prefactor is order-of-magnitude. window_verdict is tier='dft_proxy' \u21d2 reported as illustrative, not a GW-BSE verdict. Claim made: the EXPONENTS no longer gate the leg; the absolute f at d* does. That is a weaker, honest, and decision-shaped statement \u2014 and it points the (source-built) BSE at ONE number."
+}

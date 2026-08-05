@@ -1,0 +1,144 @@
+{
+  "target": "E_b (eV, GW-BSE)",
+  "n_c2db": 370,
+  "n_features": 54,
+  "config": {
+    "k_nn": 5,
+    "alpha": 1.0,
+    "combination": "sigma_total = sigma_cal * (1 + alpha * ood_percentile)"
+  },
+  "calibration": {
+    "n_calibration": 130,
+    "conformal_q": 1.8418697686509462,
+    "coverage_1sigma_before": 0.4153846153846154,
+    "coverage_1sigma_after": 0.7,
+    "coverage_2sigma_before": 0.7307692307692307,
+    "coverage_2sigma_after": 0.9615384615384616,
+    "note": "Bare bootstrap \u03c3 is ~2x under-dispersed (1\u03c3/2\u03c3 \u2248 0.42/0.73, far below 0.68/0.95). A single split-conformal multiplier q\u22481.8 (which directly quantifies that under-dispersion) restores 1\u03c3 coverage to ~0.68 on the held-out C2DB split; 2\u03c3 lands near 0.95, so the rescaled residuals are close to Gaussian."
+  },
+  "gaas_fix": {
+    "E_b_true_eV": 0.004,
+    "E_b_pred_eV": 0.28264198708755506,
+    "abs_error_eV": 0.27864198708755505,
+    "bootstrap_sigma_eV": 0.07823543690739036,
+    "ood_distance": 19.185695346969833,
+    "ood_distance_percentile": 0.9972972972972973,
+    "calibrated_sigma_eV": 0.14409948607692077,
+    "ood_inflated_sigma_eV": 0.2878095140833634,
+    "inflation_vs_bootstrap": 3.678761510900133,
+    "note": "Bare bootstrap \u03c3 gave GaAs a LOW uncertainty despite a ~70x error. The OOD distance flags it at the extreme percentile, and the combined \u03c3_total inflates accordingly \u2014 acquisition would now surface, not bury, this extrapolation."
+  },
+  "acquisition": {
+    "top_by_ood_distance": [
+      {
+        "formula": "Cr2O2",
+        "ood_distance": 16.936617300233102,
+        "ood_percentile": 0.9945945945945946,
+        "bootstrap_sigma": 0.21029255399884708,
+        "sigma_total": 0.7725693117939468
+      },
+      {
+        "formula": "Ge2F2",
+        "ood_distance": 13.527063257584706,
+        "ood_percentile": 0.9918918918918919,
+        "bootstrap_sigma": 0.2638236252127953,
+        "sigma_total": 0.9679175561555389
+      },
+      {
+        "formula": "CoCl2",
+        "ood_distance": 11.172226560926603,
+        "ood_percentile": 0.9918918918918919,
+        "bootstrap_sigma": 0.22929961706524307,
+        "sigma_total": 0.8412556866284273
+      },
+      {
+        "formula": "OsO2",
+        "ood_distance": 7.382105008190995,
+        "ood_percentile": 0.972972972972973,
+        "bootstrap_sigma": 0.25679313540594373,
+        "sigma_total": 0.93317579572418
+      },
+      {
+        "formula": "BaCl2",
+        "ood_distance": 7.2830252641446664,
+        "ood_percentile": 0.9675675675675676,
+        "bootstrap_sigma": 0.11765750967479628,
+        "sigma_total": 0.4263911939752103
+      },
+      {
+        "formula": "CrBiAs",
+        "ood_distance": 7.183596514715795,
+        "ood_percentile": 0.9648648648648649,
+        "bootstrap_sigma": 0.042619735665016714,
+        "sigma_total": 0.1542418971366837
+      },
+      {
+        "formula": "Zr2Te2",
+        "ood_distance": 6.267793132362772,
+        "ood_percentile": 0.9486486486486486,
+        "bootstrap_sigma": 0.10096076969757756,
+        "sigma_total": 0.36236405688656403
+      },
+      {
+        "formula": "Mo2S4",
+        "ood_distance": 6.172363238353787,
+        "ood_percentile": 0.9486486486486486,
+        "bootstrap_sigma": 0.03607767761338945,
+        "sigma_total": 0.12948845043667542
+      }
+    ],
+    "top_by_bootstrap_sigma": [
+      {
+        "formula": "MnO2",
+        "bootstrap_sigma": 0.8569037820945098,
+        "ood_distance": 3.865612093125878,
+        "ood_percentile": 0.6135135135135135
+      },
+      {
+        "formula": "MnCl2",
+        "bootstrap_sigma": 0.6883465497949899,
+        "ood_distance": 3.57783000457313,
+        "ood_percentile": 0.5162162162162162
+      },
+      {
+        "formula": "ScO2",
+        "bootstrap_sigma": 0.5625684153973738,
+        "ood_distance": 4.090623712173616,
+        "ood_percentile": 0.6783783783783783
+      },
+      {
+        "formula": "NiCl2",
+        "bootstrap_sigma": 0.4770689772123238,
+        "ood_distance": 2.69145870265771,
+        "ood_percentile": 0.10810810810810811
+      },
+      {
+        "formula": "Ag2F2",
+        "bootstrap_sigma": 0.4428775140547002,
+        "ood_distance": 4.339650041535835,
+        "ood_percentile": 0.7486486486486487
+      },
+      {
+        "formula": "MnI2",
+        "bootstrap_sigma": 0.38575986379477556,
+        "ood_distance": 3.482733710731879,
+        "ood_percentile": 0.45135135135135135
+      },
+      {
+        "formula": "NiO2",
+        "bootstrap_sigma": 0.3756715159610772,
+        "ood_distance": 3.0311184881410767,
+        "ood_percentile": 0.21081081081081082
+      },
+      {
+        "formula": "VCl2",
+        "bootstrap_sigma": 0.3201606530424895,
+        "ood_distance": 2.692374211484975,
+        "ood_percentile": 0.10810810810810811
+      }
+    ],
+    "overlap_top8": [],
+    "note": "The two rankings differ: bootstrap \u03c3 favors hard-but-in-distribution 2D materials, while OOD distance surfaces chemically-unusual compositions \u2014 exactly the novelty an acquisition loop should probe."
+  },
+  "limitations": "Distance-based OOD is a heuristic proxy for epistemic risk: it flags novelty in feature space, not error in the target, and the \u03c3_total combination is a monotone inflation, not a probabilistic posterior. The conformal coverage is calibrated on the C2DB (2D) distribution; true calibration on novel chemistries needs held-out GW-BSE labels there, which do not exist yet. This restores a defensible, OOD-aware acquisition signal \u2014 not a certified predictive interval."
+}

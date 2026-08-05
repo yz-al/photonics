@@ -1,0 +1,67 @@
+{
+  "purpose": "Decide the dipolar branch: does a usable separation window exist (U gain outruns f loss) or not (f loss dominates)?",
+  "the_one_exponent": "f decay length \u03bb_f vs U rise exponent p; net figure N(d)=U\u00b7f^\u03b1 (\u03b1=0.5 for g\u221d\u221af) rising \u21d2 open, falling \u21d2 closed.",
+  "selftest_ok": true,
+  "selftest": {
+    "f_falls_slowly (\u03bb=2.0nm)": {
+      "verdict": "window_open",
+      "provenance": "saturation_model",
+      "alpha_coupling_weight": 0.5,
+      "U_rise_exponent_p": 1.0,
+      "f_decay_length_lambda": 2.0,
+      "net_figure_U_times_f_alpha": [
+        [
+          0.6,
+          0.1
+        ],
+        [
+          0.9,
+          0.139162
+        ],
+        [
+          1.2,
+          0.172142
+        ]
+      ],
+      "net_loglog_slope": 0.784,
+      "d_star": 1.2,
+      "interpretation": "U gain outruns f loss \u2192 dipolar window OPEN (larger d favorable)",
+      "caveat": "Inputs are tier 'saturation_model', NOT GW-BSE \u2014 illustrative, not a verdict.",
+      "n_points": 3
+    },
+    "f_falls_fast (\u03bb=0.25nm)": {
+      "verdict": "window_closed",
+      "provenance": "saturation_model",
+      "alpha_coupling_weight": 0.5,
+      "U_rise_exponent_p": 1.0,
+      "f_decay_length_lambda": 0.25,
+      "net_figure_U_times_f_alpha": [
+        [
+          0.6,
+          0.1
+        ],
+        [
+          0.9,
+          0.082322
+        ],
+        [
+          1.2,
+          0.060239
+        ]
+      ],
+      "net_loglog_slope": -0.731,
+      "d_star": 0.6,
+      "interpretation": "f loss dominates U gain \u2192 dipolar window CLOSED (branch shuts)",
+      "caveat": "Inputs are tier 'saturation_model', NOT GW-BSE \u2014 illustrative, not a verdict.",
+      "n_points": 3
+    }
+  },
+  "one_point_guard": {
+    "verdict": "undetermined",
+    "provenance": "gw_bse",
+    "reason": "need \u22652 (d,U,f) points; have 1. One point cannot give a slope \u2014 this is exactly the gap the geometric prior leaves open.",
+    "n_points": 1
+  },
+  "flagship_gwbse_dsweep": "not yet computed \u2014 run the heterobilayer GW-BSE at \u22652 interlayer separations (phase2_gwbse_dsweep.json). This is the branch-deciding run.",
+  "rigor": "Self-test inputs are illustrative (tier saturation_model). The real verdict requires GW-BSE U and oscillator strength f at \u22652 separations; until then the 209-shortlist ranking's favorable-tradeoff ASSUMPTION is untested."
+}

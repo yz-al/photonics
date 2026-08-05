@@ -1,0 +1,347 @@
+{
+  "purpose": "Phase-2 input decks + MODEL-tier \u0393/U estimates for the TMD anchors",
+  "rigor": "\u0393/U here are analytic MODEL estimates (tiers 'frohlich_model' / 'saturation_model'), NOT GW-BSE/EPW results. U is quoted at a 10000 nm\u00b2 reference mode area. Real labels come from modal_phase2.py and will carry tier 'epw' / 'gw_bse'.",
+  "mode_area_nm2": 10000.0,
+  "anchors": {
+    "MoS2": {
+      "structure": {
+        "formula": "MoS2",
+        "natoms": 3,
+        "cell_a_A": 3.16,
+        "cell_b_A": 3.16,
+        "cell_c_A": 18.19,
+        "pbc": [
+          true,
+          true,
+          true
+        ]
+      },
+      "qe_eph_deck": {
+        "scf": "data/phase2_inputs/MoS2/scf.in",
+        "ph": "data/phase2_inputs/MoS2/ph.in",
+        "epw": "data/phase2_inputs/MoS2/epw.in"
+      },
+      "bgw_bse_deck": {
+        "pw2bgw": "data/phase2_inputs/MoS2/pw2bgw.in",
+        "epsilon": "data/phase2_inputs/MoS2/epsilon.inp",
+        "sigma": "data/phase2_inputs/MoS2/sigma.inp",
+        "kernel": "data/phase2_inputs/MoS2/kernel.inp",
+        "absorption": "data/phase2_inputs/MoS2/absorption.inp"
+      },
+      "labels": {
+        "a_B_nm_model": 0.98,
+        "Gamma_300K": {
+          "name": "Gamma_300K",
+          "value": 12.306,
+          "unit": "meV",
+          "tier": "frohlich_model",
+          "source": "Fr\u00f6hlich model (\u03b1=0.400, \u0127\u03c9_LO=48.0 meV, \u03b3_LO=55.7 meV, C_cal=2.9)",
+          "uncertainty": 4.922,
+          "converged": null,
+          "notes": "MODEL estimate for prioritization; replace with EPW (tier 'epw').",
+          "computed": false,
+          "is_model_estimate": true
+        },
+        "U": {
+          "name": "U",
+          "value": 0.00032,
+          "unit": "eV",
+          "tier": "saturation_model",
+          "source": "saturation/exchange model g_xx=6.0\u00b7E_b\u00b7a_B\u00b2 (E_b=0.547 eV, a_B=0.98 nm, A=10000.0 nm\u00b2)",
+          "uncertainty": 0.00016,
+          "converged": null,
+          "notes": "MODEL estimate (Ciuti/Tassone-Yamamoto); a_B-tied. Replace with BSE biexciton/saturation (tier 'gw_bse').",
+          "computed": false,
+          "is_model_estimate": true
+        },
+        "blockade_fom": {
+          "U_over_Gamma": 0.026,
+          "meets_blockade": false,
+          "threshold": 0.71,
+          "provenance": "frohlich_model",
+          "first_principles": false,
+          "U": {
+            "name": "U",
+            "value": 0.00032,
+            "unit": "eV",
+            "tier": "saturation_model",
+            "source": "saturation/exchange model g_xx=6.0\u00b7E_b\u00b7a_B\u00b2 (E_b=0.547 eV, a_B=0.98 nm, A=10000.0 nm\u00b2)",
+            "uncertainty": 0.00016,
+            "converged": null,
+            "notes": "MODEL estimate (Ciuti/Tassone-Yamamoto); a_B-tied. Replace with BSE biexciton/saturation (tier 'gw_bse').",
+            "computed": false,
+            "is_model_estimate": true
+          },
+          "Gamma": {
+            "name": "Gamma_300K",
+            "value": 12.306,
+            "unit": "meV",
+            "tier": "frohlich_model",
+            "source": "Fr\u00f6hlich model (\u03b1=0.400, \u0127\u03c9_LO=48.0 meV, \u03b3_LO=55.7 meV, C_cal=2.9)",
+            "uncertainty": 4.922,
+            "converged": null,
+            "notes": "MODEL estimate for prioritization; replace with EPW (tier 'epw').",
+            "computed": false,
+            "is_model_estimate": true
+          },
+          "caveat": "FOM built from MODEL estimates \u2014 not a GW-BSE/EPW result; for prioritization only."
+        }
+      }
+    },
+    "MoSe2": {
+      "structure": {
+        "formula": "MoSe2",
+        "natoms": 3,
+        "cell_a_A": 3.29,
+        "cell_b_A": 3.29,
+        "cell_c_A": 18.34,
+        "pbc": [
+          true,
+          true,
+          true
+        ]
+      },
+      "qe_eph_deck": {
+        "scf": "data/phase2_inputs/MoSe2/scf.in",
+        "ph": "data/phase2_inputs/MoSe2/ph.in",
+        "epw": "data/phase2_inputs/MoSe2/epw.in"
+      },
+      "bgw_bse_deck": {
+        "pw2bgw": "data/phase2_inputs/MoSe2/pw2bgw.in",
+        "epsilon": "data/phase2_inputs/MoSe2/epsilon.inp",
+        "sigma": "data/phase2_inputs/MoSe2/sigma.inp",
+        "kernel": "data/phase2_inputs/MoSe2/kernel.inp",
+        "absorption": "data/phase2_inputs/MoSe2/absorption.inp"
+      },
+      "labels": {
+        "a_B_nm_model": 1.004,
+        "Gamma_300K": {
+          "name": "Gamma_300K",
+          "value": 16.495,
+          "unit": "meV",
+          "tier": "frohlich_model",
+          "source": "Fr\u00f6hlich model (\u03b1=0.420, \u0127\u03c9_LO=36.0 meV, \u03b3_LO=43.8 meV, C_cal=2.9)",
+          "uncertainty": 6.598,
+          "converged": null,
+          "notes": "MODEL estimate for prioritization; replace with EPW (tier 'epw').",
+          "computed": false,
+          "is_model_estimate": true
+        },
+        "U": {
+          "name": "U",
+          "value": 0.0003,
+          "unit": "eV",
+          "tier": "saturation_model",
+          "source": "saturation/exchange model g_xx=6.0\u00b7E_b\u00b7a_B\u00b2 (E_b=0.500 eV, a_B=1.00 nm, A=10000.0 nm\u00b2)",
+          "uncertainty": 0.00015,
+          "converged": null,
+          "notes": "MODEL estimate (Ciuti/Tassone-Yamamoto); a_B-tied. Replace with BSE biexciton/saturation (tier 'gw_bse').",
+          "computed": false,
+          "is_model_estimate": true
+        },
+        "blockade_fom": {
+          "U_over_Gamma": 0.0182,
+          "meets_blockade": false,
+          "threshold": 0.71,
+          "provenance": "frohlich_model",
+          "first_principles": false,
+          "U": {
+            "name": "U",
+            "value": 0.0003,
+            "unit": "eV",
+            "tier": "saturation_model",
+            "source": "saturation/exchange model g_xx=6.0\u00b7E_b\u00b7a_B\u00b2 (E_b=0.500 eV, a_B=1.00 nm, A=10000.0 nm\u00b2)",
+            "uncertainty": 0.00015,
+            "converged": null,
+            "notes": "MODEL estimate (Ciuti/Tassone-Yamamoto); a_B-tied. Replace with BSE biexciton/saturation (tier 'gw_bse').",
+            "computed": false,
+            "is_model_estimate": true
+          },
+          "Gamma": {
+            "name": "Gamma_300K",
+            "value": 16.495,
+            "unit": "meV",
+            "tier": "frohlich_model",
+            "source": "Fr\u00f6hlich model (\u03b1=0.420, \u0127\u03c9_LO=36.0 meV, \u03b3_LO=43.8 meV, C_cal=2.9)",
+            "uncertainty": 6.598,
+            "converged": null,
+            "notes": "MODEL estimate for prioritization; replace with EPW (tier 'epw').",
+            "computed": false,
+            "is_model_estimate": true
+          },
+          "caveat": "FOM built from MODEL estimates \u2014 not a GW-BSE/EPW result; for prioritization only."
+        }
+      }
+    },
+    "WS2": {
+      "structure": {
+        "formula": "S2W",
+        "natoms": 3,
+        "cell_a_A": 3.15,
+        "cell_b_A": 3.15,
+        "cell_c_A": 18.14,
+        "pbc": [
+          true,
+          true,
+          true
+        ]
+      },
+      "qe_eph_deck": {
+        "scf": "data/phase2_inputs/WS2/scf.in",
+        "ph": "data/phase2_inputs/WS2/ph.in",
+        "epw": "data/phase2_inputs/WS2/epw.in"
+      },
+      "bgw_bse_deck": {
+        "pw2bgw": "data/phase2_inputs/WS2/pw2bgw.in",
+        "epsilon": "data/phase2_inputs/WS2/epsilon.inp",
+        "sigma": "data/phase2_inputs/WS2/sigma.inp",
+        "kernel": "data/phase2_inputs/WS2/kernel.inp",
+        "absorption": "data/phase2_inputs/WS2/absorption.inp"
+      },
+      "labels": {
+        "a_B_nm_model": 1.203,
+        "Gamma_300K": {
+          "name": "Gamma_300K",
+          "value": 12.811,
+          "unit": "meV",
+          "tier": "frohlich_model",
+          "source": "Fr\u00f6hlich model (\u03b1=0.380, \u0127\u03c9_LO=44.0 meV, \u03b3_LO=48.5 meV, C_cal=2.9)",
+          "uncertainty": 5.125,
+          "converged": null,
+          "notes": "MODEL estimate for prioritization; replace with EPW (tier 'epw').",
+          "computed": false,
+          "is_model_estimate": true
+        },
+        "U": {
+          "name": "U",
+          "value": 0.00045,
+          "unit": "eV",
+          "tier": "saturation_model",
+          "source": "saturation/exchange model g_xx=6.0\u00b7E_b\u00b7a_B\u00b2 (E_b=0.516 eV, a_B=1.20 nm, A=10000.0 nm\u00b2)",
+          "uncertainty": 0.00022,
+          "converged": null,
+          "notes": "MODEL estimate (Ciuti/Tassone-Yamamoto); a_B-tied. Replace with BSE biexciton/saturation (tier 'gw_bse').",
+          "computed": false,
+          "is_model_estimate": true
+        },
+        "blockade_fom": {
+          "U_over_Gamma": 0.0351,
+          "meets_blockade": false,
+          "threshold": 0.71,
+          "provenance": "frohlich_model",
+          "first_principles": false,
+          "U": {
+            "name": "U",
+            "value": 0.00045,
+            "unit": "eV",
+            "tier": "saturation_model",
+            "source": "saturation/exchange model g_xx=6.0\u00b7E_b\u00b7a_B\u00b2 (E_b=0.516 eV, a_B=1.20 nm, A=10000.0 nm\u00b2)",
+            "uncertainty": 0.00022,
+            "converged": null,
+            "notes": "MODEL estimate (Ciuti/Tassone-Yamamoto); a_B-tied. Replace with BSE biexciton/saturation (tier 'gw_bse').",
+            "computed": false,
+            "is_model_estimate": true
+          },
+          "Gamma": {
+            "name": "Gamma_300K",
+            "value": 12.811,
+            "unit": "meV",
+            "tier": "frohlich_model",
+            "source": "Fr\u00f6hlich model (\u03b1=0.380, \u0127\u03c9_LO=44.0 meV, \u03b3_LO=48.5 meV, C_cal=2.9)",
+            "uncertainty": 5.125,
+            "converged": null,
+            "notes": "MODEL estimate for prioritization; replace with EPW (tier 'epw').",
+            "computed": false,
+            "is_model_estimate": true
+          },
+          "caveat": "FOM built from MODEL estimates \u2014 not a GW-BSE/EPW result; for prioritization only."
+        }
+      }
+    },
+    "WSe2": {
+      "structure": {
+        "formula": "Se2W",
+        "natoms": 3,
+        "cell_a_A": 3.28,
+        "cell_b_A": 3.2799999999999994,
+        "cell_c_A": 18.36,
+        "pbc": [
+          true,
+          true,
+          true
+        ]
+      },
+      "qe_eph_deck": {
+        "scf": "data/phase2_inputs/WSe2/scf.in",
+        "ph": "data/phase2_inputs/WSe2/ph.in",
+        "epw": "data/phase2_inputs/WSe2/epw.in"
+      },
+      "bgw_bse_deck": {
+        "pw2bgw": "data/phase2_inputs/WSe2/pw2bgw.in",
+        "epsilon": "data/phase2_inputs/WSe2/epsilon.inp",
+        "sigma": "data/phase2_inputs/WSe2/sigma.inp",
+        "kernel": "data/phase2_inputs/WSe2/kernel.inp",
+        "absorption": "data/phase2_inputs/WSe2/absorption.inp"
+      },
+      "labels": {
+        "a_B_nm_model": 1.213,
+        "Gamma_300K": {
+          "name": "Gamma_300K",
+          "value": 17.518,
+          "unit": "meV",
+          "tier": "frohlich_model",
+          "source": "Fr\u00f6hlich model (\u03b1=0.400, \u0127\u03c9_LO=31.0 meV, \u03b3_LO=36.0 meV, C_cal=2.9)",
+          "uncertainty": 7.007,
+          "converged": null,
+          "notes": "MODEL estimate for prioritization; replace with EPW (tier 'epw').",
+          "computed": false,
+          "is_model_estimate": true
+        },
+        "U": {
+          "name": "U",
+          "value": 0.00042,
+          "unit": "eV",
+          "tier": "saturation_model",
+          "source": "saturation/exchange model g_xx=6.0\u00b7E_b\u00b7a_B\u00b2 (E_b=0.480 eV, a_B=1.21 nm, A=10000.0 nm\u00b2)",
+          "uncertainty": 0.00021,
+          "converged": null,
+          "notes": "MODEL estimate (Ciuti/Tassone-Yamamoto); a_B-tied. Replace with BSE biexciton/saturation (tier 'gw_bse').",
+          "computed": false,
+          "is_model_estimate": true
+        },
+        "blockade_fom": {
+          "U_over_Gamma": 0.024,
+          "meets_blockade": false,
+          "threshold": 0.71,
+          "provenance": "frohlich_model",
+          "first_principles": false,
+          "U": {
+            "name": "U",
+            "value": 0.00042,
+            "unit": "eV",
+            "tier": "saturation_model",
+            "source": "saturation/exchange model g_xx=6.0\u00b7E_b\u00b7a_B\u00b2 (E_b=0.480 eV, a_B=1.21 nm, A=10000.0 nm\u00b2)",
+            "uncertainty": 0.00021,
+            "converged": null,
+            "notes": "MODEL estimate (Ciuti/Tassone-Yamamoto); a_B-tied. Replace with BSE biexciton/saturation (tier 'gw_bse').",
+            "computed": false,
+            "is_model_estimate": true
+          },
+          "Gamma": {
+            "name": "Gamma_300K",
+            "value": 17.518,
+            "unit": "meV",
+            "tier": "frohlich_model",
+            "source": "Fr\u00f6hlich model (\u03b1=0.400, \u0127\u03c9_LO=31.0 meV, \u03b3_LO=36.0 meV, C_cal=2.9)",
+            "uncertainty": 7.007,
+            "converged": null,
+            "notes": "MODEL estimate for prioritization; replace with EPW (tier 'epw').",
+            "computed": false,
+            "is_model_estimate": true
+          },
+          "caveat": "FOM built from MODEL estimates \u2014 not a GW-BSE/EPW result; for prioritization only."
+        }
+      }
+    }
+  }
+}

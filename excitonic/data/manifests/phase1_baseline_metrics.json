@@ -1,0 +1,148 @@
+{
+  "n_materials": 370,
+  "n_features": 54,
+  "features": [
+    "en_pauling_mean",
+    "en_pauling_std",
+    "en_pauling_min",
+    "en_pauling_max",
+    "en_pauling_range",
+    "atomic_weight_mean",
+    "atomic_weight_std",
+    "atomic_weight_min",
+    "atomic_weight_max",
+    "atomic_weight_range",
+    "group_id_mean",
+    "group_id_std",
+    "group_id_min",
+    "group_id_max",
+    "group_id_range",
+    "period_mean",
+    "period_std",
+    "period_min",
+    "period_max",
+    "period_range",
+    "covalent_radius_mean",
+    "covalent_radius_std",
+    "covalent_radius_min",
+    "covalent_radius_max",
+    "covalent_radius_range",
+    "dipole_polarizability_mean",
+    "dipole_polarizability_std",
+    "dipole_polarizability_min",
+    "dipole_polarizability_max",
+    "dipole_polarizability_range",
+    "electron_affinity_mean",
+    "electron_affinity_std",
+    "electron_affinity_min",
+    "electron_affinity_max",
+    "electron_affinity_range",
+    "n_elements",
+    "n_atoms_reduced",
+    "mean_stoich_frac_max",
+    "gap",
+    "gap_hse",
+    "emass_cbm",
+    "emass_vbm",
+    "thickness",
+    "area",
+    "natoms",
+    "nspecies",
+    "dipz",
+    "ehull",
+    "hform",
+    "alphax_lat",
+    "is_magnetic",
+    "gap_hse_missing",
+    "alphax_lat_missing",
+    "emass_cbm_missing"
+  ],
+  "dropped_features": [
+    "nvalence_mean",
+    "nvalence_std",
+    "nvalence_min",
+    "nvalence_max",
+    "nvalence_range"
+  ],
+  "targets": {
+    "E_b": {
+      "cv_metrics": {
+        "n": 370,
+        "mae": 0.17202317870402295,
+        "rmse": 0.29204136787461316,
+        "r2": 0.8069338190829266,
+        "baseline_mae_meanpredictor": 0.5120123447772097,
+        "skill_vs_mean": 0.6640253297430263
+      },
+      "uncertainty_calibration": {
+        "n": 370,
+        "frac_within_1sigma": 0.4,
+        "frac_within_2sigma": 0.7243243243243244,
+        "spearman_abs_err_vs_sigma": 0.44187640404851636
+      },
+      "unit": "eV (GW-BSE label)"
+    },
+    "f_osc": {
+      "cv_metrics": {
+        "n": 369,
+        "mae": 0.09922902179857733,
+        "rmse": 0.16495015097044763,
+        "r2": 0.8499902721197858,
+        "baseline_mae_meanpredictor": 0.3157567092514773,
+        "skill_vs_mean": 0.6857421587848238
+      },
+      "uncertainty_calibration": {
+        "n": 369,
+        "frac_within_1sigma": 0.46883468834688347,
+        "frac_within_2sigma": 0.7750677506775068,
+        "spearman_abs_err_vs_sigma": 0.5172365366426873
+      },
+      "unit": "log10(mean in-plane interband polarizability [\u00c5]); DFT proxy"
+    }
+  },
+  "anchors": {
+    "TMD_family_in_c2db": [
+      {
+        "formula": "WS2",
+        "E_b_true_eV": 0.516,
+        "E_b_pred_oof_eV": 0.7053516460972178,
+        "E_b_sigma_eV": 0.08009775641194233
+      },
+      {
+        "formula": "WSe2",
+        "E_b_true_eV": 0.48,
+        "E_b_pred_oof_eV": 0.524582800629137,
+        "E_b_sigma_eV": 0.05094900704828014
+      },
+      {
+        "formula": "WTe2",
+        "E_b_true_eV": 0.42,
+        "E_b_pred_oof_eV": 0.4433698968774819,
+        "E_b_sigma_eV": 0.03516534001142494
+      },
+      {
+        "formula": "MoS2",
+        "E_b_true_eV": 0.547,
+        "E_b_pred_oof_eV": 0.7106012176327883,
+        "E_b_sigma_eV": 0.08446399957724297
+      },
+      {
+        "formula": "MoSe2",
+        "E_b_true_eV": 0.5,
+        "E_b_pred_oof_eV": 0.5224033469402469,
+        "E_b_sigma_eV": 0.038208695697995135
+      },
+      {
+        "formula": "MoTe2",
+        "E_b_true_eV": 0.455,
+        "E_b_pred_oof_eV": 0.49531615792187367,
+        "E_b_sigma_eV": 0.04267301933318939
+      }
+    ],
+    "note": "C2DB E_B is the 2D exciton binding (large; TMD monolayers ~0.4\u20130.6 eV, consistent with Selig/Moody). GaAs (E_b~4 meV) is a 3D anchor NOT in this 2D set \u2192 out-of-distribution by construction; flagged, not predicted here. Halide-perovskite Fr\u00f6hlich linewidth is a Phase-2 (EPW) quantity, not in C2DB."
+  },
+  "notes": [
+    "Saved full-data ensembles to models/phase1_baseline_ensemble.joblib",
+    "figure skipped: No module named 'matplotlib'"
+  ]
+}

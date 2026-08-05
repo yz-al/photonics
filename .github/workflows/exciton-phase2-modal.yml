@@ -1,0 +1,105 @@
+name: Excitonic Phase 2 (GW-BSE + EPW) on Modal
+
+# Phase 2 stands up the first-principles label-generation container on Modal:
+# Quantum ESPRESSO (pw.x/ph.x/epw.x) + BerkeleyGW, as many-core CPU/MPI jobs
+# (NOT GPU). This workflow runs the SMOKE TEST — it builds the container and
+# verifies the binaries are present. It does NOT run production GW-BSE/EPW
+# (those are long many-core jobs launched deliberately via `modal run ...::generate`).
+#
+# Credentials: repo secrets MODAL_TOKEN_ID / MODAL_TOKEN_SECRET, falling back to
+# the committed excitonic/modal_tokens.secret.
+
+on:
+  workflow_dispatch:
+    inputs:
+      entrypoint:
+        description: 'smoke | dfpt | gamma2d | gwbse | generate'
+        required: false
+        default: 'smoke'
+      mode:
+        description: 'for gwbse: debug (cheap) or production (~$300 converged)'
+        required: false
+        default: 'debug'
+      yambo_src:
+        description: 'build Yambo from source at this git tag (e.g. 5.1.2) instead of the ABI-broken conda binary; blank = conda'
+        required: false
+        default: ''
+  push:
+    branches:
+      - claude/excitonic-property-model-88byhk
+    paths:
+      - '.github/workflows/exciton-phase2-modal.yml'
+      - 'excitonic/modal_phase2.py'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: exciton-phase2-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  phase2-modal:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Modal client
+        run: pip install "modal==1.5.3"
+
+      - name: Run Phase 2 (${{ github.event.inputs.entrypoint || 'smoke' }}) on Modal
+        env:
+          MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
+          MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+          ENTRY: ${{ github.event.inputs.entrypoint || 'smoke' }}
+          MODE: ${{ github.event.inputs.mode || 'debug' }}
+          YAMBO_SRC: ${{ github.event.inputs.yambo_src || '' }}
+        run: |
+          if [ -z "$MODAL_TOKEN_ID" ] && [ -f excitonic/modal_tokens.secret ]; then
+            set -a; . ./excitonic/modal_tokens.secret; set +a
+          fi
+          if [ -z "$MODAL_TOKEN_ID" ] || [ -z "$MODAL_TOKEN_SECRET" ]; then
+            echo "::error::No Modal credentials."
+            exit 1
+          fi
+          if [ "$ENTRY" = "gwbse" ]; then
+            modal run "excitonic/modal_phase2.py::gwbse" --mode "$MODE"
+          else
+            modal run "excitonic/modal_phase2.py::${ENTRY}"
+          fi
+
+      - name: Upload smoke/label manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phase2-manifest
+          path: excitonic/data/manifests/phase2_*.json
+          if-no-files-found: warn
+
+      - name: Commit manifest back to branch
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Operate on the already-checked-out branch tip (actions/checkout). Force-add
+          # any manifest Modal wrote, then rebase onto latest and push with retry.
+          # (The old checkout -B origin/... reset dropped the freshly written file — the
+          # cause of the persistent "no manifest change to commit".)
+          git add -f excitonic/data/manifests/phase2_*.json 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "no manifest change to commit"
+          else
+            git commit -m "Phase 2: first-principles manifest from Modal [skip ci]"
+            git fetch --unshallow origin ${{ github.ref_name }} 2>/dev/null || git fetch origin ${{ github.ref_name }}
+            for i in 1 2 3 4; do
+              git pull --rebase origin ${{ github.ref_name }} \
+                && git push origin HEAD:${{ github.ref_name }} && break
+              echo "push attempt $i failed; retrying"; sleep $((i * 2))
+            done
+          fi

@@ -1,0 +1,15 @@
+{
+  "question": "Can moiré inhomogeneous disorder be pushed below the U scale (~10-20 meV)?",
+  "finding": "YES at the single-trap level. Individual moiré-trapped interlayer excitons show <1 meV PL linewidth (low T); hBN encapsulation reaches the homogeneous limit ~2-5 meV. So the ~20 meV 'disorder floor' is ENSEMBLE (trap-to-trap) broadening, NOT a single-trap limit.",
+  "implication": "Blockade needs a SINGLE emitter (one trap), not the ensemble. For a single moiré trap the inhomogeneous disorder is removed by addressing one site -> the RT linewidth reverts to the PHONON floor (Gamma_phonon ~6-15 meV, the same floor the whole bound rests on). Tight moiré confinement's U (approaching g_xx~6*E_b at the single-site limit) can plausibly exceed 0.71*Gamma_phonon. So the moiré/saturation leg is genuinely OPEN.",
+  "the_real_catch": "It is a SINGLE-EMITTER architecture (like a quantum dot), not a scalable extended nonlinear medium. That trades against the spec's scalability/CMOS-integrability conditions -- a device-architecture question, not a materials cap. Blockade at a single moiré trap at RT is the concrete experiment.",
+  "caveats": [
+    "The <1 meV linewidths are LOW TEMPERATURE; at RT the single-trap linewidth is phonon-limited (tens of meV possible).",
+    "Order-of-magnitude literature reading, not a computed single-trap RT linewidth."
+  ],
+  "sources": [
+    "PhysRevX.7.021026 (excitonic linewidth approaching homogeneous limit, hBN)",
+    "Science Advances adk6359 (moiré-trapped interlayer exciton lasing/nanocavity)",
+    "Sci Rep s41598-017-09739-4 (near lifetime-limit exciton emission)"
+  ]
+}

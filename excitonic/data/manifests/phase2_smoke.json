@@ -1,0 +1,54 @@
+{
+  "qe_ok": true,
+  "epw_branch_ok": true,
+  "gwbse_branch_ok": true,
+  "core_eph_chain_ok": true,
+  "binaries": {
+    "pw.x": {
+      "binary": "pw.x",
+      "found": true,
+      "path": "/opt/conda/bin/pw.x"
+    },
+    "ph.x": {
+      "binary": "ph.x",
+      "found": true,
+      "path": "/opt/conda/bin/ph.x"
+    },
+    "epw.x": {
+      "binary": "epw.x",
+      "found": true,
+      "path": "/opt/conda/bin/epw.x"
+    },
+    "pw2bgw.x": {
+      "binary": "pw2bgw.x",
+      "found": true,
+      "path": "/opt/conda/bin/pw2bgw.x"
+    },
+    "yambo": {
+      "binary": "yambo",
+      "found": true,
+      "path": "/opt/conda/bin/yambo"
+    },
+    "p2y": {
+      "binary": "p2y",
+      "found": true,
+      "path": "/opt/conda/bin/p2y"
+    },
+    "ypp": {
+      "binary": "ypp",
+      "found": true,
+      "path": "/opt/conda/bin/ypp"
+    },
+    "mpirun": {
+      "binary": "mpirun",
+      "found": true,
+      "path": "/opt/conda/bin/mpirun",
+      "banner": [
+        "mpirun (Open MPI) 4.1.6",
+        "",
+        "Report bugs to http://www.open-mpi.org/community/help/"
+      ]
+    }
+  },
+  "note": "binary-presence check only; no science computed. GW-BSE branch now uses Yambo (conda-forge, free) instead of the gated BerkeleyGW."
+}
