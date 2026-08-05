@@ -1221,6 +1221,7 @@ nshiftk 1
 shiftk 0.0 0.0 0.0
 nstep 60
 diemac 5.0
+istwfk *1
 
 # DS1: GS density
 tolvrs1 1.0d-8
@@ -1280,19 +1281,33 @@ inclvkb4 2
     abo = glob.glob(os.path.join(wd, "*.abo")) + glob.glob(os.path.join(wd, "*.out"))
     abo_txt = open(abo[0]).read() if abo else ""
 
-    # best-effort parse: exciton energies + oscillator strengths (format to be confirmed)
-    exc = _re.findall(r"[Ee]xciton.{0,40}?([-+]?\d+\.\d+)", abo_txt + log)
-    osc = _re.findall(r"[Oo]scillator.{0,40}?([-+]?\d+\.\d+)", abo_txt + log)
-    tail = (abo_txt[-4000:] if abo_txt else log[-4000:])
+    # parse ABINIT's BSE summary (format confirmed from the MoS2 run):
+    #   'First excitonic eigenvalue=  0.85 [eV]', 'GW  direct gap  1.57', 'EXC binding energy 0.72'
+    def _g(pat):
+        m = _re.search(pat, abo_txt)
+        return float(m.group(1)) if m else None
+    e_exc = _g(r"First excitonic eigenvalue=\s*([-+]?\d+\.\d+)")
+    exc_gap = _g(r"EXC direct gap\s+([-+]?\d+\.\d+)")
+    gw_gap = _g(r"GW\s+direct gap\s+([-+]?\d+\.\d+)")
+    e_b = _g(r"EXC binding energy\s+([-+]?\d+\.\d+)")
+    # exciton eigenvalue ladder (first line after the header)
+    lad = _re.search(r"Excitonic eigenvalues in eV.*?\n((?:\s+[-+]?\d+\.\d+.*\n)+)", abo_txt)
+    ladder = [float(x) for x in _re.findall(r"[-+]?\d+\.\d+", lad.group(1))][:16] if lad else []
+    # oscillator strength: ABINIT writes it in the optical section once istwfk=1 lets it run
+    osc = _re.findall(r"[Oo]scillator strength\s*[:=]?\s*([-+]?\d+\.\d+[eE]?[-+]?\d*)",
+                      abo_txt + log)
+    tail = (abo_txt[-3500:] if abo_txt else log[-3500:])
 
     return {
         "material": material, "mode": mode, "ok": bool(abo_txt),
         "abinit_returncode": p.returncode,
+        "E_exciton_eV": e_exc, "EXC_gap_eV": exc_gap, "KS_or_GW_gap_eV": gw_gap,
+        "E_binding_eV": e_b, "exciton_ladder_eV": ladder,
+        "oscillator_strength_matches": osc[:12],
         "output_files": [os.path.basename(f) for f in outfiles],
-        "exciton_matches": exc[:12], "oscillator_matches": osc[:12],
         "abo_tail": tail,
-        "note": "v1 engine-confirm: captures output to learn the exciton/f print format; "
-                "model dielectric + no proper 2D truncation ⇒ magnitude approximate.",
+        "note": "bs_calctype=1 ⇒ 'GW gap' is the KS gap (no scissor); E_b from full RPA-W BSE. "
+                "Debug: small k-grid + no 2D Coulomb truncation ⇒ magnitude approximate.",
     }
 
 
