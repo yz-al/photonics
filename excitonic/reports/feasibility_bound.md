@@ -289,3 +289,19 @@ not GW-BSE.
 **Alternative engines** if the absolute f is wanted rigorously: Yambo-from-source (pinned
 MPI/ScaLAPACK/FFTW/HDF5 — in progress), BerkeleyGW (gated source, layer wired), or **ABINIT
 BSE** (conda-forge, an independent second engine).
+
+## Fork B — WALLED: Yambo-from-source impractical in this proxy'd environment
+
+Building Yambo 5.1.2 from source (to escape the conda-binary BSE abort) cleared the FPP
+configure hurdle and the fake-ssh/MPI issues, but hit a hard wall: **Yambo's build system
+insists on compiling its own bundled `libxc-5.1.5` from a source tarball it fetches at build
+time**, and the agent proxy blocks that download (`gzip: not in gzip format`). Pinning a
+compatible external `libxc=5.2.3` and passing explicit `--with-libxc-libs`/`--with-libxc-
+includedir` did **not** override it — a known Yambo trait (its libxc coupling ignores the
+external-lib flags unless the exact Fortran `.mod` files are present). Four build iterations
+(~50–80 min each on a slow Modal builder) all ended the same way. **Conclusion: Yambo-from-
+source is not practical here.** The remaining compute route for the absolute interlayer `f`
+is ABINIT's BSE (clean conda-forge install, no source build) — but its marginal value is now
+low, because the **analytic sum-rule bound** (above) already localizes the dipolar leg to a
+thin, named corner without any BSE. The honest recommendation is to bank the analytic bound
+as the dipolar-leg deliverable and treat a hard `f` as optional refinement, not a gate.
