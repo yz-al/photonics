@@ -109,3 +109,16 @@ completes; the code refuses to emit a first-principles number that wasn't comput
 - **P2 ✅ (scaffold)** GW-BSE + DFPT/EPW pipeline on Modal CPU; seed set + decks + model floor. Execution: stage structures+pseudos, run, parse Γ (`epw`) / U (`gw_bse`).
 - **P3** active learning: surrogate → propose high-U/Γ → GW-BSE → retrain.
 - **P4** screen for RT-blockade candidates; rank with uncertainty; honest reachability verdict.
+
+## Independent verification (external triple-check)
+
+Load-bearing numbers were re-checked against primary literature — see
+[`reports/verification_literature.md`](reports/verification_literature.md).
+- **Bulk-NO side: confirmed** (Γ floor ~14 meV and dipolar U ~8.4 meV are both measured; U≈Γ).
+- **ω_LO correction (verdict-neutral):** the DFPT `omega_LO` is the A₂″ top mode, not the
+  Fröhlich-active E′ LO (~48 meV); the Γ floor is calibrated to experiment so the bound is
+  unchanged. See the note in `data/manifests/phase2_tmd_gamma.json`.
+- **Single-emitter side: caveated.** RT single-emitter *blockade* is unbuilt (only RT *strong
+  coupling* ~4 meV Rabi); and the array-uniformity escape hits a documented ~±37 meV hBN ZPL
+  spread (~4–70× the linewidth) whose origin is strain/Stark, not defect chemistry — see the
+  new **array-uniformity bound** (`scripts/phase3_array_uniformity_bound.py`).

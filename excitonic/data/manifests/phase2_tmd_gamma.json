@@ -247,5 +247,20 @@
     ],
     "near_10meV": true
   },
-  "note": "\u03c9_LO/Z*/\u03b5\u221e are real DFPT (tier dfpt); \u0393 is a DFPT-grounded model estimate (\u03b1 at anchor; real linewidth needs 2D-Fr\u00f6hlich EPW)."
+  "note": "\u03c9_LO/Z*/\u03b5\u221e are real DFPT (tier dfpt); \u0393 is a DFPT-grounded model estimate (\u03b1 at anchor; real linewidth needs 2D-Fr\u00f6hlich EPW).",
+  "_verification_note": {
+    "issue": "omega_LO values are the TOP Gamma phonon (A2'' out-of-plane ZO, ~455 cm^-1 for MoS2), NOT the Frohlich-active in-plane E' LO (~384 cm^-1 = 48 meV). Systematic ~15% high across all 4 TMDs.",
+    "correct_E_prime_LO_meV": {
+      "MoS2": 47.7,
+      "WS2": 44.1,
+      "MoSe2": 35.6,
+      "WSe2": 31.0
+    },
+    "impact": "NONE on the verdict: Gamma floor is calibrated to the measured 10-14 meV RT linewidth; using 48 meV instead of 56.4 shifts model Gamma 10.3->12.3 meV, both within the measured band.",
+    "action": "re-extract E' LO from ph.x dynmat, or use literature 48 meV. See reports/verification_literature.md",
+    "sources": [
+      "Selig Nat.Commun.2016 (RT linewidth ~14 meV)",
+      "arXiv:1603.05172 (MoS2 phonons 384/408 cm^-1)"
+    ]
+  }
 }
