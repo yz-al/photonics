@@ -1229,6 +1229,23 @@ never a *sufficient* one, and it arrives with its own bandwidth-vs-Γ and shot-n
 materials question is real and worth watching. **It is not the deliverable — the joint condition
 below is.**
 
+> **Update — this open door was subsequently probed computationally (follow-on project,
+> branch `claude/excitonic-property-model-88byhk`), and the "unquantified" gap is now bounded.**
+> A DFPT + GW-BSE + measured-literature study of the blockade condition U/Γ(300 K) > 0.71 found:
+> (1) **scalable bulk RT blockade — NO**, a measured multi-ground bound: the dipolar exciton–exciton
+> U is only ~8–18 meV (measured biexciton blueshift 8.4 meV, npj 2D Mater. 2020), *comparable to*
+> the ~10–14 meV phonon Γ floor (measured, Selig 2016), and every bulk lever to raise U (interlayer
+> → darkness, Janus → tiny dipole, Rydberg → character) closes against it; (2) **single-emitter
+> blockade — real cold** (moiré trap, measured U/Γ ~ 20 at 100 µeV cryo linewidth) but **failing at
+> RT** (same measured U ≈ 2 meV against the ~10 meV RT floor → U/Γ ~ 0.2; RT single-emitter
+> *blockade* is unbuilt, only RT *strong coupling* ~4 meV Rabi is shown); (3) **a compute array — NO**,
+> because the emitters must be spectrally uniform to ≲ Γ, and the best-demonstrated hBN uniformity is
+> ±37 meV (typical spread ~700 meV) — a ~4–70× miss whose origin is strain/Stark, not the defect
+> chemistry the "identical-by-chemistry" fix would remove. **Net: the one open door narrows to a
+> cold quantum-optics-device result that neither survives to room temperature on measured numbers nor
+> scales to a uniform compute array — as close to "closed for scalable RT compute" as evidence gets
+> without a theorem.** See that project's `reports/FINAL_VERDICT.md` and `verification_literature.md`.
+
 ## The joint condition — all seven at once (the deliverable that survives)
 
 The requirements below are a **conjunction, not a menu**: the nonlinearity must satisfy *all* of
