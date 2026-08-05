@@ -1215,7 +1215,7 @@ xred
 {xred}
 
 ecut {ecut}
-kptopt 1
+kptopt 3
 ngkpt {ngk} {ngk} 1
 nshiftk 1
 shiftk 0.0 0.0 0.0
@@ -1283,19 +1283,19 @@ inclvkb4 2
 
     # parse ABINIT's BSE summary (format confirmed from the MoS2 run):
     #   'First excitonic eigenvalue=  0.85 [eV]', 'GW  direct gap  1.57', 'EXC binding energy 0.72'
+    both = abo_txt + "\n" + log        # ABINIT prints the BSE summary to stdout, not the .abo
     def _g(pat):
-        m = _re.search(pat, abo_txt)
+        m = _re.search(pat, both)
         return float(m.group(1)) if m else None
     e_exc = _g(r"First excitonic eigenvalue=\s*([-+]?\d+\.\d+)")
     exc_gap = _g(r"EXC direct gap\s+([-+]?\d+\.\d+)")
     gw_gap = _g(r"GW\s+direct gap\s+([-+]?\d+\.\d+)")
     e_b = _g(r"EXC binding energy\s+([-+]?\d+\.\d+)")
     # exciton eigenvalue ladder (first line after the header)
-    lad = _re.search(r"Excitonic eigenvalues in eV.*?\n((?:\s+[-+]?\d+\.\d+.*\n)+)", abo_txt)
+    lad = _re.search(r"Excitonic eigenvalues in eV.*?\n((?:\s+[-+]?\d+\.\d+.*\n)+)", both)
     ladder = [float(x) for x in _re.findall(r"[-+]?\d+\.\d+", lad.group(1))][:16] if lad else []
     # oscillator strength: ABINIT writes it in the optical section once istwfk=1 lets it run
-    osc = _re.findall(r"[Oo]scillator strength\s*[:=]?\s*([-+]?\d+\.\d+[eE]?[-+]?\d*)",
-                      abo_txt + log)
+    osc = _re.findall(r"[Oo]scillator strength\s*[:=]?\s*([-+]?\d+\.\d+[eE]?[-+]?\d*)", both)
     tail = (abo_txt[-3500:] if abo_txt else log[-3500:])
 
     return {
@@ -1312,8 +1312,8 @@ inclvkb4 2
 
 
 @app.local_entrypoint()
-def abinitbse(material: str = "MoS2", mode: str = "debug"):
-    """Run the ABINIT BSE engine on a 2D TMD (MoS2 to confirm, then MoSSe)."""
+def abinitbse(material: str = "MoSSe", mode: str = "debug"):
+    """Run the ABINIT BSE engine on a 2D TMD (MoS2 confirmed E_b=0.72 eV; now MoSSe)."""
     res = abinit_bse.remote(material, mode)
     out = os.path.join(HERE, "data", "manifests", f"phase2_abinit_bse_{material}.json")
     os.makedirs(os.path.dirname(out), exist_ok=True)
