@@ -93,12 +93,18 @@ if YAMBO_SRC:
             "--with-fft-path=\"$P\" --with-hdf5-path=\"$P\" "
             "--with-netcdf-path=\"$P\" --with-netcdff-path=\"$P\" "
             "--with-libxc-path=\"$P\" 2>&1 | tail -40",
-            # build the exe we need: yambo (GW+BSE) + p2y/ypp (interfaces)
-            "cd /opt/yambo && make -j8 yambo ypp interfaces 2>&1 | tail -60",
+            # build the exe we need: yambo (GW+BSE) + p2y (interfaces). BOUNDED +
+            # SELF-DIAGNOSING: an unbounded `make` hung ~90 min once (likely Yambo
+            # fetching a bundled lib behind the proxy, or a very slow builder). Cap it,
+            # always dump the log tail (visible in the Modal build stream), and fail the
+            # layer only if bin/yambo is truly absent so the tail shows WHERE it stalled.
+            "cd /opt/yambo && (timeout 3000 make -j8 yambo interfaces > make.log 2>&1; "
+            "echo \"make_exit=$?\") ; echo '=== tail make.log ===' ; tail -160 make.log ; "
+            "echo '=== bin/ ===' ; ls -la bin/ 2>/dev/null ; test -x bin/yambo",
             # expose the source-built binaries ahead of anything else on PATH
-            "cp /opt/yambo/bin/yambo /opt/yambo/bin/p2y /opt/yambo/bin/ypp "
-            "$(dirname $(which mpif90))/ && echo 'yambo-from-source installed:' "
-            "&& yambo -version 2>&1 | head -3 || true",
+            "cp /opt/yambo/bin/yambo /opt/yambo/bin/p2y $(dirname $(which mpif90))/ && "
+            "cp /opt/yambo/bin/ypp $(dirname $(which mpif90))/ 2>/dev/null ; "
+            "echo 'yambo-from-source installed:' && yambo -version 2>&1 | head -3 || true",
         )
     )
 else:
