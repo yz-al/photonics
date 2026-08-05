@@ -66,7 +66,11 @@ if YAMBO_SRC:
     qe_bgw_image = (
         modal.Image.micromamba(python_version="3.11")
         .micromamba_install(
-            "qe", "openmpi", "fftw", "libxc", "scalapack", "openblas",
+            # Pin libxc to 5.2.x: Yambo 5.1.2's Fortran interface targets libxc 5.x.
+            # conda's default (6/7.x) has an incompatible API, so configure rejects it
+            # and falls back to building the bundled libxc-5.1.5 — whose source download
+            # the proxy blocks. A compatible external libxc breaks that chain.
+            "qe", "openmpi", "fftw", "libxc=5.2.3", "scalapack", "openblas",
             "hdf5=*=mpi_openmpi*", "netcdf-fortran=*=mpi_openmpi*", "libnetcdf",
             "fortran-compiler", "c-compiler", "cxx-compiler",
             "make", "pkg-config", "curl", "numpy", "ase",
@@ -83,6 +87,10 @@ if YAMBO_SRC:
             # FPP: Yambo's default Fortran-preprocessor guess is `cpp -E -P -ansi`, whose
             # -ansi flag mangles Fortran (comments/continuations) so FPP detection fails.
             # Hand it gfortran's own preprocessor, which understands Fortran source.
+            # Use EXPLICIT -libs/-includedir (not -path): the -path form let configure
+            # reject the conda libs and fall back to internal builds (netcdf/libxc), whose
+            # source downloads the proxy blocks. Explicit lib+include dirs force Yambo to
+            # link the conda stack and skip the internal builds entirely.
             "cd /opt/yambo && P=$(dirname $(dirname $(which mpif90))) && "
             "FC=mpif90 F77=mpif90 CC=mpicc CPP='cpp -E -P' FPP='gfortran -E -P -cpp' "
             "./configure --enable-mpi --enable-open-mp --enable-hdf5-par-io "
@@ -90,15 +98,21 @@ if YAMBO_SRC:
             "--with-lapack-libs=\"-L$P/lib -lopenblas\" "
             "--with-scalapack-libs=\"-L$P/lib -lscalapack\" "
             "--with-blacs-libs=\"-L$P/lib -lscalapack\" "
-            "--with-fft-path=\"$P\" --with-hdf5-path=\"$P\" "
-            "--with-netcdf-path=\"$P\" --with-netcdff-path=\"$P\" "
-            "--with-libxc-path=\"$P\" 2>&1 | tail -40",
-            # build the exe we need: yambo (GW+BSE) + p2y (interfaces). BOUNDED +
-            # SELF-DIAGNOSING: an unbounded `make` hung ~90 min once (likely Yambo
-            # fetching a bundled lib behind the proxy, or a very slow builder). Cap it,
-            # always dump the log tail (visible in the Modal build stream), and fail the
-            # layer only if bin/yambo is truly absent so the tail shows WHERE it stalled.
-            "cd /opt/yambo && (timeout 3000 make -j8 yambo interfaces > make.log 2>&1; "
+            "--with-fft-libs=\"-L$P/lib -lfftw3 -lfftw3_omp\" --with-fft-includedir=\"$P/include\" "
+            "--with-hdf5-libs=\"-L$P/lib -lhdf5_fortran -lhdf5\" --with-hdf5-includedir=\"$P/include\" "
+            "--with-netcdf-libs=\"-L$P/lib -lnetcdf\" --with-netcdf-includedir=\"$P/include\" "
+            "--with-netcdff-libs=\"-L$P/lib -lnetcdff\" --with-netcdff-includedir=\"$P/include\" "
+            "--with-libxc-libs=\"-L$P/lib -lxcf90 -lxc\" --with-libxc-includedir=\"$P/include\" "
+            "2>&1 | tail -50",
+            # ext-libs FAST-CHECK: if configure accepted the conda libs this is near-instant;
+            # if it still wants internal builds it fails here in ~1 min (proxy-blocked
+            # download) instead of after a 50-min core compile. A quick yes/no on the fix.
+            "cd /opt/yambo && (timeout 600 make ext-libs > extlibs.log 2>&1; "
+            "echo \"extlibs_exit=$?\") ; echo '=== tail extlibs.log ===' ; tail -60 extlibs.log ; "
+            "grep -qiE 'download|not in gzip|Terminated|Error 1' extlibs.log && "
+            "(echo 'EXT-LIBS STILL INTERNAL — conda libs not accepted'; false) || echo 'ext-libs OK (external)'",
+            # core build: yambo (GW+BSE) + p2y (interfaces). Bounded + self-diagnosing.
+            "cd /opt/yambo && (timeout 3300 make -j8 yambo interfaces > make.log 2>&1; "
             "echo \"make_exit=$?\") ; echo '=== tail make.log ===' ; tail -160 make.log ; "
             "echo '=== bin/ ===' ; ls -la bin/ 2>/dev/null ; test -x bin/yambo",
             # expose the source-built binaries ahead of anything else on PATH
