@@ -305,3 +305,30 @@ is ABINIT's BSE (clean conda-forge install, no source build) — but its margina
 low, because the **analytic sum-rule bound** (above) already localizes the dipolar leg to a
 thin, named corner without any BSE. The honest recommendation is to bank the analytic bound
 as the dipolar-leg deliverable and treat a hard `f` as optional refinement, not a gate.
+
+## Solve-for-it — inverting the bound to name the 1–2 survivors
+
+Run in reverse: assume a rare solution exists and solve for the corner it must occupy
+(`scripts/phase2_solve_for_it.py`, screening the 133 stable/non-magnetic/E_B≥0.3 eV C2DB
+materials). Two archetypes fall out — the "one or two."
+
+**Route B — intrinsic-dipolar Janus monolayers (the real find).** The interlayer dipolar
+leg closed because separating e/h to get a dipole makes the exciton dark. A **Janus TMD**
+(broken top/bottom mirror symmetry — different chalcogens) carries a *built-in* out-of-plane
+dipole while the exciton stays **intralayer and bright** — it sits on the opposite, favorable
+side of the U–f trade-off that the sum rule is built on. Top screened hits are **synthesized**
+materials: **WSSe (WSeS)** and **MoSSe (MoSeS)** — real Janus TMDs (Lu et al. 2017), dipz≈0.037,
+E_B≈0.5 eV, bright, non-magnetic, stable. The one deciding measurement: a GW-BSE exciton
+**dipole + f** for MoSSe/WSSe — is the built-in dipole enough for U>0.71·Γ while f stays bright?
+A Janus *homobilayer* (aligned dipoles) or Janus/TMD stack tunes U up if the monolayer is short.
+
+**Route A — moiré single-emitter (the fallback).** A tightly-bound, weakly-polar monolayer
+localized to ONE moiré/defect trap so Γ→phonon floor and confinement→U. Robust pick: a
+**WS₂-class TMD** (bright, weakly polar, well-characterized), run as a single emitter in a
+strong-coupling cavity. (The screen's exotic high-U/Γ hits — H₂C₂, ZrI₂, TiX₂ — are partly a
+proxy artifact: zero *polar* coupling ≠ zero linewidth; an acoustic/deformation floor remains.)
+
+**So the answer we solved for:** not a list — **a Janus-TMD intrinsic-dipolar exciton (MoSSe/
+WSSe), and/or a moiré-trapped single emitter in a Γ-minimal TMD**, both living in the bound's
+one open corner, each decided by a single GW-BSE number. Tier: proxy (C2DB + inverted bound),
+hypotheses to confirm — not a verdict.
