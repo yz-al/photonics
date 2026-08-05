@@ -1108,6 +1108,194 @@ def smoke():
     print(f"[phase2/smoke] core_eph_chain_ok={res['core_eph_chain_ok']}; wrote {out}")
 
 
+def _abinit_structure(material: str, vacuum: float = 18.0):
+    """Return (symbols, cell_Ang(3x3), scaled_positions, ntypat, znucl-order) for a 2D TMD.
+
+    MoS2 = symmetric 1H (ase.mx2). MoSSe = Janus: Mo plane, S below, Se above, with the
+    two different Mo–chalcogen vertical distances (broken mirror symmetry ⇒ the built-in
+    out-of-plane dipole that makes this the solve-for-it candidate).
+    """
+    import numpy as np
+    a = 3.22 if material == "MoS2" else 3.25          # Å
+    zc = vacuum / 2.0
+    # in-plane: Mo at (1/3,2/3); chalcogens eclipsed at (2/3,1/3)
+    cell = np.array([[a, 0, 0], [-a / 2, a * (3 ** 0.5) / 2, 0], [0, 0, vacuum]])
+    if material == "MoS2":
+        dS = 1.56
+        syms = ["Mo", "S", "S"]
+        cart_z = [zc, zc - dS, zc + dS]
+        order = ["Mo", "S"]
+    elif material == "MoSSe":
+        dS, dSe = 1.54, 1.70                          # Mo–S shorter than Mo–Se (Janus)
+        syms = ["Mo", "S", "Se"]
+        cart_z = [zc, zc - dS, zc + dSe]
+        order = ["Mo", "S", "Se"]
+    else:
+        raise ValueError(material)
+    xy = {"Mo": (1 / 3, 2 / 3), "S": (2 / 3, 1 / 3), "Se": (2 / 3, 1 / 3)}
+    spos = []
+    for s, z in zip(syms, cart_z):
+        fx, fy = xy[s]
+        spos.append([fx, fy, z / vacuum])
+    return syms, cell, np.array(spos), len(order), order
+
+
+@app.function(image=abinit_image, cpu=16, timeout=7200)
+def abinit_bse(material: str = "MoS2", mode: str = "debug") -> dict:
+    """ABINIT GS→WFK→model-dielectric BSE for a 2D TMD; return exciton energy + f.
+
+    v1 captures the ABINIT output generously (exciton-eigenvalue / oscillator-strength
+    print format) rather than guessing the parser. Model dielectric function (no explicit
+    screening) + direct diagonalization (prints exciton energies AND oscillator strengths).
+    Debug: small k-grid/ecut, no Coulomb truncation (magnitude approximate, proves the chain).
+    """
+    import glob
+    import os
+    import re as _re
+    import subprocess
+    import tarfile
+    import tempfile
+
+    import numpy as np
+    import requests
+
+    wd = tempfile.mkdtemp(prefix=f"abinit_{material}_")
+    psp_dir = os.path.join(wd, "pseudo")
+    os.makedirs(psp_dir, exist_ok=True)
+    stages = {}
+
+    # --- pseudos: fetch the pseudo-dojo NC-SR PBE psp8 table (has every element) ---
+    try:
+        tgz = os.path.join(wd, "psp.tgz")
+        url = "http://www.pseudo-dojo.org/pseudos/nc-sr-04_pbe_standard_psp8.tgz"
+        r = requests.get(url, timeout=300)
+        open(tgz, "wb").write(r.content)
+        with tarfile.open(tgz) as t:
+            t.extractall(psp_dir)
+        found = {}
+        for el in ({"MoS2": ["Mo", "S"], "MoSSe": ["Mo", "S", "Se"]}[material]):
+            hits = glob.glob(os.path.join(psp_dir, "**", f"{el}.psp8"), recursive=True)
+            if not hits:
+                return {"material": material, "error": f"no {el}.psp8 in table", "stage": "pseudo"}
+            found[el] = hits[0]
+    except Exception as e:
+        return {"material": material, "error": f"pseudo fetch: {e}", "stage": "pseudo"}
+
+    syms, cell, spos, ntypat, order = _abinit_structure(material)
+    natom = len(syms)
+    typat = [order.index(s) + 1 for s in syms]
+    from ase.data import atomic_numbers
+    znucl = [atomic_numbers[el] for el in order]
+    BOHR = 1.8897259886
+    rprim = "\n".join("  %.10f %.10f %.10f" % tuple(cell[i] * BOHR) for i in range(3))
+    xred = "\n".join("  %.10f %.10f %.10f" % tuple(spos[i]) for i in range(natom))
+    pseudos = ", ".join(f"{el}.psp8" for el in order)
+
+    ngk = 6 if mode == "debug" else 12
+    ecut = 25 if mode == "debug" else 38
+    nband = 30 if mode == "debug" else 60
+    # occupied bands (rough): Mo 14 val e- (ONCVPSP sp-semicore) + 6/chalcogen; nvalence/2.
+    # Use a generous BSE window: bs_loband a few below the gap, nband a few above.
+    bs_lo = 8
+    eps_model = 13.0
+
+    abi = f"""# {material} 2D BSE (model dielectric, Tamm-Dancoff, direct diag)
+pp_dirpath "{psp_dir}"
+pseudos "{pseudos}"
+ndtset 3
+
+acell 1 1 1
+rprim
+{rprim}
+natom {natom}
+ntypat {ntypat}
+znucl {' '.join(str(z) for z in znucl)}
+typat {' '.join(str(t) for t in typat)}
+xred
+{xred}
+
+ecut {ecut}
+kptopt 1
+ngkpt {ngk} {ngk} 1
+nshiftk 1
+shiftk 0.0 0.0 0.0
+nstep 60
+diemac 5.0
+
+# DS1: GS density
+tolvrs1 1.0d-8
+nband1 {nband}
+
+# DS2: NSCF WFK (many bands)
+iscf2 -2
+getden2 1
+tolwfr2 1.0d-8
+nband2 {nband}
+
+# DS3: BSE (model dielectric function, direct diagonalization)
+optdriver3 99
+getwfk3 2
+getden3 1
+bs_calctype3 1
+mbpt_sciss3 0.0 eV
+bs_exchange_term3 1
+bs_coulomb_term3 21
+mdf_epsilon3 {eps_model}
+bs_coupling3 0
+bs_loband3 {bs_lo}
+nband3 {nband}
+bs_freq_mesh3 0.0 8.0 0.02 eV
+bs_algorithm3 1
+inclvkb3 2
+gw_icutcoul3 6
+"""
+    open(os.path.join(wd, "run.abi"), "w").write(abi)
+
+    env = dict(os.environ)
+    # ABINIT's UCX/MPI transport errors in this container — force serial + plain BTL.
+    env.update({"OMPI_MCA_pml": "ob1", "OMPI_MCA_btl": "self,vader",
+                "UCX_TLS": "self,sm", "OMP_NUM_THREADS": "1"})
+    abinit = "/opt/conda/bin/abinit"
+    try:
+        p = subprocess.run([abinit, "run.abi"], cwd=wd, env=env,
+                           capture_output=True, text=True, timeout=6600)
+        log = (p.stdout or "") + "\n----STDERR----\n" + (p.stderr or "")
+    except subprocess.TimeoutExpired:
+        return {"material": material, "error": "abinit timeout", "stage": "run"}
+
+    # capture the main output file too
+    outfiles = sorted(glob.glob(os.path.join(wd, "*")) )
+    abo = glob.glob(os.path.join(wd, "*.abo")) + glob.glob(os.path.join(wd, "*.out"))
+    abo_txt = open(abo[0]).read() if abo else ""
+
+    # best-effort parse: exciton energies + oscillator strengths (format to be confirmed)
+    exc = _re.findall(r"[Ee]xciton.{0,40}?([-+]?\d+\.\d+)", abo_txt + log)
+    osc = _re.findall(r"[Oo]scillator.{0,40}?([-+]?\d+\.\d+)", abo_txt + log)
+    tail = (abo_txt[-4000:] if abo_txt else log[-4000:])
+
+    return {
+        "material": material, "mode": mode, "ok": bool(abo_txt),
+        "abinit_returncode": p.returncode,
+        "output_files": [os.path.basename(f) for f in outfiles],
+        "exciton_matches": exc[:12], "oscillator_matches": osc[:12],
+        "abo_tail": tail,
+        "note": "v1 engine-confirm: captures output to learn the exciton/f print format; "
+                "model dielectric + no proper 2D truncation ⇒ magnitude approximate.",
+    }
+
+
+@app.local_entrypoint()
+def abinitbse(material: str = "MoS2", mode: str = "debug"):
+    """Run the ABINIT BSE engine on a 2D TMD (MoS2 to confirm, then MoSSe)."""
+    res = abinit_bse.remote(material, mode)
+    out = os.path.join(HERE, "data", "manifests", f"phase2_abinit_bse_{material}.json")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
+    with open(out, "w") as fh:
+        json.dump(res, fh, indent=2)
+    print(f"[phase2/abinit-bse] {material}: ok={res.get('ok')} "
+          f"exc={res.get('exciton_matches')}; wrote {out}")
+
+
 @app.local_entrypoint()
 def abinitsmoke():
     """Probe the ABINIT BSE route (BSE compiled? pseudos fetchable?) — run from CI."""
