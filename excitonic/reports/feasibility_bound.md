@@ -224,17 +224,28 @@ and this reframes the leg. The two slopes it turns on are **ground-state / elect
 
 They land on **λ_f ≈ 0.14 nm** — a ~30 % cross-check, no BSE required.
 
-**Consequence (the reframe).** Because an exponential always beats a power law, the net
-figure `N(d)=U·f^α` (α=0.5) has a finite optimum — and with λ_f≈0.14 nm it sits **at native
-contact** (`2λ_f/α ≈ 0.56 nm < d₀`): adding any spacer only darkens f. At contact the
-dipolar `U ≈ 100 meV` is **~15× above** the `0.71·Γ_floor ≈ 7 meV` target, and it is largest
-exactly where f is largest. **So U was never the dipolar bottleneck, and the exponents do
-not close the leg.** The one remaining unknown collapses from "two exponents" to **one
-absolute number: the oscillator strength of the *native* interlayer exciton** — is it above
-the strong-coupling floor `f_min`? Interlayer excitons run ~10–100× darker than intralayer,
-so *that* is the real gate. It is a single BSE number, not an exponent — which is exactly
-what a source-built BSE should be pointed at. (`phase2_lambda_f_proxy.json`; tier is
-`dft_proxy + measured`, reported as illustrative, not a GW-BSE verdict.)
+**Consequence (the reframe), corrected against literature.** Because an exponential always
+beats a power law, the net figure `N(d)=U·f^α` (α=0.5) has a finite optimum — and with
+λ_f≈0.14 nm it sits **at native contact** (`2λ_f/α ≈ 0.56 nm < d₀`): adding any spacer only
+darkens f. My first pass used an *electrostatic* prefactor that put `U ≈ 100 meV` at contact
+and concluded "U is not the bottleneck." **A literature check corrected that number.** The
+**measured** on-site dipolar interaction is only **≈4–20 meV** (biexciton blueshift 8.4 meV;
+tri/quad/quint 12.4/15.5/18.2 meV; density blueshift up to ~20 meV — Kremser/Nagler et al.,
+*npj 2D Mater. Appl.* **4**, 8 (2020)) — i.e. **comparable to the 6–15 meV Γ floor, not 15×
+above it**. So U is **marginal** (U/Γ ≈ 0.3–3, straddling the 0.71 threshold), not plentiful.
+And the darkness is *worse* than I claimed: interlayer radiative lifetime ≈0.4 ns vs
+intralayer ≈1.8–2 ps (Palummo et al., *Nano Lett.* **15**, 2794 (2015)) ⇒ **~200–1000×
+darker**, not 10–100×. **Corrected verdict:** the dipolar leg is **tight on both axes at a
+single trap** — U barely at threshold, f the harder gate — not "U-plentiful, f-only." The
+remaining unknown is still the **absolute f of the native interlayer exciton** (the BSE
+number), but U is no longer a comfortable margin. (`phase2_lambda_f_proxy.json`, tier
+`dft_proxy + measured`; the `literature_check_2026_08` block records each correction.)
+
+**The applied-math route has precedent.** The proposed way to close the leg *without* compute
+— a Kramers-Kronig / sum-rule inequality bounding usable nonlinearity — is a real result for
+the analogous problem: a noninstantaneous χ³ causally precludes high-fidelity single-photon
+Kerr phase shifts (Shapiro 2006; Gea-Banacloche 2010). So "close it with a KK bound" is
+grounded, not speculative — a genuine alternative to the BSE for the dipolar leg.
 
 **Alternative engines** if the absolute f is wanted rigorously: Yambo-from-source (pinned
 MPI/ScaLAPACK/FFTW/HDF5 — in progress), BerkeleyGW (gated source, layer wired), or **ABINIT

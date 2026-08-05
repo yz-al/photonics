@@ -154,15 +154,56 @@ def main() -> int:
             "U_over_gamma_floor_at_dstar": round(ratio_at_dstar, 2),
             "clears_0p71_gamma_floor": clears_floor,
         },
+        "literature_check_2026_08": {
+            "purpose": "Verify the load-bearing empirical anchors against measured data "
+                       "instead of asserting from memory.",
+            "U_dipolar_CORRECTED": {
+                "claimed_order_of_mag_meV": 100,
+                "measured_on_site_meV": "≈4–20 (biexciton blueshift 8.4 meV; tri/quad/quint "
+                                        "12.4/15.5/18.2 meV; incremental on-site ≈3–4 meV/pair)",
+                "source": "Kremser/Nagler et al., npj 2D Mater. Appl. 4, 8 (2020), 'Discrete "
+                           "interactions between a few interlayer excitons trapped at a "
+                           "MoSe2–WSe2 heterointerface'; density blueshift up to ~20 meV.",
+                "verdict": "MY ~100 meV WAS TOO HIGH BY ~5–25×. Measured on-site dipolar U "
+                           "≈4–20 meV is COMPARABLE TO the 6–15 meV Γ floor, not ~15× above "
+                           "it. So U is MARGINAL (U/Γ≈0.3–3, straddling the 0.71 threshold), "
+                           "not plentiful. The dipolar leg is tight on U AND f, not just f.",
+            },
+            "darkness_ratio_CONFIRMED_and_worse": {
+                "interlayer_radiative_lifetime": "≈0.40 ns intrinsic (WSe2/MoSe2 contact); "
+                                                 "µs when hBN-separated",
+                "intralayer_radiative_lifetime": "≈1.8–2 ps intrinsic at T≈7 K (k≈0)",
+                "ratio": "≈200–1000× darker (I said 10–100× — the true gap is LARGER)",
+                "source": "Palummo et al., Nano Lett. 15, 2794 (2015) (intralayer ~ps); "
+                           "interlayer 0.40 ns from WSe2/MoSe2 radiative-lifetime studies.",
+                "verdict": "SUPPORTS the reframe's direction and makes the f gate HARDER: "
+                           "the native interlayer exciton is even darker than I claimed.",
+            },
+            "lambda_f_hBN_decay": {
+                "finding": "Interlayer f / radiative rate is modulated 'by orders of "
+                            "magnitude' by hBN spacer thickness — qualitatively supports a "
+                            "small λ_f (strong exp decay). Exact per-monolayer decade not "
+                            "pinned to one dataset here; λ_f≈0.14 nm remains the estimate.",
+                "verdict": "DIRECTION CONFIRMED; exact λ_f still estimate-tier.",
+            },
+            "KK_sum_rule_bound_PRECEDENT_EXISTS": {
+                "finding": "The causality/KK bound on single-photon χ³ IS a real result: a "
+                            "noninstantaneous χ³ precludes high-fidelity single-photon Kerr "
+                            "phase shifts (Shapiro 2006; Gea-Banacloche 2010).",
+                "verdict": "The proposed applied-math route (close the leg with a KK/sum-rule "
+                            "inequality, no compute) has genuine precedent — not a fantasy.",
+            },
+        },
         "reframing": (
-            "Because exp beats any power law, N(d)=U·f^α has a finite optimum — and here "
-            "it sits AT native contact (d*≈{d:.2f} nm): adding spacer only darkens f. At "
-            "contact the dipolar U (~{u:.0f} meV) is FAR above 0.71·Γ_floor (~{n:.0f} meV) "
-            "— U is not the problem, and it is largest exactly where f is largest. The one "
-            "remaining unknown is the ABSOLUTE f of the native interlayer exciton: is it "
-            "above the strong-coupling floor f_min? Interlayer excitons run ~10–100× darker "
-            "than intralayer, so THIS is the real gate — a single number, not an exponent, "
-            "and all the BSE is still needed for."
+            "Because exp beats any power law, N(d)=U·f^α has a finite optimum AT native "
+            "contact (d*≈{d:.2f} nm): adding spacer only darkens f. My electrostatic "
+            "prefactor gave U≈{u:.0f} meV there, but the LITERATURE CHECK corrects this: the "
+            "MEASURED on-site dipolar U is only ≈4–20 meV — COMPARABLE to the 0.71·Γ_floor "
+            "≈{n:.0f} meV target, not far above it. So U is MARGINAL (U/Γ≈0.3–3, straddling "
+            "0.71), and f is even worse than I said (~200–1000× darker than intralayer). "
+            "Corrected verdict: the dipolar leg is TIGHT ON BOTH axes at a single trap — U "
+            "barely at threshold, f the harder gate. A source-built BSE pins the absolute f; "
+            "a KK/sum-rule inequality (precedent exists) could close it analytically."
         ).format(d=d_star, u=U_at_dstar * 1000, n=THRESHOLD * GAMMA_FLOOR_meV),
         "alternative_bse_engines_if_absolute_f_needed": {
             "yambo_from_source": "Yambo source is on GitHub (freely cloneable); build "

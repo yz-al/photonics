@@ -94,7 +94,31 @@
     "U_over_gamma_floor_at_dstar": 10.37,
     "clears_0p71_gamma_floor": true
   },
-  "reframing": "Because exp beats any power law, N(d)=U\u00b7f^\u03b1 has a finite optimum \u2014 and here it sits AT native contact (d*\u22480.60 nm): adding spacer only darkens f. At contact the dipolar U (~104 meV) is FAR above 0.71\u00b7\u0393_floor (~7 meV) \u2014 U is not the problem, and it is largest exactly where f is largest. The one remaining unknown is the ABSOLUTE f of the native interlayer exciton: is it above the strong-coupling floor f_min? Interlayer excitons run ~10\u2013100\u00d7 darker than intralayer, so THIS is the real gate \u2014 a single number, not an exponent, and all the BSE is still needed for.",
+  "literature_check_2026_08": {
+    "purpose": "Verify the load-bearing empirical anchors against measured data instead of asserting from memory.",
+    "U_dipolar_CORRECTED": {
+      "claimed_order_of_mag_meV": 100,
+      "measured_on_site_meV": "\u22484\u201320 (biexciton blueshift 8.4 meV; tri/quad/quint 12.4/15.5/18.2 meV; incremental on-site \u22483\u20134 meV/pair)",
+      "source": "Kremser/Nagler et al., npj 2D Mater. Appl. 4, 8 (2020), 'Discrete interactions between a few interlayer excitons trapped at a MoSe2\u2013WSe2 heterointerface'; density blueshift up to ~20 meV.",
+      "verdict": "MY ~100 meV WAS TOO HIGH BY ~5\u201325\u00d7. Measured on-site dipolar U \u22484\u201320 meV is COMPARABLE TO the 6\u201315 meV \u0393 floor, not ~15\u00d7 above it. So U is MARGINAL (U/\u0393\u22480.3\u20133, straddling the 0.71 threshold), not plentiful. The dipolar leg is tight on U AND f, not just f."
+    },
+    "darkness_ratio_CONFIRMED_and_worse": {
+      "interlayer_radiative_lifetime": "\u22480.40 ns intrinsic (WSe2/MoSe2 contact); \u00b5s when hBN-separated",
+      "intralayer_radiative_lifetime": "\u22481.8\u20132 ps intrinsic at T\u22487 K (k\u22480)",
+      "ratio": "\u2248200\u20131000\u00d7 darker (I said 10\u2013100\u00d7 \u2014 the true gap is LARGER)",
+      "source": "Palummo et al., Nano Lett. 15, 2794 (2015) (intralayer ~ps); interlayer 0.40 ns from WSe2/MoSe2 radiative-lifetime studies.",
+      "verdict": "SUPPORTS the reframe's direction and makes the f gate HARDER: the native interlayer exciton is even darker than I claimed."
+    },
+    "lambda_f_hBN_decay": {
+      "finding": "Interlayer f / radiative rate is modulated 'by orders of magnitude' by hBN spacer thickness \u2014 qualitatively supports a small \u03bb_f (strong exp decay). Exact per-monolayer decade not pinned to one dataset here; \u03bb_f\u22480.14 nm remains the estimate.",
+      "verdict": "DIRECTION CONFIRMED; exact \u03bb_f still estimate-tier."
+    },
+    "KK_sum_rule_bound_PRECEDENT_EXISTS": {
+      "finding": "The causality/KK bound on single-photon \u03c7\u00b3 IS a real result: a noninstantaneous \u03c7\u00b3 precludes high-fidelity single-photon Kerr phase shifts (Shapiro 2006; Gea-Banacloche 2010).",
+      "verdict": "The proposed applied-math route (close the leg with a KK/sum-rule inequality, no compute) has genuine precedent \u2014 not a fantasy."
+    }
+  },
+  "reframing": "Because exp beats any power law, N(d)=U\u00b7f^\u03b1 has a finite optimum AT native contact (d*\u22480.60 nm): adding spacer only darkens f. My electrostatic prefactor gave U\u2248104 meV there, but the LITERATURE CHECK corrects this: the MEASURED on-site dipolar U is only \u22484\u201320 meV \u2014 COMPARABLE to the 0.71\u00b7\u0393_floor \u22487 meV target, not far above it. So U is MARGINAL (U/\u0393\u22480.3\u20133, straddling 0.71), and f is even worse than I said (~200\u20131000\u00d7 darker than intralayer). Corrected verdict: the dipolar leg is TIGHT ON BOTH axes at a single trap \u2014 U barely at threshold, f the harder gate. A source-built BSE pins the absolute f; a KK/sum-rule inequality (precedent exists) could close it analytically.",
   "alternative_bse_engines_if_absolute_f_needed": {
     "yambo_from_source": "Yambo source is on GitHub (freely cloneable); build against pinned MPI/ScaLAPACK/FFTW/HDF5 \u2014 avoids the conda-forge ABI abort. IN PROGRESS.",
     "berkeleygw": "Distribution-gated (registration); opt-in via BGW_TARBALL_URL + berkeleygw_arch.mk already wired.",
