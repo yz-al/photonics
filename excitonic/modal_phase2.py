@@ -79,41 +79,33 @@ if YAMBO_SRC:
         .pip_install("requests==2.33.1")
         .run_commands(_FAKE_SSH)
         .run_commands(
-            # fetch pinned source
-            f"curl -L -o /opt/yambo.tar.gz "
+            # Fetch the OFFICIAL RELEASE tarball, which BUNDLES the external-library sources
+            # in lib/archive/ (libxc/netcdf/hdf5/fftw/iotk). The GitHub *archive* tarball
+            # strips those, so Yambo tried to DOWNLOAD them at build time from a dead libxc
+            # URL ("not in gzip format"). Release asset first; fall back to the archive.
+            f"curl -fSL -o /opt/yambo.tar.gz "
+            f"https://github.com/yambo-code/yambo/releases/download/{YAMBO_SRC}/yambo-{YAMBO_SRC}.tar.gz "
+            f"|| curl -fSL -o /opt/yambo.tar.gz "
             f"https://github.com/yambo-code/yambo/archive/refs/tags/{YAMBO_SRC}.tar.gz",
             "mkdir -p /opt/yambo && tar xzf /opt/yambo.tar.gz -C /opt/yambo --strip-components=1",
-            # configure against the conda prefix (robustly derived from the mpif90 path).
-            # FPP: Yambo's default Fortran-preprocessor guess is `cpp -E -P -ansi`, whose
-            # -ansi flag mangles Fortran (comments/continuations) so FPP detection fails.
-            # Hand it gfortran's own preprocessor, which understands Fortran source.
-            # Use EXPLICIT -libs/-includedir (not -path): the -path form let configure
-            # reject the conda libs and fall back to internal builds (netcdf/libxc), whose
-            # source downloads the proxy blocks. Explicit lib+include dirs force Yambo to
-            # link the conda stack and skip the internal builds entirely.
+            "echo '=== lib/archive (bundled ext-lib sources) ===' ; "
+            "ls -la /opt/yambo/lib/archive/ 2>/dev/null | head -20 || echo 'NO lib/archive — archive tarball'",
+            # MINIMAL configure: give it only MPI + BLAS/ScaLAPACK (conda), and let Yambo
+            # build hdf5/netcdf/libxc/fftw/iotk INTERNAL from the bundled sources. All-internal
+            # avoids both the dead-URL download AND the conda-ABI mismatch that aborted the
+            # conda binary's BSE. FPP=gfortran (its -ansi default mangles Fortran source).
             "cd /opt/yambo && P=$(dirname $(dirname $(which mpif90))) && "
             "FC=mpif90 F77=mpif90 CC=mpicc CPP='cpp -E -P' FPP='gfortran -E -P -cpp' "
-            "./configure --enable-mpi --enable-open-mp --enable-hdf5-par-io "
+            "./configure --enable-mpi --enable-open-mp "
             "--with-blas-libs=\"-L$P/lib -lopenblas\" "
             "--with-lapack-libs=\"-L$P/lib -lopenblas\" "
             "--with-scalapack-libs=\"-L$P/lib -lscalapack\" "
-            "--with-blacs-libs=\"-L$P/lib -lscalapack\" "
-            "--with-fft-libs=\"-L$P/lib -lfftw3 -lfftw3_omp\" --with-fft-includedir=\"$P/include\" "
-            "--with-hdf5-libs=\"-L$P/lib -lhdf5_fortran -lhdf5\" --with-hdf5-includedir=\"$P/include\" "
-            "--with-netcdf-libs=\"-L$P/lib -lnetcdf\" --with-netcdf-includedir=\"$P/include\" "
-            "--with-netcdff-libs=\"-L$P/lib -lnetcdff\" --with-netcdff-includedir=\"$P/include\" "
-            "--with-libxc-libs=\"-L$P/lib -lxcf90 -lxc\" --with-libxc-includedir=\"$P/include\" "
-            "2>&1 | tail -50",
-            # ext-libs FAST-CHECK: if configure accepted the conda libs this is near-instant;
-            # if it still wants internal builds it fails here in ~1 min (proxy-blocked
-            # download) instead of after a 50-min core compile. A quick yes/no on the fix.
-            "cd /opt/yambo && (timeout 600 make ext-libs > extlibs.log 2>&1; "
-            "echo \"extlibs_exit=$?\") ; echo '=== tail extlibs.log ===' ; tail -60 extlibs.log ; "
-            "grep -qiE 'download|not in gzip|Terminated|Error 1' extlibs.log && "
-            "(echo 'EXT-LIBS STILL INTERNAL — conda libs not accepted'; false) || echo 'ext-libs OK (external)'",
-            # core build: yambo (GW+BSE) + p2y (interfaces). Bounded + self-diagnosing.
-            "cd /opt/yambo && (timeout 3300 make -j8 yambo interfaces > make.log 2>&1; "
-            "echo \"make_exit=$?\") ; echo '=== tail make.log ===' ; tail -160 make.log ; "
+            "--with-blacs-libs=\"-L$P/lib -lscalapack\" 2>&1 | tail -50",
+            # build ext-libs (internal, from bundled source — offline) then yambo + p2y.
+            # Generous 90-min cap (internal lib compiles add time on the slow builder);
+            # dump the log tail and fail only if bin/yambo is truly absent.
+            "cd /opt/yambo && (timeout 5400 make -j8 yambo interfaces > make.log 2>&1; "
+            "echo \"make_exit=$?\") ; echo '=== tail make.log ===' ; tail -170 make.log ; "
             "echo '=== bin/ ===' ; ls -la bin/ 2>/dev/null ; test -x bin/yambo",
             # expose the source-built binaries ahead of anything else on PATH
             "cp /opt/yambo/bin/yambo /opt/yambo/bin/p2y $(dirname $(which mpif90))/ && "
