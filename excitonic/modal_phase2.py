@@ -1226,17 +1226,23 @@ diemac 5.0
 tolvrs1 1.0d-8
 nband1 {nband}
 
-# DS2: NSCF WFK (many bands)
+# DS2: NSCF WFK (many bands; nbdbuf so the top bands need not converge)
 iscf2 -2
 getden2 1
 tolwfr2 1.0d-8
-nband2 {nband}
+nband2 {nband + 6}
+nbdbuf2 6
 
 # DS3: BSE (model dielectric function, direct diagonalization)
+# MBPT G-sphere cutoffs MUST be set (unset ⇒ ecutwfn→0 ⇒ SIGSEGV): ecutwfn (BSE basis),
+# ecuteps (screening — model here but ABINIT still wants it), ecutsigx (bare exchange).
 optdriver3 99
 getwfk3 2
 getden3 1
 bs_calctype3 1
+ecutwfn3 {ecut - 5}
+ecuteps3 4
+ecutsigx3 {ecut - 5}
 mbpt_sciss3 0.0 eV
 bs_exchange_term3 1
 bs_coulomb_term3 21
