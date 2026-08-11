@@ -191,3 +191,28 @@ null collapses to strongly negative, so the decoding is real signal, not
 autocorrelation leakage shared by both models. (Absolute numbers exceed
 Hallinen's published medians, but that is partly a dataset difference —
 Flavell != Leifer — so the honest claim is the same-data method win.)
+
+## Closing the loop: c302 forward simulation
+
+`openworm_simulate.py` closes the sensorimotor loop inside OpenWorm. It injects an
+aversive stimulus current into the nociceptors our transduction map flags
+(ASH/ADL), runs the c302 model forward with jNeuroML, and reads the command
+circuit. Using **graded synapses** (parameters_C1 — the biologically correct
+choice; c302's default spike-triggered synapses transmit nothing because the
+cells are non-spiking) and a small drive (the recurrent circuit runs away
+otherwise), the result (`openworm_sim.json`):
+
+| connectome weights | reversal command (AVA·AVE·AVD) | forward command (AVB·PVC) | bias |
+|---|---|---|---|
+| c302 default (connection counts) | **+0.48 mV** | +0.25 mV | 1.9× |
+| our measured L2 causal weights | +0.33 mV | +0.27 mV | 1.2× |
+
+Under both weightings the aversive stimulus biases c302 toward the **reversal**
+command — the escape reflex, reproduced by a biophysical forward model driven the
+same way our composed bridge is. (Our re-weighting changes the balance but doesn't
+sharpen it here; faithful full-network dynamics remains a connectome-weight
+optimization problem.) The generated NeuroML (`c302_run/LEMS_Loop_default.xml` +
+`Loop_default.net.nml`) opens in OpenWorm / Geppetto / Open Source Brain.
+
+A visualization of the circuit and the simulated traces is in
+`../artifacts/worm_loop.html`.

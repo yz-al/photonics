@@ -12,3 +12,8 @@ data/mnist/
 data/cifar/
 data/sklearn/
 scratch_logs/
+
+# c302 / jNeuroML simulation outputs
+*.activity.dat
+*.dat
+c302_run/traces_*.npz
