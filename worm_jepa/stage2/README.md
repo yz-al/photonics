@@ -238,3 +238,26 @@ This is also the methodology point (METHODOLOGY.md): next-step prediction is
 persistence-bound — *the trap*. A 30% win is real, but next-step MSE is the weak
 task; recovered structure shows in held-out-neuron imputation (cf. Creamer/Leifer/
 Pillow 2024 connectome LDS at 92% of the noise ceiling), not here.
+
+## L2 imputation benchmark: connectome vs shuffled (Creamer 2024)
+
+`l2_imputation_benchmark.py` reproduces the Creamer/Leifer/Pillow 2024 connectome-
+constrained held-out-neuron imputation — the cleanest instantiation of the
+methodology (structure shows in imputation, not next-step). All from local data
+(Randi funatlas + c302 connectome). Predict each held-out neuron's perturbation-
+response profile from its connectome partners' profiles; score as a fraction of
+the split-half noise ceiling (`l2_imputation_benchmark.json`):
+
+| model | r | % of noise ceiling |
+|---|---|---|
+| noise ceiling (split-half, SB) | 0.217 | 100% |
+| **connectome model (1-hop)** | 0.183 | **84%** |
+| shuffled connectome | 0.041 | 18% |
+
+Connectome ≫ shuffled by ~65 points of ceiling — **structure recovered**, the
+"data speaking" side of the trap. This reproduces Creamer's result (their fitted
+LDS reaches 92%) with a simple 1-hop model. The numerical SOTA-beat at L2 is the
+harder *pair*-holdout generalization (~2.4× the connectome-linear class); this is
+the held-out-*neuron* protocol Creamer used, and it confirms the double-black-box
+methodology on real data: connectome ≈ shuffled on next-step (the trap), connectome
+≫ shuffled on imputation.

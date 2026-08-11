@@ -1,0 +1,15 @@
+{
+  "noise_ceiling": 0.2171,
+  "split_half_r": 0.1218,
+  "n_neurons_scored": 159,
+  "connectome": {
+    "r": 0.1827,
+    "pct_of_ceiling": 84.1
+  },
+  "shuffled": {
+    "r": 0.041,
+    "pct_of_ceiling": 18.9
+  },
+  "reference_creamer2024_pct_of_ceiling": 92,
+  "structure_recovered": true
+}
