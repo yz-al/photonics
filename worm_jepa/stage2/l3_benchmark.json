@@ -1,0 +1,17 @@
+{
+  "n_worms": 919,
+  "reference_worm_graph_baseline": 0.03541,
+  "persistence": 0.029,
+  "models": {
+    "linear_K1": {
+      "masked_mse": 0.02871,
+      "improvement_pct": 1.0,
+      "beats_persistence": true
+    },
+    "linear_K3": {
+      "masked_mse": 0.02039,
+      "improvement_pct": 29.7,
+      "beats_persistence": true
+    }
+  }
+}

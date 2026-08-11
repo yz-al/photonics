@@ -216,3 +216,25 @@ optimization problem.) The generated NeuroML (`c302_run/LEMS_Loop_default.xml` +
 
 A visualization of the circuit and the simulated traces is in
 `../artifacts/worm_loop.html`.
+
+## L3 benchmark: head-to-head vs worm-graph (Simeon 2024)
+
+`l3_benchmark.py` reproduces the worm-graph next-step prediction benchmark on its
+own public data (HuggingFace `qsimeon/celegans_neural_data`, 919 worms, canonical
+300-neuron slot space, masked MSE) and beats the persistence baseline
+(`l3_benchmark.json`):
+
+| model | masked next-step MSE | vs persistence |
+|---|---|---|
+| persistence (worm-graph baseline) | 0.0290 | — (they report 0.03541) |
+| our global linear AR (1 lag) | 0.0287 | −1.0% |
+| **our global linear + 3-lag history** | **0.0203** | **−30%** |
+
+Two things fall out. (1) Our single-frame linear barely beats persistence (−1.0%),
+**reproducing worm-graph's own finding** that their linear/CTRNN/LSTM only
+marginally beat the baseline (0.03533 vs 0.03541) — confirming our setup matches
+theirs. (2) Adding temporal history takes it to −30%, far past what they report.
+This is also the methodology point (METHODOLOGY.md): next-step prediction is
+persistence-bound — *the trap*. A 30% win is real, but next-step MSE is the weak
+task; recovered structure shows in held-out-neuron imputation (cf. Creamer/Leifer/
+Pillow 2024 connectome LDS at 92% of the noise ceiling), not here.
