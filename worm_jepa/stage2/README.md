@@ -147,3 +147,28 @@ measured maps and passes a negative control. Reproduce the neural cache from
 DANDI with `python bridge.py --stream` (streams via HTTP range requests, see
 `stream_dandi.py`); `python bridge.py` alone runs offline from the shipped
 `bridge_maps.npz`.
+
+## OpenWorm (c302) integration
+
+`openworm_integrate.py` connects our measured L2 causal atlas to OpenWorm's
+`c302` NeuroML model, both directions:
+
+**(1) Data → OpenWorm.** c302 weights each chemical synapse as
+`baseline_conductance × anatomical connection count`. We attach the *measured*
+causal coupling (Randi atlas) to each edge and emit `reweighted_connectome.json`
+(2279 chemical synapses; 970 have a measured value, 94 significant at q<0.05).
+Finding: connection **count barely predicts measured function** (Spearman
+r=−0.01, r²≈0.02%) and ~28% of covered edges are net-inhibitory — so anatomical
+counts are a weak proxy for functional weight. *Honest caveat:* the atlas dFF is
+a **propagated network response**, not a monosynaptic conductance, so it does not
+track c302's NT polarity (GABA-vs-excitatory sign test fails, p=0.83). Use it as
+a network-level functional weight, not a synapse-sign claim.
+
+**(2) OpenWorm → us.** c302 is a full biophysical forward simulator; our `bridge`
+is a validation oracle for it. `c302_validation_targets()` emits, per stimulus,
+the sensory neurons to inject current into and the expected AVA/command sign
+(aversive→AVA up→reversal, etc.). Running c302 forward and checking it reproduces
+these is a concrete cross-model test: OpenWorm *integrates* a hand-built model; we
+*compose* measured maps — the two should agree on the aversive→reversal transform.
+
+Requires `pip install c302` + `wormneuroatlas` (re-weighting needs no simulator).
