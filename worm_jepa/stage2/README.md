@@ -332,3 +332,25 @@ remaining levers are temporal dynamics (funatlas ships response kernels, not jus
 steady-state dFF), a connectome GNN that learns the propagation nonlinearity, and
 multi-organism training. (An earlier version of this section reported 31% by
 including self-responses; the honest downstream figure is 24%.)
+
+## Temporal dynamics: does the connectome predict response timing?
+
+`temporal_dynamics.py` goes after the signal the steady-state model can't see —
+*when* each neuron responds. The funatlas ships each response as an exponential-
+convolution kernel; we evaluate them, extract a robust latency, and correlate it
+with connectome shortest-path distance (`temporal_dynamics.json`):
+
+| stimulated→responder distance | response latency (center of mass) |
+|---|---|
+| 1 hop | 7.0 s |
+| 2 hops | 8.4 s |
+| 3 hops | 8.9 s |
+| 5 hops | 10.9 s |
+| 6 hops | 11.3 s |
+
+Response latency scales monotonically with synaptic distance (time-to-half vs
+hops: Spearman r=0.11, p=3×10⁻⁵) — the connectome predicts **when** a neuron
+responds, a dimension orthogonal to the steady-state magnitude. Honest scope: the
+effect is real, significant, and monotonic but modest (r≈0.11) — a new informative
+dimension, not by itself the leap to the noise ceiling. Predicting the full
+response waveform from the connectome is the richer next step.

@@ -1,0 +1,38 @@
+{
+  "n_pairs": 1439,
+  "com_latency_vs_hops": {
+    "spearman": 0.082,
+    "p": 0.0017388995446048316
+  },
+  "time_to_half_vs_hops": {
+    "spearman": 0.11,
+    "p": 2.661601404992215e-05
+  },
+  "latency_by_hops": {
+    "1": {
+      "latency_s": 6.98,
+      "n": 195
+    },
+    "2": {
+      "latency_s": 8.39,
+      "n": 549
+    },
+    "3": {
+      "latency_s": 8.91,
+      "n": 459
+    },
+    "4": {
+      "latency_s": 8.05,
+      "n": 149
+    },
+    "5": {
+      "latency_s": 10.93,
+      "n": 53
+    },
+    "6": {
+      "latency_s": 11.27,
+      "n": 34
+    }
+  },
+  "monotonic": true
+}
