@@ -1,0 +1,101 @@
+{
+  "n_neurons": 134,
+  "top15": [
+    {
+      "neuron": "SIBV?",
+      "importance": 0.1287,
+      "locomotor": false,
+      "command": false
+    },
+    {
+      "neuron": "RIBL",
+      "importance": 0.0861,
+      "locomotor": true,
+      "command": true
+    },
+    {
+      "neuron": "RIML",
+      "importance": 0.084,
+      "locomotor": true,
+      "command": true
+    },
+    {
+      "neuron": "RID",
+      "importance": 0.0786,
+      "locomotor": true,
+      "command": false
+    },
+    {
+      "neuron": "RIMR",
+      "importance": 0.0695,
+      "locomotor": true,
+      "command": true
+    },
+    {
+      "neuron": "AVL",
+      "importance": 0.0684,
+      "locomotor": true,
+      "command": false
+    },
+    {
+      "neuron": "AIBL",
+      "importance": 0.0641,
+      "locomotor": true,
+      "command": true
+    },
+    {
+      "neuron": "SMDDL",
+      "importance": 0.0621,
+      "locomotor": true,
+      "command": false
+    },
+    {
+      "neuron": "AIBR",
+      "importance": 0.0584,
+      "locomotor": true,
+      "command": true
+    },
+    {
+      "neuron": "AVAL",
+      "importance": 0.0532,
+      "locomotor": true,
+      "command": true
+    },
+    {
+      "neuron": "RMEL",
+      "importance": 0.0522,
+      "locomotor": true,
+      "command": false
+    },
+    {
+      "neuron": "AVEL",
+      "importance": 0.0468,
+      "locomotor": true,
+      "command": true
+    },
+    {
+      "neuron": "SMDVL",
+      "importance": 0.0398,
+      "locomotor": true,
+      "command": false
+    },
+    {
+      "neuron": "SMDDR",
+      "importance": 0.036,
+      "locomotor": true,
+      "command": false
+    },
+    {
+      "neuron": "AIA?",
+      "importance": 0.0331,
+      "locomotor": false,
+      "command": false
+    }
+  ],
+  "command_in_top10": 6,
+  "locomotor_in_top10": 9,
+  "mean_importance_command": 0.0468,
+  "mean_importance_locomotor": 0.0408,
+  "mean_importance_all": 0.0132,
+  "command_enrichment": 3.5
+}
