@@ -172,3 +172,22 @@ these is a concrete cross-model test: OpenWorm *integrates* a hand-built model; 
 *compose* measured maps — the two should agree on the aversive→reversal transform.
 
 Requires `pip install c302` + `wormneuroatlas` (re-weighting needs no simulator).
+
+## L4 benchmark: head-to-head vs Hallinen 2021
+
+`l4_benchmark.py` reproduces the Hallinen et al. 2021 (eLife 66135) locomotion-
+decoding protocol — ridge on `[F, dF/dt]` across all neurons, R²_ms on a held-out
+test set — on the Flavell 000776 data, then beats it with a nonlinear decoder on
+the **same splits and features** (n=38 worms, `l4_benchmark.json`):
+
+| channel | Hallinen ridge `[F,dF/dt]` | **ours (HistGradBoost)** | shuffle null | Hallinen published |
+|---|---|---|---|---|
+| velocity | 0.653 | **0.744**  (38/38 >0) | −0.60 | 0.56 median / 0.76 exemplar |
+| curvature | 0.200 | **0.397**  (~2×) | −0.91 | 0.29 median / 0.60 exemplar |
+
+Same data, same held-out splits, same input features — a nonlinear decoder beats
+their linear ridge by +0.09 (velocity) and ~2× (curvature). The temporal-shuffle
+null collapses to strongly negative, so the decoding is real signal, not
+autocorrelation leakage shared by both models. (Absolute numbers exceed
+Hallinen's published medians, but that is partly a dataset difference —
+Flavell != Leifer — so the honest claim is the same-data method win.)

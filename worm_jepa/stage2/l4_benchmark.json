@@ -1,0 +1,62 @@
+{
+  "n_worms": {
+    "velocity": 38,
+    "curvature": 38
+  },
+  "reference_hallinen2021": {
+    "velocity": {
+      "median": 0.56,
+      "exemplar": 0.76,
+      "gfp_floor": 0.3
+    },
+    "curvature": {
+      "median": 0.29,
+      "exemplar": 0.6,
+      "gfp_floor": 0.04
+    }
+  },
+  "results": {
+    "velocity": {
+      "hallinen_ridge": {
+        "median": 0.6527,
+        "mean": 0.5703,
+        "n_positive": 36,
+        "n": 38
+      },
+      "hgb_ours": {
+        "median": 0.744,
+        "mean": 0.7056,
+        "n_positive": 38,
+        "n": 38
+      },
+      "shuffle_null": {
+        "median": -0.5972,
+        "mean": -0.7938,
+        "n_positive": 0,
+        "n": 38
+      },
+      "ours_beats_ridge": true
+    },
+    "curvature": {
+      "hallinen_ridge": {
+        "median": 0.1997,
+        "mean": 0.1063,
+        "n_positive": 29,
+        "n": 38
+      },
+      "hgb_ours": {
+        "median": 0.3974,
+        "mean": 0.3253,
+        "n_positive": 32,
+        "n": 38
+      },
+      "shuffle_null": {
+        "median": -0.9055,
+        "mean": -0.9664,
+        "n_positive": 0,
+        "n": 38
+      },
+      "ours_beats_ridge": true
+    }
+  }
+}
