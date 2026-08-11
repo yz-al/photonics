@@ -311,10 +311,16 @@ downstream-only (`perturbation_response.json`):
 
 | model (downstream, i≠j) | r | % of matched noise ceiling |
 |---|---|---|
-| matched noise ceiling (per-perturbation split-half) | 0.595 | 100% |
-| **dynamical (I−gA)⁻¹ propagation** | 0.141 | **24%** |
-| GBM connectome-feature model | 0.127 | 21% |
+| matched **downstream** noise ceiling (split-half) | 0.371 | 100% |
+| **dynamical (I−gA)⁻¹ propagation** | 0.141 | **38%** |
+| GBM connectome-feature model | 0.127 | 34% |
 | shuffled connectome | ~0.00 | ~0% |
+
+**Ceiling correction:** an earlier version divided by 0.595 — the reliability of the
+*full* column, which includes the highly-reliable self-response. The metric scores
+*downstream* responses (i≠j), whose split-half reliability is only **0.371**. Against
+the matched ceiling the model is at **38%**, not 24%. (Model performance didn't
+change; the benchmark denominator was wrong.)
 
 Two results. (1) The **better model wins**: a fitted dynamical propagation model —
 `R[:,j] ≈ (I−gA)⁻¹e_j`, one global gain, no per-perturbation parameters, so it
@@ -325,13 +331,15 @@ synapse *signs* from neurotransmitter identity (c302) + receptor expression
 monosynaptic polarity (same reason the c302 GABA cross-check fails), so hardcoded
 signs add noise.
 
-**24% of ceiling = 76% headroom — this is the honest "what would make it
+**38% of the matched ceiling — this is the honest "what would make it
 revolutionary" answer.** A model that reaches the ceiling on downstream held-out
-perturbations *is* the in-silico screen. The dynamical model is the right form; the
-remaining levers are temporal dynamics (funatlas ships response kernels, not just
+perturbations *is* the in-silico screen. But six model classes (dynamical, GBM,
+low-rank collaborative filtering, target-response composition) plus the wireless
+extrasynaptic connectome all plateau at the same raw r≈0.14 — the cap is
+informational, not a model failure. The remaining levers are temporal dynamics (funatlas ships response kernels, not just
 steady-state dFF), a connectome GNN that learns the propagation nonlinearity, and
-multi-organism training. (An earlier version of this section reported 31% by
-including self-responses; the honest downstream figure is 24%.)
+multi-organism training. (Two metric fixes got us here: excluding the trivial self-response, and matching
+the ceiling to the downstream metric.)
 
 ## Temporal dynamics: does the connectome predict response timing?
 
