@@ -303,22 +303,32 @@ chemical — which is the core of every medical and functional-genomics use case
 
 `perturbation_response.py` predicts the whole-brain response to a perturbation
 never seen in training — the capability a drug/gene screen needs. Validated on the
-Randi optogenetic atlas (stimulate neuron j → whole-brain response) by holding out
-entire stimulated neurons (5-fold) and predicting their response profiles from the
-connectome (`perturbation_response.json`):
+Randi optogenetic atlas (stimulate neuron j → whole-brain response). **Honest
+metric:** exclude the self-response (i==j) — stimulating a neuron and measuring
+*itself* is trivially predictable and inflates every score; a screen cares about
+the DOWNSTREAM response (which *other* neurons respond). All numbers below are
+downstream-only (`perturbation_response.json`):
 
-| model | r | % of matched noise ceiling |
+| model (downstream, i≠j) | r | % of matched noise ceiling |
 |---|---|---|
 | matched noise ceiling (per-perturbation split-half) | 0.595 | 100% |
-| **connectome model (held-out perturbations)** | 0.186 | **31%** |
-| shuffled connectome | 0.093 | 16% |
+| **dynamical (I−gA)⁻¹ propagation** | 0.141 | **24%** |
+| GBM connectome-feature model | 0.127 | 21% |
+| shuffled connectome | ~0.00 | ~0% |
 
-The connectome predicts unseen perturbations ~2× better than a degree-matched
-shuffle — the capability is real. But **31% of ceiling means 69% headroom**: this
-is the honest "what would make it revolutionary" answer. A model that reaches the
-ceiling on held-out perturbations *is* the in-silico screen. The better-model path:
-a dynamical propagation model ((I−A)⁻¹ + fitted temporal kernels) instead of
-gradient-boosted features; a graph neural network over the connectome; the CeNGEN
-molecular layer (a perturbation's effect depends on which receptors targets
-express — currently unused); and multi-organism training toward a connectome
-foundation model.
+Two results. (1) The **better model wins**: a fitted dynamical propagation model —
+`R[:,j] ≈ (I−gA)⁻¹e_j`, one global gain, no per-perturbation parameters, so it
+generalizes to any stimulation by construction — beats the gradient-boosted feature
+model (24% vs 21%), against a clean-zero shuffle. (2) **Honest negative**: adding
+synapse *signs* from neurotransmitter identity (c302) + receptor expression
+(CeNGEN) slightly *hurt* — the atlas dFF is a propagated network response, not
+monosynaptic polarity (same reason the c302 GABA cross-check fails), so hardcoded
+signs add noise.
+
+**24% of ceiling = 76% headroom — this is the honest "what would make it
+revolutionary" answer.** A model that reaches the ceiling on downstream held-out
+perturbations *is* the in-silico screen. The dynamical model is the right form; the
+remaining levers are temporal dynamics (funatlas ships response kernels, not just
+steady-state dFF), a connectome GNN that learns the propagation nonlinearity, and
+multi-organism training. (An earlier version of this section reported 31% by
+including self-responses; the honest downstream figure is 24%.)

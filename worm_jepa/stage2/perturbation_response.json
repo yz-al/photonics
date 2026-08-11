@@ -1,14 +1,16 @@
 {
+  "metric": "downstream held-out perturbation (self-response i==j excluded)",
   "noise_ceiling": 0.595,
-  "n_heldout_perturbations": 130,
-  "connectome": {
-    "r": 0.186,
-    "pct_of_ceiling": 31.2
+  "gain_g": 0.7,
+  "n_perturbations": 129,
+  "dynamical": {
+    "r": 0.141,
+    "pct_of_ceiling": 23.7
   },
   "shuffled": {
-    "r": 0.093,
-    "pct_of_ceiling": 15.7
+    "r": -0.001,
+    "pct_of_ceiling": -0.2
   },
   "predicts_unseen_perturbations": true,
-  "headroom_to_ceiling_pct": 68.8
+  "headroom_to_ceiling_pct": 76.3
 }
