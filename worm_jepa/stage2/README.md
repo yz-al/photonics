@@ -107,3 +107,43 @@ recovery (`struct_corr`) keeps climbing with more worms (0.10→0.30 over 10→3
 - Scored on the synthetic system (known `W`). The natural next step is to run the
   same search against the **real** forecaster's dynamics / the real C. elegans
   connectome.
+
+## The bridge: sensory → command → behavior (L2→L4)
+
+`bridge.py` composes the sensorimotor loop that no single public dataset
+records intact. The data splits into two halves that never co-occur — and
+`bridge.measure_gap()` shows *why* the missing middle map cannot be read off
+activity from either half:
+
+| regime | sensory→command next-step gain | reading |
+|---|---|---|
+| immobilized + stimulus (000541+000981, n=45) | **−0.385** (t=−2.7, p=0.009) | command **decoupled** from sensory (immobilization artifact) |
+| freely-moving (Flavell 000776, n=38) | −0.011 (n.s.) | coupling present but sensors barely driven (no stimulus) |
+
+So the middle map comes from the **causal prior** (Randi L2 atlas), per the
+priors-over-activity rule in `METHODOLOGY.md`. The bridge is four measured maps,
+each valid in its own regime, none of which ever saw the full loop:
+
+- **A** transduction (stimulus→sensory) — stimulus-triggered average, 000541/000981
+- **M** sensory→command wiring magnitude — Randi funatlas `wt/dFF` gated by `wt/q`
+- **V** activation→reversal valence — documented chemosensory sign prior
+- **C** command→behavior — reversal state → velocity, Flavell (−0.298, n=38)
+
+`dVel = betaC · Σ_s activation_s · valence_s · wmag_s`. End-to-end it predicts
+the sign of the behavioral response to each stimulus class **3/3** correctly
+(`bridge.json`), and the **shuffled-valence** control inverts the two attractive
+predictions (~3σ) — the structure test from `METHODOLOGY.md` passing on exactly
+the cases that require the prior.
+
+| stimulus | pred ΔVel | behavior | shuffled-valence null |
+|---|---|---|---|
+| aversive (CuSO4) | −0.39 | REVERSE ✓ | −0.33 ± 0.23 (robust either way) |
+| attractive onset | +0.27 | FORWARD ✓ | −0.32 ± 0.19 (**sign inverts**) |
+| attractive removal | −0.19 | REVERSE ✓ | +0.10 ± 0.09 (**sign inverts**) |
+
+This is the L2→L4 counterpart to OpenWorm's forward simulation: OpenWorm
+integrates a hand-built dynamical model; the bridge composes empirically
+measured maps and passes a negative control. Reproduce the neural cache from
+DANDI with `python bridge.py --stream` (streams via HTTP range requests, see
+`stream_dandi.py`); `python bridge.py` alone runs offline from the shipped
+`bridge_maps.npz`.

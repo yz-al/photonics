@@ -1,0 +1,36 @@
+{
+  "betaC": -0.2979375131279438,
+  "betaC_std": 0.2638088358198241,
+  "n_flav": 38,
+  "stimuli": {
+    "aversive": {
+      "reversal_drive": 1.3037,
+      "pred_dvelocity": -0.3884,
+      "behavior": "REVERSE",
+      "expected": "REVERSE",
+      "correct": true,
+      "shuffled_valence_mean": -0.3261,
+      "shuffled_valence_std": 0.2331
+    },
+    "attractive_onset": {
+      "reversal_drive": -0.8894,
+      "pred_dvelocity": 0.265,
+      "behavior": "FORWARD",
+      "expected": "FORWARD",
+      "correct": true,
+      "shuffled_valence_mean": -0.3161,
+      "shuffled_valence_std": 0.1942
+    },
+    "attractive_removal": {
+      "reversal_drive": 0.6432,
+      "pred_dvelocity": -0.1916,
+      "behavior": "REVERSE",
+      "expected": "REVERSE",
+      "correct": true,
+      "shuffled_valence_mean": 0.1004,
+      "shuffled_valence_std": 0.091
+    }
+  },
+  "n_correct": 3,
+  "n_total": 3
+}
