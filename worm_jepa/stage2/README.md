@@ -261,3 +261,24 @@ harder *pair*-holdout generalization (~2.4× the connectome-linear class); this 
 the held-out-*neuron* protocol Creamer used, and it confirms the double-black-box
 methodology on real data: connectome ≈ shuffled on next-step (the trap), connectome
 ≫ shuffled on imputation.
+
+## Predicting behavior from a compound (the medical bridge)
+
+`compound_response.py` runs the double black box from a molecule, closing the gap
+between "predict activity/behavior from imaging" (what the benchmarks do) and
+"predict the effect of a chemical" (what a medical funder pays for):
+
+  compound → target gene (curated pharmacology) → neurons expressing it (CeNGEN,
+  L0) → circuit position (our stack) → predicted behavioral direction.
+
+On a panel of neuroactive compounds with established worm phenotypes it gets **8/8**
+directional predictions right (`compound_response.json`). The gene→neuron
+localization is biologically correct (acr-16→AVA, mod-1→AVE/PVC, avr-15→RIB/RME).
+
+**Honest boundary** (the CeNGEN-shuffle control, ~91%): the up/down *direction* is
+carried mostly by curated receptor polarity + agonism (known pharmacology), not by
+the model. CeNGEN's genuine contribution is neuron-level *localization*, which a
+coarse up/down metric can't reward. Making localization load-bearing needs a
+location-sensitive task (which behavioral module a compound perturbs), validated
+on held-out compounds against wet-lab data — the Phase I STTR deliverable. The
+pathway runs end-to-end today; Phase I makes it quantitative.

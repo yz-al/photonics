@@ -1,0 +1,127 @@
+{
+  "n": 8,
+  "correct": 8,
+  "accuracy": 1.0,
+  "shuffle_accuracy_mean": 0.912,
+  "shuffle_accuracy_std": 0.07,
+  "rows": [
+    {
+      "compound": "nicotine",
+      "gene": "acr-16",
+      "polarity": "exc",
+      "agonism": 1,
+      "target_neurons": [
+        "AVA",
+        "PVR",
+        "RIB",
+        "DB"
+      ],
+      "predicted": "increase",
+      "known": "increase",
+      "correct": true
+    },
+    {
+      "compound": "levamisole",
+      "gene": "unc-29",
+      "polarity": "exc",
+      "agonism": 1,
+      "target_neurons": [
+        "VD_DD",
+        "SAB"
+      ],
+      "predicted": "increase",
+      "known": "increase",
+      "correct": true
+    },
+    {
+      "compound": "serotonin",
+      "gene": "mod-1",
+      "polarity": "inh",
+      "agonism": 1,
+      "target_neurons": [
+        "AIZ",
+        "MC",
+        "AIM",
+        "AVE"
+      ],
+      "predicted": "decrease",
+      "known": "decrease",
+      "correct": true
+    },
+    {
+      "compound": "fluoxetine",
+      "gene": "mod-1",
+      "polarity": "inh",
+      "agonism": 1,
+      "target_neurons": [
+        "AIZ",
+        "MC",
+        "AIM",
+        "AVE"
+      ],
+      "predicted": "decrease",
+      "known": "decrease",
+      "correct": true
+    },
+    {
+      "compound": "muscimol",
+      "gene": "unc-49",
+      "polarity": "inh",
+      "agonism": 1,
+      "target_neurons": [
+        "VD_DD",
+        "I1",
+        "MC",
+        "RIP"
+      ],
+      "predicted": "decrease",
+      "known": "decrease",
+      "correct": true
+    },
+    {
+      "compound": "ivermectin",
+      "gene": "avr-15",
+      "polarity": "inh",
+      "agonism": 1,
+      "target_neurons": [
+        "RIB",
+        "RME_DV",
+        "RIA",
+        "RIS"
+      ],
+      "predicted": "decrease",
+      "known": "decrease",
+      "correct": true
+    },
+    {
+      "compound": "PTZ",
+      "gene": "unc-49",
+      "polarity": "inh",
+      "agonism": -1,
+      "target_neurons": [
+        "VD_DD",
+        "I1",
+        "MC",
+        "RIP"
+      ],
+      "predicted": "increase",
+      "known": "increase",
+      "correct": true
+    },
+    {
+      "compound": "dopamine",
+      "gene": "dop-3",
+      "polarity": "inh",
+      "agonism": 1,
+      "target_neurons": [
+        "IL1",
+        "DA",
+        "SAB",
+        "AS"
+      ],
+      "predicted": "decrease",
+      "known": "decrease",
+      "correct": true
+    }
+  ]
+}
