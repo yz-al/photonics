@@ -298,3 +298,27 @@ The model recovers the causal locomotor circuit unsupervised — an in-silico
 ablation screen. With `compound_response.py` (chemical perturbation) this shows the
 platform predicts the consequences of perturbing the system — genetic/physical and
 chemical — which is the core of every medical and functional-genomics use case.
+
+## Held-out perturbation prediction (the revolutionary core)
+
+`perturbation_response.py` predicts the whole-brain response to a perturbation
+never seen in training — the capability a drug/gene screen needs. Validated on the
+Randi optogenetic atlas (stimulate neuron j → whole-brain response) by holding out
+entire stimulated neurons (5-fold) and predicting their response profiles from the
+connectome (`perturbation_response.json`):
+
+| model | r | % of matched noise ceiling |
+|---|---|---|
+| matched noise ceiling (per-perturbation split-half) | 0.595 | 100% |
+| **connectome model (held-out perturbations)** | 0.186 | **31%** |
+| shuffled connectome | 0.093 | 16% |
+
+The connectome predicts unseen perturbations ~2× better than a degree-matched
+shuffle — the capability is real. But **31% of ceiling means 69% headroom**: this
+is the honest "what would make it revolutionary" answer. A model that reaches the
+ceiling on held-out perturbations *is* the in-silico screen. The better-model path:
+a dynamical propagation model ((I−A)⁻¹ + fitted temporal kernels) instead of
+gradient-boosted features; a graph neural network over the connectome; the CeNGEN
+molecular layer (a perturbation's effect depends on which receptors targets
+express — currently unused); and multi-organism training toward a connectome
+foundation model.
