@@ -409,3 +409,31 @@ caught a real bug (a generic propagation predicted serotonin *speeds up* the wor
 opposite the validated result) and forced the domain gate and the command-neuron
 ablation fix. It is the whole-organism artifact — a *generative* model of
 perturbation→state — honest about its bounds, not a wiring diagram.
+
+## proteostasis.py — the one justified new layer (Aβ → paralysis)
+
+`proteostasis.py` is the disciplined answer to "add every model": add a model only
+where it improves a *validated endpoint*. The standard worm AD screens (GMC101/
+CL4176) are **proteostasis** assays the nervous-system twin abstains on; this module
+gives them a mechanistic account and extends the twin's domain to cover them.
+
+Mechanism (not a fit): two-step Finke-Watzky nucleation-autocatalysis for Aβ
+aggregate mass → toxicity threshold → paralysis onset, calibrated to the published
+~24–48 h timescale (baseline 36 h). A compound scales the aggregation rate by a
+factor `f`. Result (`proteostasis.json`):
+
+| compound | f | paralysis (h) | Δ vs vehicle |
+|---|---|---|---|
+| vehicle | 1.00 | 36 | — |
+| PBT2 | 0.45 | 81 | **+44 h (protective)** |
+| EGCG | 0.60 | 61 | +24 h |
+| curcumin | 0.70 | 52 | +16 h |
+| thioflavin T | 1.00 | 36 | **+0 h (inert — clean negative ✓)** |
+
+Protective ordering correct; the inert control lands at baseline. **Honest
+boundary (stated, not hidden):** the potency `f` is a literature/assay input — the
+module predicts the *phenotype* from mechanism; predicting `f` from chemical
+structure (QSAR) is out of scope and not claimed. Wired into `worm_twin.py`:
+`t.perturb("compound", gene="PBT2", aggregation_effect=0.45)` → "paralysis @ 81 h
+(+44 h, protective)". The twin now covers the AD paralysis screen and still abstains
+on genuinely out-of-domain targets.

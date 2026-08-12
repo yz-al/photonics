@@ -98,7 +98,8 @@ class WormTwin:
         }
 
     # ---- perturbation dispatch --------------------------------------------------
-    def perturb(self, kind, gene=None, neuron=None, stimulus=None, sign=+1):
+    def perturb(self, kind, gene=None, neuron=None, stimulus=None, sign=+1,
+                aggregation_effect=None):
         u = np.zeros(self.N)
         if kind == "stimulate":                              # direct neural perturbation
             if neuron not in self.n2i:
@@ -125,11 +126,25 @@ class WormTwin:
 
         if kind == "compound" or kind == "knockout":         # molecular -> neurons -> behavior
             import compound_response as cr
+            # PROTEOSTASIS path: an anti-aggregation compound (rate factor given) -> paralysis.
+            # This is the module that stops the twin abstaining on the GMC101/CL4176 AD screen.
+            if aggregation_effect is not None:
+                import proteostasis as ps
+                base = ps.paralysis_time(1.0); tp = ps.paralysis_time(aggregation_effect)
+                delay = (tp - base) if np.isfinite(tp) else float("inf")
+                eff = "protective" if aggregation_effect < 1 else "inert" if aggregation_effect == 1 else "toxic"
+                return {"driver": "%s %s (aggregation f=%.2f)" % (kind, gene, aggregation_effect),
+                        "behavior": {"predicted": "paralysis @ %s h (%+.0f h vs vehicle) — %s"
+                                     % ("%.0f" % tp if np.isfinite(tp) else ">120",
+                                        delay if np.isfinite(delay) else 999, eff),
+                                     "paralysis_time_h": (round(tp, 1) if np.isfinite(tp) else None)},
+                        "confidence": "mechanism→phenotype (potency is an assay input)",
+                        "domain": "in (proteostasis module)"}
             if not _in_domain(gene):                          # domain gate: neuroactive only
                 return {"driver": "%s %s" % (kind, gene),
                         "behavior": {"predicted": "abstained"},
                         "confidence": "abstains",
-                        "domain": "OUT (not a neural receptor/channel — proteostasis/TF/metabolic)"}
+                        "domain": "OUT (not a neural receptor/channel; no aggregation input)"}
             if self._cengen is None:
                 self._cengen = cr.load_cengen()
             genes, neurons_c, tpm, g2i = self._cengen
@@ -175,7 +190,9 @@ if __name__ == "__main__":
         ("stimulate", dict(neuron="ASHL"), "optogenetic ASH (nociceptor)"),
         ("stimulus", dict(stimulus="aversive"), "aversive chemical (CuSO4)"),
         ("ablate", dict(neuron="AVAL"), "ablate AVAL (reversal command)"),
-        ("compound", dict(gene="daf-16"), "a non-neural target (should abstain)"),
+        ("compound", dict(gene="PBT2", aggregation_effect=0.45), "PBT2 (anti-Aβ, proteostasis module)"),
+        ("compound", dict(gene="thioflavin-T", aggregation_effect=1.0), "thioflavin T (inert — neg control)"),
+        ("compound", dict(gene="daf-16"), "a non-neural target, no aggregation input (abstains)"),
     ]
     for kind, kw, label in demos:
         r = t.perturb(kind, **kw)

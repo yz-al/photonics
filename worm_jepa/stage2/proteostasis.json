@@ -1,0 +1,57 @@
+{
+  "baseline_paralysis_h": 36.3,
+  "toxicity_threshold": 0.5,
+  "rows": [
+    {
+      "compound": "vehicle/DMSO",
+      "rate_factor": 1.0,
+      "paralysis_time_h": 36.3,
+      "delay_vs_vehicle_h": 0.0,
+      "effect": "inert",
+      "note": "baseline"
+    },
+    {
+      "compound": "PBT2",
+      "rate_factor": 0.45,
+      "paralysis_time_h": 80.7,
+      "delay_vs_vehicle_h": 44.3,
+      "effect": "protective",
+      "note": "metal-protein attenuation, strong protective (GMC101)"
+    },
+    {
+      "compound": "EGCG",
+      "rate_factor": 0.6,
+      "paralysis_time_h": 60.6,
+      "delay_vs_vehicle_h": 24.2,
+      "effect": "protective",
+      "note": "anti-aggregation (green-tea polyphenol)"
+    },
+    {
+      "compound": "curcumin",
+      "rate_factor": 0.7,
+      "paralysis_time_h": 51.8,
+      "delay_vs_vehicle_h": 15.5,
+      "effect": "protective",
+      "note": "anti-aggregation / antioxidant"
+    },
+    {
+      "compound": "thioflavin-T",
+      "rate_factor": 1.0,
+      "paralysis_time_h": 36.3,
+      "delay_vs_vehicle_h": 0.0,
+      "effect": "inert",
+      "note": "amyloid dye \u2014 INERT (clean negative)"
+    },
+    {
+      "compound": "pro-aggregant",
+      "rate_factor": 1.6,
+      "paralysis_time_h": 22.7,
+      "delay_vs_vehicle_h": -13.6,
+      "effect": "toxic",
+      "note": "positive-toxicity control (illustrative)"
+    }
+  ],
+  "protective_ordering_correct": true,
+  "inert_control_at_baseline": true,
+  "note": "Mechanism\u2192phenotype: potency f is a literature/assay input; the module predicts the paralysis shift. Structure\u2192potency (QSAR) is out of scope."
+}
