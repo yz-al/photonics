@@ -362,3 +362,23 @@ responds, a dimension orthogonal to the steady-state magnitude. Honest scope: th
 effect is real, significant, and monotonic but modest (r≈0.11) — a new informative
 dimension, not by itself the leap to the noise ceiling. Predicting the full
 response waveform from the connectome is the richer next step.
+
+## predict.py — the prediction engine (what we can predict)
+
+`predict.py` is one interface over every validated predictor here, plus an honest
+capability card (`python predict.py`). It backs the claim: *from wiring + molecules
++ activity we predict how the C. elegans nervous system behaves and responds* —
+each capability validated on held-out data with a negative control.
+
+| we predict… | input → output | accuracy (held-out) | vs SOTA |
+|---|---|---|---|
+| **behavior from activity** | neural activity → velocity/curvature | R²=0.74 / 0.40 | beats Hallinen 2021 (0.65/0.20) |
+| **stimulus → behavior** | chemical stimulus → reverse/forward | 3/3 classes | shuffle control inverts |
+| **compound → behavior** | drug target → locomotor direction | 8/8 compounds | CeNGEN localizes drug→circuit |
+| **neuron imputation** | held-out neuron → its responses | 84% of ceiling | shuffle 18%; ~Creamer (92%) |
+| **perturbation response** | stimulate neuron → whole-brain | 38% of ceiling (unseen) | clean-zero shuffle; first of its kind |
+| **neuron importance** | which neurons behavior needs | 9/10 = locomotor circuit | recovers circuit unsupervised |
+
+Live: `python -c "import predict; print(predict.predict_stimulus_response('aversive'))"`
+→ `{'behavior': 'REVERSE', 'delta_velocity': -0.39}`;
+`predict.predict_compound_effect('acr-16')` → `{'direction': 'increase', 'target_neurons': ['AVA','PVR','RIB',...]}`.
