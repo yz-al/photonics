@@ -117,11 +117,23 @@ def test_external_validation_transfers():
     assert ev["wilcoxon_p_connectome_gt_shuffled"] < 0.01       # across animals, not one worm
 
 
+def test_five_layer_pipeline():
+    """The end-to-end proof: every layer L1..L5 passes its gate (beats a baseline AND
+    its control fails) AND one input runs coherently through the whole stack."""
+    import pipeline
+    r = pipeline.run()
+    assert r["all_layers_pass"], "a layer failed its gate: %s" % [
+        L["level"] for L in r["levels"] if not L["passed"]]
+    assert len(r["levels"]) == 5
+    assert r["end_to_end"]["coherent"]        # aversive -> reversal, and drivers diverge
+
+
 TESTS = [test_bridge_stimulus_valence, test_compound_direction, test_proteostasis_sota,
          test_twin_domain_gate_and_consistency, test_ad_reference_domain,
          test_l2_imputation_beats_shuffle, test_l4_beats_hallinen_ridge,
          test_l3_beats_persistence, test_perturbation_beats_shuffle,
-         test_ablation_recovers_circuit, test_external_validation_transfers]
+         test_ablation_recovers_circuit, test_external_validation_transfers,
+         test_five_layer_pipeline]
 
 
 if __name__ == "__main__":
