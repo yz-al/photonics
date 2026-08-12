@@ -128,12 +128,22 @@ def test_five_layer_pipeline():
     assert r["end_to_end"]["coherent"]        # aversive -> reversal, and drivers diverge
 
 
+def test_statistical_rigor():
+    """Every connectome gate survives paired inference: CI excludes zero, survives Holm
+    across gates, and the connectome>shuffled gap holds at every hyperparameter."""
+    rg = _j("rigor.json")
+    assert rg["all_gates_survive_holm"], "a gate fails Holm-corrected significance"
+    assert rg["all_gates_robust"], "a gate's effect flips sign under a hyperparameter"
+    for g in rg["gates"]:
+        assert g["ci_excludes_zero"], "%s: bootstrap 95%% CI includes zero" % g["gate"]
+
+
 TESTS = [test_bridge_stimulus_valence, test_compound_direction, test_proteostasis_sota,
          test_twin_domain_gate_and_consistency, test_ad_reference_domain,
          test_l2_imputation_beats_shuffle, test_l4_beats_hallinen_ridge,
          test_l3_beats_persistence, test_perturbation_beats_shuffle,
          test_ablation_recovers_circuit, test_external_validation_transfers,
-         test_five_layer_pipeline]
+         test_five_layer_pipeline, test_statistical_rigor]
 
 
 if __name__ == "__main__":

@@ -1,0 +1,74 @@
+{
+  "method": "paired per-unit Wilcoxon (connectome>shuffled) + bootstrap 95% CI + Cohen's dz, Holm-Bonferroni across gates, + hyperparameter robustness grid",
+  "gates": [
+    {
+      "n_units": 141,
+      "connectome_mean": 0.178,
+      "shuffled_mean": 0.0568,
+      "mean_diff": 0.1212,
+      "ci95": [
+        0.0829,
+        0.1575
+      ],
+      "cohens_dz": 0.531,
+      "wilcoxon_p": 1.3167801220509224e-09,
+      "ci_excludes_zero": true,
+      "gate": "L1 imputation (per neuron)",
+      "robustness_connectome_minus_shuffled": {
+        "min_cols=6": 0.1296,
+        "min_cols=8": 0.1313,
+        "min_cols=12": 0.1367
+      },
+      "robust_all_positive": true,
+      "holm_adj_p": 0.0,
+      "survives_holm": true
+    },
+    {
+      "n_units": 114,
+      "connectome_mean": 0.1365,
+      "shuffled_mean": -0.0014,
+      "mean_diff": 0.1379,
+      "ci95": [
+        0.1002,
+        0.1741
+      ],
+      "cohens_dz": 0.665,
+      "wilcoxon_p": 1.5104204854469623e-09,
+      "ci_excludes_zero": true,
+      "gate": "L2 perturbation (per stim)",
+      "robustness_connectome_minus_shuffled": {
+        "g=0.5": 0.1474,
+        "g=0.6": 0.1535,
+        "g=0.7": 0.1604,
+        "g=0.8": 0.1683
+      },
+      "robust_all_positive": true,
+      "holm_adj_p": 0.0,
+      "survives_holm": true
+    },
+    {
+      "n_units": 38,
+      "connectome_mean": 0.2357,
+      "shuffled_mean": 0.1391,
+      "mean_diff": 0.0966,
+      "ci95": [
+        0.0784,
+        0.1149
+      ],
+      "cohens_dz": 1.665,
+      "wilcoxon_p": 5.093170329928398e-11,
+      "ci_excludes_zero": true,
+      "gate": "L2* external Flavell (per animal)",
+      "robustness_connectome_minus_shuffled": {
+        "train_frac=0.5": 0.0973,
+        "train_frac=0.6": 0.0966,
+        "train_frac=0.7": 0.0981
+      },
+      "robust_all_positive": true,
+      "holm_adj_p": 0.0,
+      "survives_holm": true
+    }
+  ],
+  "all_gates_survive_holm": true,
+  "all_gates_robust": true
+}
