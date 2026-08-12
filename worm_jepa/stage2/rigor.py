@@ -37,26 +37,29 @@ RNG = np.random.RandomState(0)
 
 
 # ---- generic paired inference ------------------------------------------------
-def paired_stats(con, sh, n_boot=5000):
-    """con, sh: aligned per-unit scores. Returns paired Wilcoxon p (con>sh), the mean
-    paired difference with a bootstrap 95% CI, Cohen's d_z, and n."""
+def _paired(a, b, n_boot=5000):
+    """a, b: aligned per-unit scores, oriented so 'a wins' means a > b. One-sided
+    paired Wilcoxon (a>b), bootstrap 95% CI on mean(a-b), Cohen's d_z, n."""
     from scipy.stats import wilcoxon
-    con, sh = np.asarray(con, float), np.asarray(sh, float)
-    d = con - sh
-    n = len(d)
+    a, b = np.asarray(a, float), np.asarray(b, float)
+    d = a - b; n = len(d)
     try:
-        p = float(wilcoxon(con, sh, alternative="greater")[1])
+        p = float(wilcoxon(a, b, alternative="greater")[1])
     except Exception:
         p = float("nan")
     boot = np.array([d[RNG.randint(0, n, n)].mean() for _ in range(n_boot)])
     lo, hi = np.percentile(boot, [2.5, 97.5])
     dz = float(d.mean() / (d.std(ddof=1) + 1e-12))
-    return {"n_units": n, "connectome_mean": round(float(con.mean()), 4),
-            "shuffled_mean": round(float(sh.mean()), 4),
-            "mean_diff": round(float(d.mean()), 4),
-            "ci95": [round(float(lo), 4), round(float(hi), 4)],
-            "cohens_dz": round(dz, 3), "wilcoxon_p": p,
-            "ci_excludes_zero": bool(lo > 0)}
+    return {"n_units": n, "a_mean": round(float(a.mean()), 4), "b_mean": round(float(b.mean()), 4),
+            "mean_diff": round(float(d.mean()), 4), "ci95": [round(float(lo), 4), round(float(hi), 4)],
+            "cohens_dz": round(dz, 3), "wilcoxon_p": p, "ci_excludes_zero": bool(lo > 0)}
+
+
+def paired_stats(con, sh, n_boot=5000):
+    """Connectome-gate wrapper: adds connectome_mean/shuffled_mean aliases."""
+    s = _paired(con, sh, n_boot)
+    s["connectome_mean"] = s["a_mean"]; s["shuffled_mean"] = s["b_mean"]
+    return s
 
 
 def holm(pvals):
@@ -193,6 +196,36 @@ def robustness_external(_):
     return grid
 
 
+# ---- L3 / L4: behavioral gates, paired by worm -------------------------------
+def gate_l4_and_l3():
+    """L4 (ours vs Hallinen ridge, per worm, both channels) and L3 (model vs
+    persistence MSE, per worm). Returns a list of finished gate dicts."""
+    gates = []
+    # L4 -- sweep train_frac once, reuse for main stats (0.6) and robustness
+    import l4_benchmark as L4
+    sweep = {tf: L4.per_worm(train_frac=tf) for tf in (0.5, 0.6, 0.7)}
+    for ch in ("velocity", "curvature"):
+        main = sweep[0.6][ch]
+        st = _paired(np.array(main["hgb"]), np.array(main["ridge"]))
+        st["gate"] = "L4 %s (per worm)" % ch
+        st["comparison"] = "ours HGB - Hallinen ridge R^2 (>0 = beats SOTA)"
+        st["robustness"] = {"train_frac=%.1f" % tf:
+                            round(float(np.mean(sweep[tf][ch]["hgb"]) - np.mean(sweep[tf][ch]["ridge"])), 4)
+                            for tf in (0.5, 0.6, 0.7)}
+        gates.append(st)
+    # L3 -- model vs persistence (lower MSE better), paired per held-out worm; 2 seeds
+    import l3_benchmark as L3
+    pw = {s: L3.per_worm(seed=s) for s in (0, 1)}
+    main = pw[0]
+    st = _paired(np.array(main["persistence"]), np.array(main["model"]))  # persistence-model >0 => model wins
+    st["gate"] = "L3 next-step (per worm)"
+    st["comparison"] = "persistence MSE - model MSE (>0 = model beats persistence)"
+    st["robustness"] = {"seed=%d" % s: round(float(np.mean(p["persistence"]) - np.mean(p["model"])), 4)
+                        for s, p in pw.items()}
+    gates.append(st)
+    return gates
+
+
 def run():
     gates = []
     order = [
@@ -203,16 +236,21 @@ def run():
     for name, gatefn, robfn in order:
         stat, ctx = gatefn()
         stat["gate"] = name
-        stat["robustness_connectome_minus_shuffled"] = robfn(ctx)
-        stat["robust_all_positive"] = bool(all(v > 0 for v in stat["robustness_connectome_minus_shuffled"].values()))
+        stat["comparison"] = "connectome - shuffled wiring (>0 = structure recovered)"
+        stat["robustness"] = robfn(ctx)
         gates.append(stat)
+    gates += gate_l4_and_l3()
+    for g in gates:
+        g["robust_all_positive"] = bool(all(v > 0 for v in g["robustness"].values()))
     padj, reject = holm([g["wilcoxon_p"] for g in gates])
     for g, pa, rj in zip(gates, padj, reject):
         g["holm_adj_p"] = pa; g["survives_holm"] = rj
     return {
-        "method": "paired per-unit Wilcoxon (connectome>shuffled) + bootstrap 95% CI + Cohen's dz, "
-                  "Holm-Bonferroni across gates, + hyperparameter robustness grid",
+        "method": "paired per-unit Wilcoxon + bootstrap 95% CI + Cohen's dz, Holm-Bonferroni "
+                  "across all gates, + hyperparameter/seed robustness. Units: neuron (L1), "
+                  "perturbation (L2), animal (L2*), worm (L3/L4).",
         "gates": gates,
+        "n_gates": len(gates),
         "all_gates_survive_holm": bool(all(g["survives_holm"] for g in gates)),
         "all_gates_robust": bool(all(g["robust_all_positive"] for g in gates)),
     }
@@ -220,21 +258,21 @@ def run():
 
 if __name__ == "__main__":
     r = run()
-    print("=" * 82)
-    print("  STATISTICAL RIGOR -- connectome gates, paired per-unit inference")
-    print("=" * 82)
+    print("=" * 88)
+    print("  STATISTICAL RIGOR -- all 5 levels, paired per-unit inference (%d gates)" % r["n_gates"])
+    print("=" * 88)
     for g in r["gates"]:
-        print("\n%s   (n=%d units)" % (g["gate"], g["n_units"]))
-        print("   connectome %.3f  vs  shuffled %.3f   |  paired diff %.3f  95%% CI [%.3f, %.3f]"
-              % (g["connectome_mean"], g["shuffled_mean"], g["mean_diff"], g["ci95"][0], g["ci95"][1]))
+        print("\n%s   (n=%d units)   [%s]" % (g["gate"], g["n_units"], g.get("comparison", "")))
+        print("   winner %.3f  vs  baseline %.3f   |  paired diff %.3f  95%% CI [%.3f, %.3f]"
+              % (g["a_mean"], g["b_mean"], g["mean_diff"], g["ci95"][0], g["ci95"][1]))
         print("   Cohen's dz = %.2f   Wilcoxon p = %.1e   Holm-adj p = %.1e   survives Holm: %s"
               % (g["cohens_dz"], g["wilcoxon_p"], g["holm_adj_p"], g["survives_holm"]))
-        print("   robustness (connectome-shuffled at each setting): %s  -> all positive: %s"
-              % (g["robustness_connectome_minus_shuffled"], g["robust_all_positive"]))
-    print("\n" + "=" * 82)
-    print("  all gates survive Holm correction : %s" % r["all_gates_survive_holm"])
-    print("  all gates robust to hyperparams   : %s" % r["all_gates_robust"])
-    print("=" * 82)
+        print("   robustness (winner-baseline at each setting): %s  -> all positive: %s"
+              % (g["robustness"], g["robust_all_positive"]))
+    print("\n" + "=" * 88)
+    print("  gates: %d   |   all survive Holm correction: %s   |   all robust: %s"
+          % (r["n_gates"], r["all_gates_survive_holm"], r["all_gates_robust"]))
+    print("=" * 88)
     with open(os.path.join(HERE, "rigor.json"), "w") as f:
         json.dump(r, f, indent=2)
     print("wrote rigor.json")

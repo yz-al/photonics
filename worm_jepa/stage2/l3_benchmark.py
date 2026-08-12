@@ -87,6 +87,29 @@ def _masked_mse(pred, true, mask):
     return float(((pred - true) ** 2)[mask].mean())
 
 
+def per_worm(seed=0, K=3, sub=150_000):
+    """Aligned per-held-out-worm masked MSE for the model vs persistence (predict the
+    previous frame), evaluated on the SAME frames -- per-unit arrays for paired
+    inference (see rigor.py). Lower MSE is better."""
+    from sklearn.linear_model import Ridge
+    rng = np.random.RandomState(seed)
+    worms = load_worms()
+    idx = np.arange(len(worms)); rng.shuffle(idx); cut = int(0.8 * len(idx))
+    tr = [worms[i] for i in idx[:cut]]; te = [worms[i] for i in idx[cut:]]
+    Xtr, Ytr, _ = _pairs(tr, K, rng, sub=sub)
+    m = Ridge(alpha=50.0).fit(Xtr, Ytr)
+    model, persistence = [], []
+    for _, _, X, lab in te:
+        T = len(X)
+        if T <= K + 1:
+            continue
+        Xe = np.array([X[t - K + 1:t + 1].ravel() for t in range(K - 1, T - 1)], np.float32)
+        Ye = X[K:T]; mask = np.tile(lab, (len(Ye), 1))
+        model.append(_masked_mse(m.predict(Xe), Ye, mask))
+        persistence.append(_masked_mse(X[K - 1:T - 1], Ye, mask))   # predict previous frame
+    return {"model": model, "persistence": persistence}
+
+
 def run(seed=0):
     from sklearn.linear_model import Ridge
     rng = np.random.RandomState(seed)

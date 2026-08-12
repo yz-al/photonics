@@ -1,10 +1,10 @@
 {
-  "method": "paired per-unit Wilcoxon (connectome>shuffled) + bootstrap 95% CI + Cohen's dz, Holm-Bonferroni across gates, + hyperparameter robustness grid",
+  "method": "paired per-unit Wilcoxon + bootstrap 95% CI + Cohen's dz, Holm-Bonferroni across all gates, + hyperparameter/seed robustness. Units: neuron (L1), perturbation (L2), animal (L2*), worm (L3/L4).",
   "gates": [
     {
       "n_units": 141,
-      "connectome_mean": 0.178,
-      "shuffled_mean": 0.0568,
+      "a_mean": 0.178,
+      "b_mean": 0.0568,
       "mean_diff": 0.1212,
       "ci95": [
         0.0829,
@@ -13,8 +13,11 @@
       "cohens_dz": 0.531,
       "wilcoxon_p": 1.3167801220509224e-09,
       "ci_excludes_zero": true,
+      "connectome_mean": 0.178,
+      "shuffled_mean": 0.0568,
       "gate": "L1 imputation (per neuron)",
-      "robustness_connectome_minus_shuffled": {
+      "comparison": "connectome - shuffled wiring (>0 = structure recovered)",
+      "robustness": {
         "min_cols=6": 0.1296,
         "min_cols=8": 0.1313,
         "min_cols=12": 0.1367
@@ -25,8 +28,8 @@
     },
     {
       "n_units": 114,
-      "connectome_mean": 0.1365,
-      "shuffled_mean": -0.0014,
+      "a_mean": 0.1365,
+      "b_mean": -0.0014,
       "mean_diff": 0.1379,
       "ci95": [
         0.1002,
@@ -35,8 +38,11 @@
       "cohens_dz": 0.665,
       "wilcoxon_p": 1.5104204854469623e-09,
       "ci_excludes_zero": true,
+      "connectome_mean": 0.1365,
+      "shuffled_mean": -0.0014,
       "gate": "L2 perturbation (per stim)",
-      "robustness_connectome_minus_shuffled": {
+      "comparison": "connectome - shuffled wiring (>0 = structure recovered)",
+      "robustness": {
         "g=0.5": 0.1474,
         "g=0.6": 0.1535,
         "g=0.7": 0.1604,
@@ -48,8 +54,8 @@
     },
     {
       "n_units": 38,
-      "connectome_mean": 0.2357,
-      "shuffled_mean": 0.1391,
+      "a_mean": 0.2357,
+      "b_mean": 0.1391,
       "mean_diff": 0.0966,
       "ci95": [
         0.0784,
@@ -58,8 +64,11 @@
       "cohens_dz": 1.665,
       "wilcoxon_p": 5.093170329928398e-11,
       "ci_excludes_zero": true,
+      "connectome_mean": 0.2357,
+      "shuffled_mean": 0.1391,
       "gate": "L2* external Flavell (per animal)",
-      "robustness_connectome_minus_shuffled": {
+      "comparison": "connectome - shuffled wiring (>0 = structure recovered)",
+      "robustness": {
         "train_frac=0.5": 0.0973,
         "train_frac=0.6": 0.0966,
         "train_frac=0.7": 0.0981
@@ -67,8 +76,77 @@
       "robust_all_positive": true,
       "holm_adj_p": 0.0,
       "survives_holm": true
+    },
+    {
+      "n_units": 38,
+      "a_mean": 0.7056,
+      "b_mean": 0.5703,
+      "mean_diff": 0.1353,
+      "ci95": [
+        0.088,
+        0.1914
+      ],
+      "cohens_dz": 0.809,
+      "wilcoxon_p": 1.0100120562128723e-07,
+      "ci_excludes_zero": true,
+      "gate": "L4 velocity (per worm)",
+      "comparison": "ours HGB - Hallinen ridge R^2 (>0 = beats SOTA)",
+      "robustness": {
+        "train_frac=0.5": 0.2217,
+        "train_frac=0.6": 0.1353,
+        "train_frac=0.7": 0.1651
+      },
+      "robust_all_positive": true,
+      "holm_adj_p": 0.0,
+      "survives_holm": true
+    },
+    {
+      "n_units": 38,
+      "a_mean": 0.3253,
+      "b_mean": 0.1063,
+      "mean_diff": 0.219,
+      "ci95": [
+        0.1222,
+        0.3244
+      ],
+      "cohens_dz": 0.674,
+      "wilcoxon_p": 0.0001597519003553316,
+      "ci_excludes_zero": true,
+      "gate": "L4 curvature (per worm)",
+      "comparison": "ours HGB - Hallinen ridge R^2 (>0 = beats SOTA)",
+      "robustness": {
+        "train_frac=0.5": 0.246,
+        "train_frac=0.6": 0.219,
+        "train_frac=0.7": 0.1468
+      },
+      "robust_all_positive": true,
+      "holm_adj_p": 0.00016,
+      "survives_holm": true
+    },
+    {
+      "n_units": 184,
+      "a_mean": 0.0245,
+      "b_mean": 0.0205,
+      "mean_diff": 0.004,
+      "ci95": [
+        0.0035,
+        0.0044
+      ],
+      "cohens_dz": 1.306,
+      "wilcoxon_p": 3.018354738783982e-32,
+      "ci_excludes_zero": true,
+      "gate": "L3 next-step (per worm)",
+      "comparison": "persistence MSE - model MSE (>0 = model beats persistence)",
+      "robustness": {
+        "seed=0": 0.004,
+        "seed=1": 0.0042
+      },
+      "robust_all_positive": true,
+      "holm_adj_p": 0.0,
+      "survives_holm": true
     }
   ],
+  "n_gates": 6,
   "all_gates_survive_holm": true,
   "all_gates_robust": true
 }

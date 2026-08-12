@@ -52,6 +52,34 @@ def _features(traces):
     return F, dF
 
 
+def per_worm(cache=CACHE, seed=0, train_frac=0.6):
+    """Aligned per-worm held-out R^2 for ours (HGB) vs the Hallinen ridge, on identical
+    features/splits -- the per-unit arrays for paired inference (see rigor.py)."""
+    from sklearn.linear_model import RidgeCV
+    from sklearn.ensemble import HistGradientBoostingRegressor
+    from sklearn.metrics import r2_score
+    out = {ch: {"hgb": [], "ridge": []} for ch, _ in CHANNELS}
+    for fn in sorted(glob.glob(os.path.join(cache, "flav_worms", "*.npz"))):
+        d = np.load(fn, allow_pickle=True)
+        tr = d["tr"]; T = len(tr); F, dF = _features(tr); X = np.hstack([F, dF])
+        cut = int(train_frac * T); tri = np.arange(cut); tei = np.arange(cut, T)
+        for ch, key in CHANNELS:
+            if key not in d.files:
+                continue
+            y = np.asarray(d[key], float)
+            if len(y) != T:
+                continue
+            m = np.isfinite(y); a, b = tri[m[tri]], tei[m[tei]]
+            if len(a) < 100 or len(b) < 50:
+                continue
+            r = RidgeCV(alphas=np.logspace(-2, 4, 13)).fit(X[a], y[a])
+            g = HistGradientBoostingRegressor(max_iter=200, max_depth=3, learning_rate=0.06,
+                                              l2_regularization=1.0, random_state=seed).fit(X[a], y[a])
+            out[ch]["ridge"].append(float(r2_score(y[b], r.predict(X[b]))))
+            out[ch]["hgb"].append(float(r2_score(y[b], g.predict(X[b]))))
+    return out
+
+
 def run(cache=CACHE, seed=0):
     from sklearn.linear_model import RidgeCV
     from sklearn.ensemble import HistGradientBoostingRegressor
