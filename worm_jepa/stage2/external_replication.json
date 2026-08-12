@@ -1,0 +1,33 @@
+{
+  "task": "held-out-neuron imputation, frozen anatomical connectome, 0 params fit to test data",
+  "cohorts": [
+    {
+      "n_animals": 38,
+      "connectome_r": 0.2357,
+      "shuffled_r": 0.1391,
+      "mean_gap": 0.0966,
+      "ci95": [
+        0.0787,
+        0.1145
+      ],
+      "wilcoxon_p": 5.093170329928398e-11,
+      "beats_shuffle": true,
+      "cohort": "Flavell 000776 (spontaneous)"
+    },
+    {
+      "n_animals": 24,
+      "connectome_r": 0.3824,
+      "shuffled_r": 0.3621,
+      "mean_gap": 0.0203,
+      "ci95": [
+        0.0107,
+        0.0294
+      ],
+      "wilcoxon_p": 3.814697265625e-05,
+      "beats_shuffle": true,
+      "cohort": "chemosensory 000981 (odor)"
+    }
+  ],
+  "n_datasets": 2,
+  "replicates": true
+}
