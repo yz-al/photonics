@@ -262,6 +262,39 @@ the held-out-*neuron* protocol Creamer used, and it confirms the double-black-bo
 methodology on real data: connectome ≈ shuffled on next-step (the trap), connectome
 ≫ shuffled on imputation.
 
+## External validation: predict a dataset the model never saw (`external_validation.py`)
+
+The question a reviewer (and the user) actually asks: *"why do you need a wet lab —
+can't you just take data you never trained on and predict it?"* This is that test,
+in silico. The frozen **anatomical connectome** (c302, zero parameters fit to the
+test set) predicts held-out neurons in the **Flavell/Atanas 2023** whole-brain
+recordings (DANDI:000776, 38 animals) — a different lab, freely-moving vs immobilized,
+spontaneous vs optogenetic, EM of entirely different animals. Nothing in this dataset
+was used to build, fit, or tune any part of the platform. Task: hold out one identified
+neuron, impute its activity as the connectome-weighted average of its synaptic
+partners' activity; weights chosen on a train window, scored on a held-out test window
+(`external_validation.json`):
+
+| predictor (held-out neuron, temporal split) | r | % of functional ceiling |
+|---|---|---|
+| functional soft ceiling (k best-correlated, fitted) | 0.603 | 100% |
+| **anatomical connectome (0 params fit here)** | 0.236 | **39%** |
+| shuffled connectome (global brain-state floor) | 0.139 | 23% |
+
+Connectome ≫ shuffled by **0.10** (Wilcoxon p=5×10⁻¹¹ across the 38 animals), reaching
+39% of the best in-animal linear predictor with **zero parameters fit to these worms**.
+Whole-brain activity is dominated by global state, so the wrong-wiring null still
+scores 0.14 — which is exactly why the shuffle control is mandatory, and why beating it
+by this margin means the *specific* wiring transfers out of distribution.
+
+**What this proves and where it stops.** It proves the mechanism generalizes to
+untrained data — the strongest computational case, no wet lab required. It does **not**
+prove prospective effect prediction for a *new compound*: this dataset is untreated
+spontaneous activity and contains no perturbation to triage. External public data
+closes the "does the model generalize" gap; only a prospective blinded assay closes the
+"is the prediction right on something nobody has measured yet" gap that qualification
+turns on (CONTEXT_OF_USE.md step 2).
+
 ## Predicting behavior from a compound (the medical bridge)
 
 `compound_response.py` runs the double black box from a molecule, closing the gap

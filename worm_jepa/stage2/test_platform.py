@@ -108,11 +108,20 @@ def test_ablation_recovers_circuit():
     assert ab["command_enrichment"] >= 2.0
 
 
+def test_external_validation_transfers():
+    """Untrained data: the frozen connectome predicts held-out neurons in the Flavell
+    dataset (never used to build the model) above the shuffled-wiring floor."""
+    ev = _j("external_validation.json")
+    assert ev["structure_transfers_out_of_distribution"]
+    assert ev["connectome"]["r"] > ev["shuffled"]["r"] + 0.03   # beats global-state null
+    assert ev["wilcoxon_p_connectome_gt_shuffled"] < 0.01       # across animals, not one worm
+
+
 TESTS = [test_bridge_stimulus_valence, test_compound_direction, test_proteostasis_sota,
          test_twin_domain_gate_and_consistency, test_ad_reference_domain,
          test_l2_imputation_beats_shuffle, test_l4_beats_hallinen_ridge,
          test_l3_beats_persistence, test_perturbation_beats_shuffle,
-         test_ablation_recovers_circuit]
+         test_ablation_recovers_circuit, test_external_validation_transfers]
 
 
 if __name__ == "__main__":

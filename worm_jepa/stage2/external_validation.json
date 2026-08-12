@@ -1,0 +1,21 @@
+{
+  "dataset": "Flavell/Atanas 2023 whole-brain (DANDI:000776) -- NEVER used to build the model",
+  "model": "frozen anatomical connectome (c302 SpreadsheetDataReader), 0 params fit to this data",
+  "task": "held-out-neuron imputation, spontaneous activity, train/test temporal split",
+  "n_animals": 38,
+  "mean_mapped_neurons": 84.5,
+  "connectome": {
+    "r": 0.2357,
+    "pct_of_functional_ceiling": 39.1
+  },
+  "shuffled": {
+    "r": 0.1391,
+    "pct_of_functional_ceiling": 23.1
+  },
+  "functional_ceiling": {
+    "r": 0.6029
+  },
+  "connectome_minus_shuffled": 0.0966,
+  "wilcoxon_p_connectome_gt_shuffled": 5.093170329928398e-11,
+  "structure_transfers_out_of_distribution": true
+}
