@@ -138,6 +138,17 @@ def test_external_replication():
         assert c.get("beats_shuffle"), "%s did not beat the shuffled floor" % c.get("cohort")
 
 
+def test_single_cell_experiment_valid():
+    """Single-cell biophysics test on AWC returned an HONEST result: the scrambled-
+    channelome control is wrong-quadrant (test is sensitive), and the finding stands as
+    recorded (AWC/IAA/calcium is ~linear; biophysics did not beat the linear filter)."""
+    sc = _j("single_cell.json")
+    assert sc["scrambled_control_valid"]                    # test can detect a wrong channelome
+    assert sc["real_dist_to_linear_manifold"] < 0.35        # AWC/IAA response is near-linear
+    # the recorded conclusion is internally consistent (not claiming a win it didn't get)
+    assert sc["single_cell_biophysics_helps"] == (not sc["linear_filter_adequate"])
+
+
 def test_statistical_rigor():
     """Every connectome gate survives paired inference: CI excludes zero, survives Holm
     across gates, and the connectome>shuffled gap holds at every hyperparameter."""
@@ -153,7 +164,8 @@ TESTS = [test_bridge_stimulus_valence, test_compound_direction, test_proteostasi
          test_l2_imputation_beats_shuffle, test_l4_beats_hallinen_ridge,
          test_l3_beats_persistence, test_perturbation_beats_shuffle,
          test_ablation_recovers_circuit, test_external_validation_transfers,
-         test_five_layer_pipeline, test_external_replication, test_statistical_rigor]
+         test_five_layer_pipeline, test_external_replication,
+         test_single_cell_experiment_valid, test_statistical_rigor]
 
 
 if __name__ == "__main__":

@@ -1,0 +1,42 @@
+{
+  "neuron": "AWC (olfactory OFF-cell)",
+  "stimulus": "isoamyl alcohol (IAA) pulses, DANDI:000981",
+  "feature": "signed (on, off) response pair, L1-normalized; linear node confined to on=-off (superposition)",
+  "n_worms": 24,
+  "real_pair_on_off": [
+    -0.622,
+    0.378
+  ],
+  "real_frac_off_selective": 1.0,
+  "linear_node": {
+    "pair_on_off": [
+      -0.5,
+      0.5
+    ],
+    "dist_to_real": 0.205,
+    "note": "fit to the trace, yet trapped on the antidiagonal -> cannot be OFF-selective"
+  },
+  "biophysical_off": {
+    "pair_on_off": [
+      -0.0,
+      1.0
+    ],
+    "dist_to_real": 0.879,
+    "note": "OFF-rectification is the channelome (structural); only timescales/gain fit"
+  },
+  "scrambled_on": {
+    "pair_on_off": [
+      0.997,
+      -0.003
+    ],
+    "dist_to_real": 1.672,
+    "note": "wrong channelome -> wrong quadrant (ON-selective); negative control"
+  },
+  "biophysical_beats_linear_p": 0.9999909904760933,
+  "biophysical_beats_scrambled_p": 5.960464477539063e-08,
+  "real_dist_to_linear_manifold": 0.205,
+  "scrambled_control_valid": true,
+  "single_cell_biophysics_helps": false,
+  "linear_filter_adequate": true,
+  "conclusion": "AWC/IAA/calcium is ~linear (real is 0.20 from the linear manifold); single-cell biophysical nonlinearity does NOT beat a linear filter here. The missing ingredient vs the connectome's static node is linear temporal filtering, not full biophysical simulation."
+}
