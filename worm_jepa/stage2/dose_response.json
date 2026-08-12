@@ -1,0 +1,46 @@
+{
+  "stimulus": "isoamyl alcohol, e-2 vs e-6 dilution (10^4-fold), DANDI:000981",
+  "neurons": "AWC, AWA, ASE (L+R)",
+  "n_obs": 144,
+  "linear_in_concentration_requires_log10_ratio": 4.0,
+  "observed_log10_ratio_mean": 0.33,
+  "observed_log10_ratio_median": 0.36,
+  "linear_model_off_by_decades": 3.67,
+  "compression_index": 0.916,
+  "saturating_closer_than_linear_p": 8.669169273082867e-26,
+  "per_cell": {
+    "AWCL": {
+      "n": 24,
+      "median_ratio_hi_lo": 0.65,
+      "median_log10": -0.19
+    },
+    "AWCR": {
+      "n": 24,
+      "median_ratio_hi_lo": 0.62,
+      "median_log10": -0.21
+    },
+    "AWAL": {
+      "n": 24,
+      "median_ratio_hi_lo": 5.77,
+      "median_log10": 0.76
+    },
+    "AWAR": {
+      "n": 24,
+      "median_ratio_hi_lo": 7.58,
+      "median_log10": 0.88
+    },
+    "ASEL": {
+      "n": 24,
+      "median_ratio_hi_lo": 2.61,
+      "median_log10": 0.42
+    },
+    "ASER": {
+      "n": 24,
+      "median_ratio_hi_lo": 2.61,
+      "median_log10": 0.42
+    }
+  },
+  "sensitivity_control_synthetic_linear_log10": 4.0,
+  "sensitivity_control_recovers_linearity": true,
+  "single_cell_nonlinearity_required_for_gain": true
+}

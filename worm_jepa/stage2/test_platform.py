@@ -149,6 +149,15 @@ def test_single_cell_experiment_valid():
     assert sc["single_cell_biophysics_helps"] == (not sc["linear_filter_adequate"])
 
 
+def test_dose_response_nonlinear():
+    """The other half: dose-response GAIN is nonlinear. A linear-in-concentration node is
+    falsified by ~decades; the synthetic-linear control recovers linearity (test sensitive)."""
+    dr = _j("dose_response.json")
+    assert dr["single_cell_nonlinearity_required_for_gain"]
+    assert dr["linear_model_off_by_decades"] > 1.0             # linear node fails loudly
+    assert dr["sensitivity_control_recovers_linearity"]        # metric reports 4.0 if data were linear
+
+
 def test_statistical_rigor():
     """Every connectome gate survives paired inference: CI excludes zero, survives Holm
     across gates, and the connectome>shuffled gap holds at every hyperparameter."""
@@ -165,7 +174,8 @@ TESTS = [test_bridge_stimulus_valence, test_compound_direction, test_proteostasi
          test_l3_beats_persistence, test_perturbation_beats_shuffle,
          test_ablation_recovers_circuit, test_external_validation_transfers,
          test_five_layer_pipeline, test_external_replication,
-         test_single_cell_experiment_valid, test_statistical_rigor]
+         test_single_cell_experiment_valid, test_dose_response_nonlinear,
+         test_statistical_rigor]
 
 
 if __name__ == "__main__":
