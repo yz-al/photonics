@@ -1,0 +1,113 @@
+{
+  "n_compounds": 10,
+  "n_in_domain": 3,
+  "n_out_of_domain_abstained": 7,
+  "in_domain_mechanism_correct": "3/3",
+  "rows": [
+    {
+      "compound": "galantamine",
+      "klass": "AChE-inhibitor / nAChR",
+      "domain": "IN",
+      "target": "acr-16",
+      "predicted_effect": "increase",
+      "expected": "increase",
+      "correct": true,
+      "circuit": [
+        "AVA",
+        "PVR",
+        "RIB",
+        "DB"
+      ],
+      "known": "protective (CL4176, delays paralysis)"
+    },
+    {
+      "compound": "donepezil",
+      "klass": "AChE-inhibitor",
+      "domain": "IN",
+      "target": "acr-16",
+      "predicted_effect": "increase",
+      "expected": "increase",
+      "correct": true,
+      "circuit": [
+        "AVA",
+        "PVR",
+        "RIB",
+        "DB"
+      ],
+      "known": "approved symptomatic AD drug (cholinergic)"
+    },
+    {
+      "compound": "memantine",
+      "klass": "NMDA-receptor antagonist",
+      "domain": "IN",
+      "target": "nmr-1",
+      "predicted_effect": "decrease",
+      "expected": "decrease",
+      "correct": true,
+      "circuit": [
+        "AVD",
+        "PVC",
+        "AVE",
+        "AVA"
+      ],
+      "known": "approved symptomatic AD drug (anti-excitotoxic)"
+    },
+    {
+      "compound": "PBT2",
+      "klass": "metal-protein attenuation",
+      "domain": "OUT (abstain)",
+      "target": null,
+      "predicted_effect": null,
+      "known": "protective (GMC101) -- proteostasis"
+    },
+    {
+      "compound": "curcumin",
+      "klass": "anti-aggregation / antioxidant",
+      "domain": "OUT (abstain)",
+      "target": null,
+      "predicted_effect": null,
+      "known": "active (CL2006/CL4176) -- antioxidant"
+    },
+    {
+      "compound": "EGCG",
+      "klass": "anti-aggregation",
+      "domain": "OUT (abstain)",
+      "target": null,
+      "predicted_effect": null,
+      "known": "active -- anti-aggregation"
+    },
+    {
+      "compound": "ferulic-acid",
+      "klass": "antioxidant",
+      "domain": "OUT (abstain)",
+      "target": null,
+      "predicted_effect": null,
+      "known": "active -- antioxidant"
+    },
+    {
+      "compound": "metformin",
+      "klass": "AMPK / metabolic",
+      "domain": "OUT (abstain)",
+      "target": null,
+      "predicted_effect": null,
+      "known": "hit (GRU102) -- metabolic"
+    },
+    {
+      "compound": "lithium",
+      "klass": "GSK3 / metabolic",
+      "domain": "OUT (abstain)",
+      "target": null,
+      "predicted_effect": null,
+      "known": "hit (GRU102) -- metabolic"
+    },
+    {
+      "compound": "thioflavin-T",
+      "klass": "amyloid dye",
+      "domain": "OUT (abstain)",
+      "target": null,
+      "predicted_effect": null,
+      "known": "INACTIVE (GRU102) -- clean negative"
+    }
+  ],
+  "conclusion": "Platform speaks to NEUROACTIVE AD compounds (approved symptomatic drugs: cholinergic + NMDA), abstains on anti-aggregation/proteostasis. Domain of applicability = neuroactive-compound mechanism + neural liability."
+}

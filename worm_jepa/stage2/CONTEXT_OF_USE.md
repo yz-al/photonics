@@ -98,3 +98,22 @@ for a C. elegans Alzheimer's screen by predicting their neural-circuit and
 behavioral effects — honest triage, not efficacy; fundable now (NIA/Hevolution +
 STTR), FDA-qualifiable later (ISTAND) once a blinded concordance study against a
 reference chemical set is in hand.
+
+
+## Step 1 result — domain-of-applicability benchmark (`ad_reference_benchmark.py`)
+
+Ran the platform against the published worm-AD reference compounds. It predicts the
+correct neural mechanism for **3/3 approved symptomatic AD drugs** and correctly
+**abstains** on the 7 anti-aggregation/proteostasis compounds it cannot model:
+
+| compound | mechanism | domain | platform |
+|---|---|---|---|
+| galantamine | AChE-inhibitor / nAChR | IN | cholinergic **activation** (AVA/RIB) ✓ |
+| donepezil | AChE-inhibitor | IN | cholinergic **activation** (AVA/RIB) ✓ |
+| memantine | NMDA antagonist | IN | glutamatergic **dampening** (AVD/PVC/AVE) ✓ |
+| PBT2, curcumin, EGCG, ferulic acid, metformin, lithium, thioflavin T | proteostasis / antioxidant / metabolic | OUT | abstains (no neural target) |
+
+This bounds the context of use with data: the platform's AD niche is **neuroactive-
+compound mechanism + neural-liability screening** (symptomatic drugs, repurposing
+hits), **not** anti-aggregation efficacy. A NAM that states its domain of
+applicability this precisely — and abstains outside it — is stronger, not weaker.
