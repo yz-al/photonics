@@ -382,3 +382,30 @@ each capability validated on held-out data with a negative control.
 Live: `python -c "import predict; print(predict.predict_stimulus_response('aversive'))"`
 → `{'behavior': 'REVERSE', 'delta_velocity': -0.39}`;
 `predict.predict_compound_effect('acr-16')` → `{'direction': 'increase', 'target_neurons': ['AVA','PVR','RIB',...]}`.
+
+## worm_twin.py — the unified digital twin
+
+`worm_twin.py` fuses the six validated predictors into one object with a single
+entry point: **any perturbation → full predicted state**. Put in a compound, a
+gene, a stimulus, a neuron stimulation, or an ablation; get back which neurons
+change, the command-circuit shift, and the behavior — each with an honest
+confidence bounded by what was actually validated, and an explicit **domain gate**
+that abstains on non-neural (proteostasis/TF/metabolic) targets.
+
+```
+t = WormTwin()
+t.perturb("compound", gene="acr-16")     # nicotine  → FORWARD/more active (validated)
+t.perturb("compound", gene="mod-1")      # serotonin → REVERSE/slow (validated)
+t.perturb("stimulate", neuron="ASHL")    # optogenetic → bounded propagation (38% ceiling)
+t.perturb("stimulus", stimulus="aversive")  # → REVERSE (bridge, 3/3)
+t.perturb("ablate",  neuron="AVAL")      # → locomotor deficit (command neuron)
+t.perturb("compound", gene="daf-16")     # → ABSTAINS (not a neural receptor)
+```
+
+Design principle (learned by building it): the twin is an **orchestrator that
+defers each perturbation type to its validated component** — it never re-derives
+behavior with a generic model that could contradict them. Building the fusion
+caught a real bug (a generic propagation predicted serotonin *speeds up* the worm,
+opposite the validated result) and forced the domain gate and the command-neuron
+ablation fix. It is the whole-organism artifact — a *generative* model of
+perturbation→state — honest about its bounds, not a wiring diagram.
