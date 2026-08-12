@@ -1,57 +1,79 @@
 {
-  "baseline_paralysis_h": 36.3,
-  "toxicity_threshold": 0.5,
+  "baseline_paralysis_h": 30.0,
+  "model": "Knowles/Cohen master equation (primary+elongation+secondary nucleation)+toxic-oligomer pool",
   "rows": [
     {
       "compound": "vehicle/DMSO",
-      "rate_factor": 1.0,
-      "paralysis_time_h": 36.3,
+      "drug": null,
+      "paralysis_time_h": 30.0,
       "delay_vs_vehicle_h": 0.0,
-      "effect": "inert",
+      "peak_oligomer": 0.184,
+      "oligomer_vs_vehicle": 1.0,
       "note": "baseline"
     },
     {
       "compound": "PBT2",
-      "rate_factor": 0.45,
-      "paralysis_time_h": 80.7,
-      "delay_vs_vehicle_h": 44.3,
-      "effect": "protective",
-      "note": "metal-protein attenuation, strong protective (GMC101)"
+      "drug": {
+        "kn": 0.4,
+        "k2": 0.4
+      },
+      "paralysis_time_h": 52.9,
+      "delay_vs_vehicle_h": 22.9,
+      "peak_oligomer": 0.081,
+      "oligomer_vs_vehicle": 0.44,
+      "note": "metal chelation \u2192 nucleation (GMC101 protective)"
     },
     {
       "compound": "EGCG",
-      "rate_factor": 0.6,
-      "paralysis_time_h": 60.6,
-      "delay_vs_vehicle_h": 24.2,
-      "effect": "protective",
-      "note": "anti-aggregation (green-tea polyphenol)"
+      "drug": 0.6,
+      "paralysis_time_h": 43.9,
+      "delay_vs_vehicle_h": 13.9,
+      "peak_oligomer": 0.184,
+      "oligomer_vs_vehicle": 1.0,
+      "note": "broad anti-aggregation (remodeller)"
     },
     {
       "compound": "curcumin",
-      "rate_factor": 0.7,
-      "paralysis_time_h": 51.8,
-      "delay_vs_vehicle_h": 15.5,
-      "effect": "protective",
-      "note": "anti-aggregation / antioxidant"
+      "drug": 0.7,
+      "paralysis_time_h": 39.1,
+      "delay_vs_vehicle_h": 9.1,
+      "peak_oligomer": 0.184,
+      "oligomer_vs_vehicle": 1.0,
+      "note": "broad anti-aggregation / antioxidant"
+    },
+    {
+      "compound": "secondary-nuc inhib",
+      "drug": {
+        "k2": 0.2
+      },
+      "paralysis_time_h": 93.4,
+      "delay_vs_vehicle_h": 63.4,
+      "peak_oligomer": 0.043,
+      "oligomer_vs_vehicle": 0.23,
+      "note": "e.g. BRICHOS/bexarotene-class \u2014 best mechanism"
+    },
+    {
+      "compound": "elongation inhib",
+      "drug": {
+        "kplus": 0.2
+      },
+      "paralysis_time_h": 43.2,
+      "delay_vs_vehicle_h": 13.2,
+      "peak_oligomer": 0.691,
+      "oligomer_vs_vehicle": 3.76,
+      "note": "PARADOX: traps toxic oligomers"
     },
     {
       "compound": "thioflavin-T",
-      "rate_factor": 1.0,
-      "paralysis_time_h": 36.3,
+      "drug": null,
+      "paralysis_time_h": 30.0,
       "delay_vs_vehicle_h": 0.0,
-      "effect": "inert",
+      "peak_oligomer": 0.184,
+      "oligomer_vs_vehicle": 1.0,
       "note": "amyloid dye \u2014 INERT (clean negative)"
-    },
-    {
-      "compound": "pro-aggregant",
-      "rate_factor": 1.6,
-      "paralysis_time_h": 22.7,
-      "delay_vs_vehicle_h": -13.6,
-      "effect": "toxic",
-      "note": "positive-toxicity control (illustrative)"
     }
   ],
-  "protective_ordering_correct": true,
-  "inert_control_at_baseline": true,
-  "note": "Mechanism\u2192phenotype: potency f is a literature/assay input; the module predicts the paralysis shift. Structure\u2192potency (QSAR) is out of scope."
+  "secondary_nucleation_most_protective": true,
+  "elongation_toxicity_paradox": true,
+  "inert_control_at_baseline": true
 }

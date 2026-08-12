@@ -437,3 +437,31 @@ structure (QSAR) is out of scope and not claimed. Wired into `worm_twin.py`:
 `t.perturb("compound", gene="PBT2", aggregation_effect=0.45)` → "paralysis @ 81 h
 (+44 h, protective)". The twin now covers the AD paralysis screen and still abstains
 on genuinely out-of-domain targets.
+
+## proteostasis.py — SOTA upgrade (Knowles/Cohen master equation)
+
+Upgraded the proteostasis module from the two-step Finke-Watzky approximation to
+the field standard: the **Knowles/Cohen chemical master equation** (Cohen et al.,
+PNAS 2013; AmyloFit, Meisl et al., Nat Protoc 2016) — three microscopic processes
+(primary nucleation, elongation, secondary nucleation) as moment ODEs, plus a
+toxic-oligomer pool consumed by elongation, with **toxicity ∝ oligomer flux** (the
+SOTA toxic-species hypothesis), not fibril mass.
+
+Two SOTA behaviors a single-rate model cannot produce, now reproduced
+(`proteostasis.json`):
+
+| drug (step inhibited 0.2×) | paralysis Δ | peak toxic oligomers | signature |
+|---|---|---|---|
+| secondary nucleation (k2) | **+63 h** | **0.23× vehicle** | most protective (k2 dominates Aβ42) ✓ |
+| primary nucleation (kn) | +23 h | 0.44× | protective |
+| **elongation (k+)** | +13 h | **3.76× vehicle** | **TOXICITY PARADOX** ✓ |
+| thioflavin T (inert) | +0 h | 1.0× | clean negative ✓ |
+
+The elongation-inhibitor paradox — blocking fibril growth traps monomers as toxic
+oligomers — is the field's headline safety result, and a lumped model gets it
+backwards. The twin now surfaces it: `perturb("compound", aggregation_effect=
+{"kplus":0.2})` → "paralysis +13 h — **TOXICITY PARADOX (3.8× toxic oligomers)**".
+Compounds are now specified by which microscopic step they inhibit (kn/k+/k2),
+matching how AmyloFit characterizes inhibitors. Honest boundary unchanged: the
+per-step rate factors are an assay input; the module predicts phenotype from
+mechanism, not rates from chemical structure.

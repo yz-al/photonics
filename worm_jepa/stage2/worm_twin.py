@@ -130,15 +130,25 @@ class WormTwin:
             # This is the module that stops the twin abstaining on the GMC101/CL4176 AD screen.
             if aggregation_effect is not None:
                 import proteostasis as ps
-                base = ps.paralysis_time(1.0); tp = ps.paralysis_time(aggregation_effect)
+                base = ps.paralysis_time(None); tp = ps.paralysis_time(aggregation_effect)
+                olig = ps.peak_oligomer(aggregation_effect) / ps.peak_oligomer(None)
                 delay = (tp - base) if np.isfinite(tp) else float("inf")
-                eff = "protective" if aggregation_effect < 1 else "inert" if aggregation_effect == 1 else "toxic"
-                return {"driver": "%s %s (aggregation f=%.2f)" % (kind, gene, aggregation_effect),
+                if olig > 1.5:
+                    eff = "TOXICITY PARADOX (%.1fx toxic oligomers)" % olig     # e.g. elongation inhibitor
+                elif np.isinf(tp) or delay > 3:
+                    eff = "protective"
+                elif olig > 1.05:
+                    eff = "toxic"
+                else:
+                    eff = "inert"
+                desc = aggregation_effect if isinstance(aggregation_effect, dict) else "f=%.2f" % aggregation_effect
+                return {"driver": "%s %s (%s)" % (kind, gene, desc),
                         "behavior": {"predicted": "paralysis @ %s h (%+.0f h vs vehicle) — %s"
-                                     % ("%.0f" % tp if np.isfinite(tp) else ">120",
+                                     % ("%.0f" % tp if np.isfinite(tp) else ">200",
                                         delay if np.isfinite(delay) else 999, eff),
-                                     "paralysis_time_h": (round(tp, 1) if np.isfinite(tp) else None)},
-                        "confidence": "mechanism→phenotype (potency is an assay input)",
+                                     "paralysis_time_h": (round(tp, 1) if np.isfinite(tp) else None),
+                                     "peak_oligomer_vs_vehicle": round(olig, 2)},
+                        "confidence": "SOTA Knowles/Cohen kinetics; mechanism→phenotype (rates are assay input)",
                         "domain": "in (proteostasis module)"}
             if not _in_domain(gene):                          # domain gate: neuroactive only
                 return {"driver": "%s %s" % (kind, gene),
