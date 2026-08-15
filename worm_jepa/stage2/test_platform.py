@@ -158,6 +158,21 @@ def test_dose_response_nonlinear():
     assert dr["sensitivity_control_recovers_linearity"]        # metric reports 4.0 if data were linear
 
 
+def test_moa_extrapolation():
+    """The decisive test: the mechanistic model predicts held-out mode-of-action classes
+    (the thing a class-trained classifier structurally can't), and the similarity
+    classifier fails on the anion-channel sign-flip pair (ivermectin vs fipronil)."""
+    mo = _j("moa_extrapolation.json")
+    assert mo["mechanistic_extrapolates"]
+    assert mo["classifier_fails_on_novel_moa"]
+    # the crux: opposite-sign classes with the same target family
+    flip = mo["sign_flip_pair"]
+    assert flip["GluCl agonist"]["truth"] != flip["GABA-Cl antagonist"]["truth"]
+    for c in flip.values():
+        assert c["mechanistic_pred"] == c["truth"]      # mechanism separates them
+        assert c["classifier_pred"] != c["truth"]       # similarity classifier confuses them
+
+
 def test_statistical_rigor():
     """Every connectome gate survives paired inference: CI excludes zero, survives Holm
     across gates, and the connectome>shuffled gap holds at every hyperparameter."""
@@ -175,6 +190,7 @@ TESTS = [test_bridge_stimulus_valence, test_compound_direction, test_proteostasi
          test_ablation_recovers_circuit, test_external_validation_transfers,
          test_five_layer_pipeline, test_external_replication,
          test_single_cell_experiment_valid, test_dose_response_nonlinear,
+         test_moa_extrapolation,
          test_statistical_rigor]
 
 

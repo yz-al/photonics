@@ -1,0 +1,111 @@
+{
+  "reference": "McDermott-Rouse et al. 2021 Mol Syst Biol; 88% MoA classifier interpolates known classes",
+  "task": "leave-one-MoA-class-out prediction of neuromuscular sign (coarse; not the 256-D fingerprint)",
+  "n_compounds": 22,
+  "n_classes": 10,
+  "mechanistic_accuracy": 1.0,
+  "classifier_accuracy_signable": 0.684,
+  "per_class": {
+    "AChE inhibitor": {
+      "n": 3,
+      "truth": "+",
+      "mechanistic_correct": 3,
+      "classifier_correct": 3,
+      "mechanistic_pred": "+",
+      "classifier_pred": "+"
+    },
+    "GABA-Cl antagonist": {
+      "n": 3,
+      "truth": "+",
+      "mechanistic_correct": 3,
+      "classifier_correct": 0,
+      "mechanistic_pred": "+",
+      "classifier_pred": "-"
+    },
+    "GluCl agonist": {
+      "n": 3,
+      "truth": "-",
+      "mechanistic_correct": 3,
+      "classifier_correct": 0,
+      "mechanistic_pred": "-",
+      "classifier_pred": "+"
+    },
+    "L-nAChR agonist": {
+      "n": 3,
+      "truth": "+",
+      "mechanistic_correct": 3,
+      "classifier_correct": 3,
+      "mechanistic_pred": "+",
+      "classifier_pred": "+"
+    },
+    "Na-channel modulator": {
+      "n": 3,
+      "truth": "+",
+      "mechanistic_correct": 3,
+      "classifier_correct": 3,
+      "mechanistic_pred": "+",
+      "classifier_pred": "+"
+    },
+    "mito complex I": {
+      "n": 1,
+      "truth": "abstain",
+      "mechanistic_correct": 1,
+      "classifier_correct": null,
+      "mechanistic_pred": "abstain",
+      "classifier_pred": "n/a"
+    },
+    "mito complex III": {
+      "n": 1,
+      "truth": "abstain",
+      "mechanistic_correct": 1,
+      "classifier_correct": null,
+      "mechanistic_pred": "abstain",
+      "classifier_pred": "n/a"
+    },
+    "mito uncoupler": {
+      "n": 1,
+      "truth": "abstain",
+      "mechanistic_correct": 1,
+      "classifier_correct": null,
+      "mechanistic_pred": "abstain",
+      "classifier_pred": "n/a"
+    },
+    "neonicotinoid agonist": {
+      "n": 2,
+      "truth": "+",
+      "mechanistic_correct": 2,
+      "classifier_correct": 2,
+      "mechanistic_pred": "+",
+      "classifier_pred": "+"
+    },
+    "ryanodine activator": {
+      "n": 2,
+      "truth": "+",
+      "mechanistic_correct": 2,
+      "classifier_correct": 2,
+      "mechanistic_pred": "+",
+      "classifier_pred": "+"
+    }
+  },
+  "sign_flip_pair": {
+    "GluCl agonist": {
+      "n": 3,
+      "truth": "-",
+      "mechanistic_correct": 3,
+      "classifier_correct": 0,
+      "mechanistic_pred": "-",
+      "classifier_pred": "+"
+    },
+    "GABA-Cl antagonist": {
+      "n": 3,
+      "truth": "+",
+      "mechanistic_correct": 3,
+      "classifier_correct": 0,
+      "mechanistic_pred": "+",
+      "classifier_pred": "-"
+    }
+  },
+  "mechanistic_extrapolates": true,
+  "classifier_fails_on_novel_moa": true,
+  "resolution_caveat": "predicts the effect SIGN, not the fine 10-way fingerprint; full version needs a fingerprint-emitting simulator + the measured Tierpsy data (Zenodo 4681682)."
+}
