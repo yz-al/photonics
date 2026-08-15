@@ -1,0 +1,32 @@
+{
+  "noise_ceiling": 0.371,
+  "setting": "few-shot: predict an untested perturbation from a training screen of tested ones (strict split)",
+  "ladder": {
+    "prop": {
+      "r": 0.172,
+      "pct": 46.5,
+      "pct_std": 0.0
+    },
+    "prop+imp": {
+      "r": 0.181,
+      "pct": 49.0,
+      "pct_std": 1.4
+    },
+    "prop+imp+recip": {
+      "r": 0.205,
+      "pct": 55.2,
+      "pct_std": 3.1
+    },
+    "prop+imp+fimp+recip": {
+      "r": 0.21,
+      "pct": 56.6,
+      "pct_std": 3.7
+    }
+  },
+  "zero_shot_anatomy_pct": 46.5,
+  "full_pct": 56.6,
+  "full_pct_std": 3.7,
+  "connectome_shuffled_control_pct": 3.1,
+  "beats_49_cap": true,
+  "headroom_remaining_pct": 43.4
+}

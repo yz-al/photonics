@@ -395,6 +395,30 @@ link (Spearman > Pearson) recovers it. Honest boundary: 49% is still ~half the c
 the cap is **lower, not gone** — and the remaining ~51% needs signal this aggregated data
 lacks (per-animal raw dynamics, cell state).
 
+### Few-shot: 49% → 57% with a reference screen (`perturbation_completion.py`)
+
+The 49% is *zero-shot* — from wiring alone. But a real screen has already measured many
+perturbations and wants to predict the next. In that **few-shot** setting, three extra
+signals (all with strict train/test separation — a held-out perturbation's features use
+only *training* perturbations, no leakage) push it to **57% ± 4%**:
+
+| model (few-shot, strict split) | % of ceiling |
+|---|---|
+| connectome propagation only (≈ zero-shot) | 46% |
+| + connectome-neighbour imputation | 49% |
+| + **reciprocity** (R[i,j] ≈ R[j,i]) | 55% |
+| + functional imputation | **57%** |
+| connectome-shuffled control | 3% |
+
+Reciprocity — the atlas is approximately symmetric, so poking i→response of j mirrors
+poking j→response of i — is the single biggest lever. A gradient-boosted version overfits
+and does worse; linear wins. The connectome-shuffled control collapses the wiring features
+to 3%, confirming they carry real structure. Still ~43% headroom, but 38 → 49 → 57 is real,
+leakage-controlled ground. (Honest negatives on the way, all recorded: the wireless
+extrasynaptic connectome, the unc-31 wired-only test, and single-worm state-conditioning
+all failed under proper controls — see `remaining_signal_probe.py`,
+`state_conditioned_dynamics.py`.)
+
 ## Temporal dynamics: does the connectome predict response timing?
 
 `temporal_dynamics.py` goes after the signal the steady-state model can't see —

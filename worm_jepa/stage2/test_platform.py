@@ -231,6 +231,18 @@ def test_state_conditioned_dynamics_honest():
     assert sd["stimulus_specific_state_gain"] < 0.1           # real-over-pseudo edge is small
 
 
+def test_perturbation_completion_fewshot():
+    """Few-shot (reference screen): reciprocity + imputation push held-out perturbation
+    prediction past the 49% zero-shot cap to ~57%, strict train/test split; the connectome
+    features collapse under shuffle (real structure), and reciprocity adds the big lever."""
+    pc = _j("perturbation_completion.json")
+    assert pc["beats_49_cap"]
+    assert pc["full_pct"] > 52
+    lad = pc["ladder"]
+    assert lad["prop+imp+recip"]["pct"] > lad["prop+imp"]["pct"] + 3   # reciprocity is real signal
+    assert pc["connectome_shuffled_control_pct"] < 10                  # connectome features collapse
+
+
 def test_statistical_rigor():
     """Every connectome gate survives paired inference: CI excludes zero, survives Holm
     across gates, and the connectome>shuffled gap holds at every hyperparameter."""
@@ -251,7 +263,7 @@ TESTS = [test_bridge_stimulus_valence, test_compound_direction, test_proteostasi
          test_moa_extrapolation, test_fingerprint_emitter_honest, test_moa_real_taxonomy,
          test_perturbation_improved_beats_cap, test_remaining_signal_negatives,
          test_reconnect_1075_identities, test_state_conditioned_dynamics_honest,
-         test_statistical_rigor]
+         test_perturbation_completion_fewshot, test_statistical_rigor]
 
 
 if __name__ == "__main__":
