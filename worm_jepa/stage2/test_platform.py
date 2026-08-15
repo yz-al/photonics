@@ -203,6 +203,15 @@ def test_perturbation_improved_beats_cap():
     assert pi["shuffled"]["pct_of_ceiling"] < 5      # held-out gain, not overfit: shuffle collapses
 
 
+def test_remaining_signal_negatives():
+    """The hunt for signal above 49% is honestly recorded as two negatives: the wireless
+    connectome doesn't help, and unc-31 (wired-only) isn't better-predicted when paired."""
+    rs = _j("remaining_signal.json")
+    assert rs["both_hypotheses_negative"]
+    assert not rs["H1_wireless"]["helps"]
+    assert not rs["H2_unc31_paired"]["peptidergic_explains_headroom"]
+
+
 def test_statistical_rigor():
     """Every connectome gate survives paired inference: CI excludes zero, survives Holm
     across gates, and the connectome>shuffled gap holds at every hyperparameter."""
@@ -221,7 +230,7 @@ TESTS = [test_bridge_stimulus_valence, test_compound_direction, test_proteostasi
          test_five_layer_pipeline, test_external_replication,
          test_single_cell_experiment_valid, test_dose_response_nonlinear,
          test_moa_extrapolation, test_fingerprint_emitter_honest, test_moa_real_taxonomy,
-         test_perturbation_improved_beats_cap,
+         test_perturbation_improved_beats_cap, test_remaining_signal_negatives,
          test_statistical_rigor]
 
 

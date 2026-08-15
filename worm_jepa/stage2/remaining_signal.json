@@ -1,0 +1,17 @@
+{
+  "baseline_49pct_ref": "perturbation_improved.py",
+  "H1_wireless": {
+    "wired_only_pct": 49.6,
+    "plus_wireless_pct": 49.1,
+    "helps": false
+  },
+  "H2_unc31_paired": {
+    "n_paired_columns": 27,
+    "connectome_vs_wt_r": 0.212,
+    "connectome_vs_unc31_r": 0.16,
+    "unc31_better_p": 0.7650801837444305,
+    "peptidergic_explains_headroom": false
+  },
+  "both_hypotheses_negative": true,
+  "conclusion": "the ~51% headroom is not recovered by any static connectome (wired, extrasynaptic, or peptide-release-removed); it needs per-animal state/dynamics this aggregated data lacks."
+}
