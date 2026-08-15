@@ -1,0 +1,128 @@
+{
+  "decoder_features": [
+    "vel",
+    "beh_angular_velocity",
+    "beh_head_curvature",
+    "beh_body_curvature",
+    "beh_pumping"
+  ],
+  "decoder_heldout_r2": {
+    "vel": 0.404,
+    "beh_angular_velocity": 0.077,
+    "beh_head_curvature": 0.194,
+    "beh_body_curvature": 0.356,
+    "beh_pumping": 0.182
+  },
+  "n_common_neurons": 70,
+  "neural_state_operator": "propagate",
+  "direction_consistency_by_operator": {
+    "direct": "2/7",
+    "propagate": "3/7"
+  },
+  "fingerprints": {
+    "nicotine": {
+      "gene": "acr-16",
+      "known_direction": "increase",
+      "target_neurons_hit": 7,
+      "fingerprint": {
+        "vel": 0.1324,
+        "beh_angular_velocity": -0.067,
+        "beh_head_curvature": 0.0308,
+        "beh_body_curvature": 0.0535,
+        "beh_pumping": -0.0921
+      }
+    },
+    "levamisole": {
+      "gene": "unc-29",
+      "known_direction": "increase",
+      "target_neurons_hit": 0,
+      "fingerprint": {
+        "vel": 0.0,
+        "beh_angular_velocity": 0.0,
+        "beh_head_curvature": 0.0,
+        "beh_body_curvature": 0.0,
+        "beh_pumping": 0.0
+      }
+    },
+    "serotonin": {
+      "gene": "mod-1",
+      "known_direction": "decrease",
+      "target_neurons_hit": 33,
+      "fingerprint": {
+        "vel": 0.0874,
+        "beh_angular_velocity": -0.037,
+        "beh_head_curvature": -0.0046,
+        "beh_body_curvature": 0.043,
+        "beh_pumping": -0.0412
+      }
+    },
+    "fluoxetine": {
+      "gene": "mod-1",
+      "known_direction": "decrease",
+      "target_neurons_hit": 33,
+      "fingerprint": {
+        "vel": 0.0874,
+        "beh_angular_velocity": -0.037,
+        "beh_head_curvature": -0.0046,
+        "beh_body_curvature": 0.043,
+        "beh_pumping": -0.0412
+      }
+    },
+    "muscimol": {
+      "gene": "unc-49",
+      "known_direction": "decrease",
+      "target_neurons_hit": 39,
+      "fingerprint": {
+        "vel": 0.0226,
+        "beh_angular_velocity": -0.0034,
+        "beh_head_curvature": 0.0285,
+        "beh_body_curvature": -0.0098,
+        "beh_pumping": -0.1317
+      }
+    },
+    "ivermectin": {
+      "gene": "avr-15",
+      "known_direction": "decrease",
+      "target_neurons_hit": 27,
+      "fingerprint": {
+        "vel": -0.0676,
+        "beh_angular_velocity": 0.0819,
+        "beh_head_curvature": 0.0638,
+        "beh_body_curvature": -0.0816,
+        "beh_pumping": -0.0182
+      }
+    },
+    "PTZ": {
+      "gene": "unc-49",
+      "known_direction": "increase",
+      "target_neurons_hit": 39,
+      "fingerprint": {
+        "vel": -0.0226,
+        "beh_angular_velocity": 0.0034,
+        "beh_head_curvature": -0.0285,
+        "beh_body_curvature": 0.0098,
+        "beh_pumping": 0.1317
+      }
+    },
+    "dopamine": {
+      "gene": "dop-3",
+      "known_direction": "decrease",
+      "target_neurons_hit": 29,
+      "fingerprint": {
+        "vel": -0.0242,
+        "beh_angular_velocity": -0.0019,
+        "beh_head_curvature": -0.0241,
+        "beh_body_curvature": 0.0891,
+        "beh_pumping": 0.0571
+      }
+    }
+  },
+  "velocity_sign_consistent_with_compound_response": "3/7",
+  "same_velocity_sign_pairs": 9,
+  "mean_fingerprint_divergence_within_sign": 0.508,
+  "decoder_is_real": true,
+  "direction_preserved": false,
+  "emitter_works": false,
+  "bottleneck": "faithful fingerprint needs circuit propagation (target->command), capped at ~38%% of ceiling (perturbation_response.py); the validated 8/8 scalar sidesteps propagation but yields only a scalar. The emitter inherits the 38%% cap -- a MODEL bottleneck, not data.",
+  "resolution_note": "~5 locomotion features (Flavell channels), neuronal only; not the 256-D Tierpsy space."
+}
