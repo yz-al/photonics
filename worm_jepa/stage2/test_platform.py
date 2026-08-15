@@ -221,6 +221,16 @@ def test_reconnect_1075_identities():
     assert rc["n_identified_stim_neurons"] >= 100        # broad coverage across the 300
 
 
+def test_state_conditioned_dynamics_honest():
+    """State-conditioning of single-trial perturbation responses is a mean-reversion
+    artifact (pseudo-stimulus null >= real), NOT a path past the aggregate cap; the
+    stimulus-specific state gain is tiny. Recorded honestly, not asserted as a win."""
+    sd = _j("state_conditioned_dynamics.json")
+    assert sd["bare_state_is_mean_reversion_artifact"]        # pseudo-stim control exposes it
+    assert not sd["dynamics_beat_averages"]
+    assert sd["stimulus_specific_state_gain"] < 0.1           # real-over-pseudo edge is small
+
+
 def test_statistical_rigor():
     """Every connectome gate survives paired inference: CI excludes zero, survives Holm
     across gates, and the connectome>shuffled gap holds at every hyperparameter."""
@@ -240,7 +250,7 @@ TESTS = [test_bridge_stimulus_valence, test_compound_direction, test_proteostasi
          test_single_cell_experiment_valid, test_dose_response_nonlinear,
          test_moa_extrapolation, test_fingerprint_emitter_honest, test_moa_real_taxonomy,
          test_perturbation_improved_beats_cap, test_remaining_signal_negatives,
-         test_reconnect_1075_identities,
+         test_reconnect_1075_identities, test_state_conditioned_dynamics_honest,
          test_statistical_rigor]
 
 

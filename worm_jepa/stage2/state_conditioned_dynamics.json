@@ -1,0 +1,21 @@
+{
+  "n_trials": 904,
+  "n_pseudo": 904,
+  "connectome_only_r": 0.06,
+  "mean_reversion": {
+    "real": 0.383,
+    "pseudo": 0.414
+  },
+  "full_model": {
+    "real": 0.386,
+    "pseudo": 0.414
+  },
+  "connectome_x_state": {
+    "real": 0.22,
+    "pseudo": 0.198
+  },
+  "bare_state_is_mean_reversion_artifact": true,
+  "stimulus_specific_state_gain": 0.022,
+  "dynamics_beat_averages": false,
+  "conclusion": "single-trial responses are dominated by stimulus-independent ongoing dynamics; averaging (the atlas) is the efficient estimator. State-conditioning's apparent gain is mean-reversion (pseudo>=real); the true stimulus-specific state gain is ~0.02. No validated path past 49%."
+}
