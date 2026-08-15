@@ -1,0 +1,31 @@
+{
+  "metric": "downstream held-out perturbation (self excluded); matched ceiling",
+  "noise_ceiling": 0.371,
+  "baseline_paramfree": {
+    "r": 0.141,
+    "pct_of_ceiling": 38.0
+  },
+  "improved_cv": {
+    "r": 0.181,
+    "std": 0.01,
+    "pct_of_ceiling": 48.9,
+    "pct_std": 2.8
+  },
+  "shuffled": {
+    "r": 0.002,
+    "pct_of_ceiling": 0.6
+  },
+  "levers": [
+    "gap-junction weight 2-4x (electrical coupling)",
+    "gain 0.85-0.95 (global integration)",
+    "isotonic link (compressive nonlinearity; see dose_response.py)"
+  ],
+  "hyperparam_picks": {
+    "(0.85, 4.0)": 5,
+    "(0.85, 2.0)": 3,
+    "(0.95, 2.0)": 1,
+    "(0.95, 4.0)": 1
+  },
+  "beats_baseline": true,
+  "headroom_remaining_pct": 51.1
+}

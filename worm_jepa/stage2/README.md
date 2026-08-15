@@ -374,6 +374,27 @@ steady-state dFF), a connectome GNN that learns the propagation nonlinearity, an
 multi-organism training. (Two metric fixes got us here: excluding the trivial self-response, and matching
 the ceiling to the downstream metric.)
 
+### Beating the 38% cap → 49% (`perturbation_improved.py`)
+
+The plateau was not the true cap. Three *principled* levers — each cross-validated on
+held-out perturbations (2-fold, 5 seeds), shuffle staying ~1% — move it to **49% ± 3%**:
+
+| model (downstream held-out) | r | % of ceiling |
+|---|---|---|
+| parameter-free baseline (g=0.7, gap=0.5, linear) | 0.141 | 38% |
+| **CV-tuned + isotonic link** | **0.181** | **49% ± 3%** |
+| shuffled connectome | 0.002 | 1% |
+
+The levers: (1) **gap-junction weight 2–4×** — electrical coupling contributes far more
+to the steady-state response than the 0.5 default (the CV picks gap=2–4 every time);
+(2) **higher gain g≈0.85–0.95** — responses are globally integrated; (3) an **isotonic
+link** fit on train — the compressive nonlinearity we *proved* separately
+(`dose_response.py`: the concentration→response map is ~92% compressed). A linear
+propagation correlated against a saturating response leaves r on the table; the monotonic
+link (Spearman > Pearson) recovers it. Honest boundary: 49% is still ~half the ceiling —
+the cap is **lower, not gone** — and the remaining ~51% needs signal this aggregated data
+lacks (per-animal raw dynamics, cell state).
+
 ## Temporal dynamics: does the connectome predict response timing?
 
 `temporal_dynamics.py` goes after the signal the steady-state model can't see —

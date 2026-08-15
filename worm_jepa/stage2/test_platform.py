@@ -194,6 +194,15 @@ def test_moa_real_taxonomy():
     assert mr["n_sign_flip_failures"] >= 6                      # many opposite-sign same-receptor classes
 
 
+def test_perturbation_improved_beats_cap():
+    """Beating the 38% cap: CV-tuned propagation (gap weight + gain + isotonic link)
+    predicts held-out perturbations above the parameter-free baseline, shuffle stays clean."""
+    pi = _j("perturbation_improved.json")
+    assert pi["beats_baseline"]
+    assert pi["improved_cv"]["pct_of_ceiling"] > pi["baseline_paramfree"]["pct_of_ceiling"] + 5
+    assert pi["shuffled"]["pct_of_ceiling"] < 5      # held-out gain, not overfit: shuffle collapses
+
+
 def test_statistical_rigor():
     """Every connectome gate survives paired inference: CI excludes zero, survives Holm
     across gates, and the connectome>shuffled gap holds at every hyperparameter."""
@@ -212,6 +221,7 @@ TESTS = [test_bridge_stimulus_valence, test_compound_direction, test_proteostasi
          test_five_layer_pipeline, test_external_replication,
          test_single_cell_experiment_valid, test_dose_response_nonlinear,
          test_moa_extrapolation, test_fingerprint_emitter_honest, test_moa_real_taxonomy,
+         test_perturbation_improved_beats_cap,
          test_statistical_rigor]
 
 
