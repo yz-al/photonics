@@ -212,6 +212,15 @@ def test_remaining_signal_negatives():
     assert not rs["H2_unc31_paired"]["peptidergic_explains_headroom"]
 
 
+def test_reconnect_1075_identities():
+    """Single-worm 001075 traces are re-identified via NeuroPAL labels, VALIDATED: the
+    identity-resolved single-worm responses reproduce the funatlas aggregate (r>>0)."""
+    rc = _j("reconnected_1075.json")
+    assert rc["reconnection_valid"]
+    assert rc["corr_singleworm_vs_funatlas"] > 0.2      # names correct, not random
+    assert rc["n_identified_stim_neurons"] >= 100        # broad coverage across the 300
+
+
 def test_statistical_rigor():
     """Every connectome gate survives paired inference: CI excludes zero, survives Holm
     across gates, and the connectome>shuffled gap holds at every hyperparameter."""
@@ -231,6 +240,7 @@ TESTS = [test_bridge_stimulus_valence, test_compound_direction, test_proteostasi
          test_single_cell_experiment_valid, test_dose_response_nonlinear,
          test_moa_extrapolation, test_fingerprint_emitter_honest, test_moa_real_taxonomy,
          test_perturbation_improved_beats_cap, test_remaining_signal_negatives,
+         test_reconnect_1075_identities,
          test_statistical_rigor]
 
 

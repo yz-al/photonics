@@ -1,0 +1,11 @@
+{
+  "method": "NeuroPAL segmentation labels (id->name) resolve the functional ROIs' numeric neuropal_ids",
+  "n_worms": 45,
+  "n_identified_stim_neurons": 127,
+  "n_identified_response_entries": 13745,
+  "n_overlap_with_funatlas": 7049,
+  "corr_singleworm_vs_funatlas": 0.313,
+  "funatlas_ceiling": 0.371,
+  "reconnection_valid": true,
+  "unblocks": "single-worm perturbation DYNAMICS (per-trial, state-dependent, temporal) for 001075"
+}
