@@ -1,0 +1,77 @@
+{
+  "reference": "McDermott-Rouse 2021 real taxonomy (github Tierpsy/moaclassification AllCompoundsMoA.csv)",
+  "n_tested_compounds": 110,
+  "n_moa_classes": 23,
+  "n_neuro_signable_classes": 14,
+  "n_abstain_classes": 9,
+  "classifier_lomo_sign_accuracy": 0.357,
+  "mechanistic_lomo_sign_accuracy": 1.0,
+  "classifier_failures": [
+    {
+      "held_class": "5-HT - agonist",
+      "nearest_known": "5-HT - antagonist",
+      "classifier_pred": "+",
+      "truth": "-",
+      "mechanistic": "-"
+    },
+    {
+      "held_class": "5-HT - antagonist",
+      "nearest_known": "5-HT - agonist",
+      "classifier_pred": "-",
+      "truth": "+",
+      "mechanistic": "+"
+    },
+    {
+      "held_class": "AChE inhibitor",
+      "nearest_known": "vAChT inhibitor",
+      "classifier_pred": "-",
+      "truth": "+",
+      "mechanistic": "+"
+    },
+    {
+      "held_class": "GABA antagonist",
+      "nearest_known": "GluCl agonist",
+      "classifier_pred": "-",
+      "truth": "+",
+      "mechanistic": "+"
+    },
+    {
+      "held_class": "GluCl agonist",
+      "nearest_known": "GABA antagonist",
+      "classifier_pred": "+",
+      "truth": "-",
+      "mechanistic": "-"
+    },
+    {
+      "held_class": "nAChR agonist",
+      "nearest_known": "nAChR antagonist",
+      "classifier_pred": "-",
+      "truth": "+",
+      "mechanistic": "+"
+    },
+    {
+      "held_class": "nAChR antagonist",
+      "nearest_known": "nAChR agonist",
+      "classifier_pred": "+",
+      "truth": "-",
+      "mechanistic": "-"
+    },
+    {
+      "held_class": "VGSC - Activator",
+      "nearest_known": "VGSC - Blocker",
+      "classifier_pred": "-",
+      "truth": "+",
+      "mechanistic": "+"
+    },
+    {
+      "held_class": "VGSC - Blocker",
+      "nearest_known": "VGSC - Activator",
+      "classifier_pred": "+",
+      "truth": "-",
+      "mechanistic": "-"
+    }
+  ],
+  "n_sign_flip_failures": 9,
+  "classifier_fails_on_novel_moa": true,
+  "note": "mechanistic = the ion x action rule (reference by construction). Measured result is the classifier's shortfall on held-out MoA. Full-fingerprint version bottlenecked by the 38% propagation cap (fingerprint.py)."
+}

@@ -1,0 +1,115 @@
+MOA_general,MOA_specific,MOA_group,Tested,drug_name,CSN
+5-HT - agonist,,1,TRUE,N-(3-trifluromethylphenylpiperazine hydrochloride) (TFMPP),SY0183
+5-HT - agonist,,1,TRUE,5-HT,SY0121
+5-HT - agonist,reuptake inhibitor,1,TRUE,1-(3-chlorophenyl)piperazine dihydrochloride,SY0130
+5-HT - antagonist,,2,TRUE,Gramine,SY0291
+5-HT - antagonist,,2,TRUE,Ketanserin,SY0283
+5-HT - antagonist,,2,TRUE,Mianserin,SY0274
+5-HT - antagonist,,2,TRUE,Methiothepin,SY0292
+5-HT - antagonist,,2,TRUE,Ritanserin,SY0280
+ACCase,,24,TRUE,spirotetramat,SY2405
+AChE inhibitor,Carbamate,3,TRUE,Methomyl,SY0326
+AChE inhibitor,Carbamate,3,TRUE,Aldicarb,SY0358
+AChE inhibitor,Carbamate,3,TRUE,Carbaryl,SY0307
+AChE inhibitor,Carbamate,3,TRUE,Carbofuran,SY0354
+AChE inhibitor,Carbamate,3,TRUE,Pirimicarb,SY0330
+AChE inhibitor,Organophosphate,3,TRUE,Profenofos,SY0331
+AChE inhibitor,Organophosphate,3,TRUE,Chlorpyrifos,SY0380
+AChE inhibitor,Organophosphate,3,TRUE,Monocrotophos,SY0318
+AChE inhibitor,Organophosphate,3,TRUE,Diazinon,SY0386
+AChE inhibitor,Organophosphate,3,TRUE,Pirimiphos-Methyl,SY0301
+TRPV receptor,,5,TRUE,Pymetrozine,SY0567
+Chitin biosynthesis inhibitor,,21,TRUE,Lufernon,SY2176
+vAChT inhibitor,choline reuptake inhibitor,17,TRUE,hemicholinium-3,SY1702
+GABA antagonist,orthosteric site,6,TRUE,Endosulfan,SY0641
+GABA antagonist,orthosteric site,6,TRUE,Ethriprole,SY0600
+GABA antagonist,orthosteric site,6,TRUE,Fipronil analogue,SY0617
+GABA antagonist,orthosteric site,6,TRUE,Dieldrin,SY0612
+GABA antagonist,orthosteric site,6,TRUE,Endrin,SY0622
+GABA antagonist,transaminase inhibitor,6,TRUE,Gabaculine,SY0669
+GluCl agonist,mectin ,7,TRUE,Emamectin benzoate,SY0791
+GluCl agonist,mectin ,7,TRUE,Doramectin,SY0724
+GluCl agonist,mectin ,7,TRUE,Avermectin type,SY0722
+GluCl agonist,mectin ,7,TRUE,Ivermectin,SY0718
+GluR agonist,,8,TRUE,Quisqualic acid,SY0860
+Juvenile hormone mimic,,20,TRUE,Fenoxycarb,SY2064
+mAChR - agonist,,9,TRUE,Arecoline,SY0938
+mAChR - agonist,,9,TRUE,Oxotremorine,SY0929
+mAChR - agonist,,9,TRUE,oxotremorine-like,SY0988
+mAChR - agonist,,9,TRUE,cyclic amine type,SY0952
+mAChR - agonist,,9,TRUE,cyclic amine type,SY0941
+mAChR - antagonist,,23,TRUE,Scopolamine,SY2333
+mAChR - antagonist,,23,TRUE,SY2353,SY2353
+Mitochondrial inhibition,Complex I,10,TRUE,Rotenone,SY1081
+Mitochondrial inhibition,Complex I,10,TRUE,Pyridaben,SY1084
+Mitochondrial inhibition,Complex I,10,TRUE,SY1048,SY1048
+Mitochondrial inhibition,Complex II,10,TRUE,cyenopyrafen,SY1051
+Mitochondrial inhibition,Complex III,10,TRUE,azoxystrobin,SY1047
+Mitochondrial inhibition,Complex III,10,TRUE,Antimycin A,SY1087
+Mitochondrial inhibition,Mitochondrial ATP synthase,10,TRUE,diafenthiuron,SY1099
+Mitochondrial inhibition,Uncoupler,10,TRUE,SY1079,SY1079
+nAChR agonist,acr-23 receptor,11,TRUE,Monepantel,SY1154
+nAChR agonist,all nicotinic receptors,11,TRUE,Nicotine,SY1104
+nAChR agonist,cyanotropane,11,TRUE,Cyanotropane,SY1124
+nAChR agonist,lev-1 receptor,11,TRUE,Levamisole,SY1140
+nAChR agonist,nAChR/mAChR,11,FALSE,,
+nAChR agonist,neonicotinoid,11,TRUE,Imidacloprid,SY1189
+nAChR agonist,neonicotinoid,11,TRUE,Sulfoxaflor,SY1184
+nAChR agonist,partial agonist of _4-_2 nA receptors,11,TRUE,Cytisine,SY1163
+nAChR agonist,spinosyn (_6),11,TRUE,Spinosad,SY1173
+nAChR agonist,full agonism on _7 nA receptors,11,TRUE,Varenicline,SY1118
+nAChR antagonist,,12,TRUE,Cartap,SY1235
+Octopamine agonist,amidine,13,TRUE,Amitraz,SY1304
+Octopamine agonist,imidazoline,13,TRUE,imidazoline,SY1391
+Octopamine agonist,imidazoline,13,TRUE,imidazoline,SY1321
+Octopamine agonist,octopamine,13,TRUE,Octopamine,SY1339
+Octopamine agonist,oxazoline,13,TRUE,SY1382,SY1382
+Octopamine agonist,oxazoline,13,TRUE,SY1392,SY1392
+Octopamine agonist,thiazoline,13,TRUE,SY1344,SY1344
+Octopamine agonist,thiazoline,13,TRUE,SY1361,SY1361
+RyR,activator,14,TRUE,Ryanodine,SY1482
+RyR,inhibitor,14,TRUE,bisamide,SY1417
+Tubulin - depolymeriser,,15,TRUE,colchicine,SY1568
+Tubulin - depolymeriser,inhibits polymerisation,15,TRUE,nocodazole,SY1566
+Tubulin - depolymeriser,inhibits polymerisation,15,TRUE,SY1559,SY1559
+Tubulin - stabiliser,,16,TRUE,SY1601,SY1601
+Tubulin - stabiliser,,16,TRUE,SY1644,SY1644
+Tubulin - stabiliser,,16,TRUE,SY1620,SY1620
+Tubulin - stabiliser,,16,TRUE,SY1676,SY1676
+vAChT inhibitor,spiroindoline type,17,TRUE,SY1786,SY1786
+vAChT inhibitor,spiroindoline type,17,TRUE,SY1769,SY1769
+vAChT inhibitor,spiroindoline type,17,TRUE,SY1719,SY1719
+vAChT inhibitor,spiroindoline type,17,TRUE,SY1776,SY1776
+vAChT inhibitor,spiroindoline type,17,TRUE,SY1783,SY1783
+vAChT inhibitor - vesamicol type,,18,TRUE,vesamicol,SY1840
+vAChT inhibitor - vesamicol type,,18,TRUE,ABV aminobenzovesamicol,SY1824
+VGSC - Activator,,19,TRUE,fenvalerate,SY1997
+VGSC - Blocker,,22,TRUE,Indoxacarb,SY2295
+AChE inhibitor,Carbamate,3,TRUE,Thiodicarb,SY0376
+Tubulin - depolymeriser,inhibits polymerisation,15,TRUE,Butralin,SY1596
+Mitochondrial inhibition,Uncoupler,10,TRUE,Sulfluramid,SY1097
+nAChR agonist,neonicotinoid,11,TRUE,Thiamethoxam,SY1101
+GluCl agonist,mectin ,7,TRUE,Avermectin B2a,SY0774
+Mitochondrial inhibition,Complex III,10,TRUE,Cyazofamid,SY1021
+Tubulin - depolymeriser,inhibits polymerisation,15,TRUE,Thiophanate-methyl,SY1579
+GABA antagonist,orthosteric site,6,TRUE,aryl heterocycle,SY0658
+vAChT inhibitor,spiroindoline-type,17,TRUE,SY1782,SY1782
+vAChT inhibitor,spiroindoline-type,17,TRUE,SY1793,SY1793
+vAChT inhibitor,spiroindoline-type,17,TRUE,SY1727,SY1727
+vAChT inhibitor,spiroindoline-type,17,TRUE,SY1713,SY1713
+Tubulin - stabiliser,,16,TRUE,SY1655,SY1655
+nAChR antagonist,,12,TRUE,Triflumezopyrim,SY1257
+AChE inhibitor,Carbamate,3,TRUE,Methiocarb,SY0313
+Tubulin - depolymeriser,depolymeriser,15,TRUE,Benomyl,SY1551
+AChE inhibitor,Carbamate,3,TRUE,Fenobucarb,SY0353
+AChE inhibitor,Carbamate,3,TRUE,Oxamyl,SY0372
+Octopamine agonist,thiazoline,13,TRUE,thiazoline,SY1362
+Octopamine agonist,imidazoline,13,TRUE,imidazoline,SY1386
+mAChR - agonist,,9,TRUE,(±)-Muscarine chloride hydrate ,SY0983
+nAChR agonist,neonicotinoid,11,TRUE,SY1194,SY1194
+nAChR agonist,neonicotinoid,11,TRUE,SY1134,SY1134
+nAChR agonist,neonicotinoid,11,TRUE,SY1187,SY1187
+GABA antagonist,orthosteric site,6,TRUE,Fipronil,SY0611
+DMSO,,0,,DMSO,DMSO
+NoCompound,,-1,,NoCompound,NoCompound
+NoCompound,,-1,,NoCompound,NoCompound

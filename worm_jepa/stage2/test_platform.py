@@ -183,6 +183,17 @@ def test_fingerprint_emitter_honest():
     assert fp["emitter_works"] == (fp["direction_preserved"] and fp["same_velocity_sign_pairs"] >= 0)
 
 
+def test_moa_real_taxonomy():
+    """On the REAL McDermott-Rouse taxonomy (110 compounds), a similarity classifier fails
+    leave-one-MoA-out (< 50% sign accuracy), failing on the same-receptor sign-flip pairs;
+    the mechanistic ion x action rule composes them."""
+    mr = _j("moa_real.json")
+    assert mr["n_tested_compounds"] >= 100                      # the real published set
+    assert mr["classifier_fails_on_novel_moa"]
+    assert mr["classifier_lomo_sign_accuracy"] < 0.5
+    assert mr["n_sign_flip_failures"] >= 6                      # many opposite-sign same-receptor classes
+
+
 def test_statistical_rigor():
     """Every connectome gate survives paired inference: CI excludes zero, survives Holm
     across gates, and the connectome>shuffled gap holds at every hyperparameter."""
@@ -200,7 +211,7 @@ TESTS = [test_bridge_stimulus_valence, test_compound_direction, test_proteostasi
          test_ablation_recovers_circuit, test_external_validation_transfers,
          test_five_layer_pipeline, test_external_replication,
          test_single_cell_experiment_valid, test_dose_response_nonlinear,
-         test_moa_extrapolation, test_fingerprint_emitter_honest,
+         test_moa_extrapolation, test_fingerprint_emitter_honest, test_moa_real_taxonomy,
          test_statistical_rigor]
 
 
